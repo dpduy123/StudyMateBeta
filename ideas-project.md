@@ -90,3 +90,4 @@ Career Mentoring: Kết nối với các cố vấn nghề nghiệp để địn
 Cấp phép cho trường học (University License): Bán giấy phép sử dụng ứng dụng không giới hạn cho toàn bộ sinh viên trong trường với chi phí từ 5 đến 10 triệu VNĐ/tháng. Điều này mang lại giá trị to lớn cho trường học, giúp họ nâng cao chất lượng môi trường học thuật và gắn kết sinh viên.
 Bảng điều khiển phân tích cho trường đại học (Analytics Dashboard): Cung cấp một bảng điều khiển dữ liệu chuyên sâu, giúp ban lãnh đạo trường học nắm bắt xu hướng học tập, mức độ tương tác, và nhu cầu của sinh viên. Đây là một dịch vụ cao cấp, có thể bán với giá 20 triệu VNĐ/năm.
 Tài trợ các cuộc thi học thuật (Sponsored Study Challenges): Hợp tác với các doanh nghiệp để tổ chức các cuộc thi, hackathon hoặc study challenge trên nền tảng. Các doanh nghiệp có thể tiếp cận trực tiếp sinh viên tài năng, trong khi StudyMate thu phí từ 50 đến 100 triệu VNĐ/chiến dịch.
+tao
