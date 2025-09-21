@@ -2,20 +2,24 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { User } from '@supabase/supabase-js'
+import { User, Session } from '@supabase/supabase-js'
 import { Toaster } from 'react-hot-toast'
 
 interface AuthContextType {
-  user: User | null
-  loading: boolean
-  signOut: () => Promise<void>
+  user: User | null;
+  loading: boolean;
+  signOut: () => Promise<void>;
+  signUp: (email: string, password: string, metaData?: Record<string, unknown>) => Promise<{ user: User | null; session: Session | null; }>;
+  signIn: (email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signOut: async () => {},
-})
+  signUp: async () => ({ user: null, session: null }),
+  signIn: async () => {},
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
@@ -49,12 +53,32 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [supabase.auth])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-  }
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  const signUp = async (email: string, password: string, metaData?: Record<string, unknown>) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: metaData,
+      },
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+  };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, signUp, signIn }}>
       {children}
       <Toaster
         position="top-right"

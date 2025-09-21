@@ -36,8 +36,12 @@ export default function ForgotPasswordPage() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000))
       setIsSubmitted(true)
-    } catch (error: any) {
-      setError(error.message || 'Có lỗi xảy ra, vui lòng thử lại')
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError('Có lỗi xảy ra, vui lòng thử lại')
+      }
     } finally {
       setIsLoading(false)
     }

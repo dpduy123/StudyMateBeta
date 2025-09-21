@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   SparklesIcon,
@@ -9,24 +10,16 @@ import {
   XMarkIcon,
   StarIcon,
   MapPinIcon,
-  AcademicCapIcon,
   ClockIcon,
   UserGroupIcon,
   ChatBubbleLeftRightIcon,
   EyeIcon,
   BoltIcon
 } from '@heroicons/react/24/outline'
-import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 
 export default function DiscoverPage() {
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState({
-    subjects: [],
-    studyTime: 'any',
-    location: 'any',
-    level: 'any'
-  })
 
   // Mock data - in real app this would come from AI matching API
   const potentialMatches = [
@@ -147,6 +140,13 @@ export default function DiscoverPage() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Khám phá</h1>
                 <p className="text-gray-600">Tìm bạn học phù hợp với AI</p>
+              </div>
+              <div className="hidden md:flex md:items-center md:space-x-8 ml-10">
+                <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">Dashboard</Link>
+                <Link href="/discover" className="text-gray-900 font-semibold">Khám phá</Link>
+                <Link href="/rooms" className="text-gray-600 hover:text-primary-600 font-medium">Phòng học</Link>
+                <Link href="/messages" className="text-gray-600 hover:text-primary-600 font-medium">Tin nhắn</Link>
+                <Link href="/achievements" className="text-gray-600 hover:text-primary-600 font-medium">Thành tích</Link>
               </div>
             </div>
             <div className="flex items-center space-x-4">

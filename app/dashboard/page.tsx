@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   SparklesIcon,
@@ -184,18 +185,19 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold text-gray-900 mb-6">Thao tác nhanh</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {quickActions.map((action, index) => (
-                  <button
-                    key={index}
-                    className={`p-4 rounded-xl transition-all duration-200 hover:scale-105 ${getColorClasses(action.color)}`}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <action.icon className="h-6 w-6 flex-shrink-0 mt-1" />
-                      <div className="text-left">
-                        <h3 className="font-semibold">{action.title}</h3>
-                        <p className="text-sm opacity-80 mt-1">{action.description}</p>
+                  <Link key={index} href={action.href}>
+                    <div
+                      className={`p-4 rounded-xl transition-all duration-200 hover:scale-105 ${getColorClasses(action.color)} cursor-pointer`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <action.icon className="h-6 w-6 flex-shrink-0 mt-1" />
+                        <div className="text-left">
+                          <h3 className="font-semibold">{action.title}</h3>
+                          <p className="text-sm opacity-80 mt-1">{action.description}</p>
+                        </div>
                       </div>
                     </div>
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>

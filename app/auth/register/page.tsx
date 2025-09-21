@@ -39,7 +39,7 @@ export default function RegisterPage() {
   }
 
   const validateEmail = (email: string) => {
-    const eduPattern = /^[^\s@]+@[^\s@]+\.edu$/
+    const eduPattern = /\.edu/
     return eduPattern.test(email)
   }
 
@@ -72,8 +72,12 @@ export default function RegisterPage() {
         full_name: formData.fullName
       })
       setStep(2)
-    } catch (error: any) {
-      setError(error.message || 'Có lỗi xảy ra khi đăng ký')
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError('Có lỗi xảy ra khi đăng ký')
+      }
     } finally {
       setIsLoading(false)
     }

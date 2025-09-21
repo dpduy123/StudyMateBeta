@@ -29,8 +29,12 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password)
-    } catch (error: any) {
-      setError(error.message || 'Có lỗi xảy ra khi đăng nhập')
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError('Có lỗi xảy ra khi đăng nhập')
+      }
     } finally {
       setIsLoading(false)
     }
