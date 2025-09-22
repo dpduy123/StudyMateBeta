@@ -11,6 +11,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, metaData?: Record<string, unknown>) => Promise<{ user: User | null; session: Session | null; }>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   signUp: async () => ({ user: null, session: null }),
   signIn: async () => {},
+  signInWithGoogle: async () => {},
 });
 
 export const useAuth = () => {
@@ -77,8 +79,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    if (error) throw error;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, signUp, signIn }}>
+    <AuthContext.Provider value={{ user, loading, signOut, signUp, signIn, signInWithGoogle }}>
       {children}
       <Toaster
         position="top-right"

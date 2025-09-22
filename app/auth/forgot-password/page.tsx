@@ -9,6 +9,7 @@ import {
   ArrowLeftIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
+import { createClient } from '@/lib/supabase/client'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -30,11 +31,16 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      // Here you would call your Supabase password reset function
-      // await supabase.auth.resetPasswordForEmail(email)
+      const supabase = createClient()
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      })
+
+      if (error) {
+        throw error
+      }
+
       setIsSubmitted(true)
     } catch (error: unknown) {
       if (error instanceof Error) {
