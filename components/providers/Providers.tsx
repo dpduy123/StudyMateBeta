@@ -46,9 +46,41 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null)
       setLoading(false)
+
+      // Handle email verification - create user profile when user verifies email
+      if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at && session?.user?.user_metadata) {
+        try {
+          // Check if profile already exists by trying to fetch it
+          const profileCheck = await fetch('/api/auth/check-profile', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          });
+
+          if (profileCheck.status === 404) {
+            // Profile doesn't exist, create it
+            await fetch('/api/auth/create-profile', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({
+                fullName: session.user.user_metadata.full_name || '',
+                university: session.user.user_metadata.university || '',
+                major: session.user.user_metadata.major || '',
+                year: session.user.user_metadata.year || 1,
+              }),
+            });
+          }
+        } catch (error) {
+          console.error('Failed to handle profile creation on sign in:', error);
+        }
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -68,6 +100,28 @@ export function Providers({ children }: { children: React.ReactNode }) {
       },
     });
     if (error) throw error;
+
+    // If user is created and confirmed (no email verification needed), create profile
+    if (data.user && data.user.email_confirmed_at) {
+      try {
+        await fetch('/api/auth/create-profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fullName: metaData?.full_name || '',
+            university: metaData?.university || '',
+            major: metaData?.major || '',
+            year: metaData?.year || 1,
+          }),
+        });
+      } catch (profileError) {
+        console.error('Failed to create user profile:', profileError);
+        // Don't fail the signup, just log the error
+      }
+    }
+
     return data;
   };
 

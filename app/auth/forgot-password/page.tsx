@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
     setError('')
 
     // Validate email format
-    const eduPattern = /^[^\s@]+@[^\s@]+\.edu$/
+    const eduPattern = /\.edu/
     if (!eduPattern.test(email)) {
       setError('Vui lòng nhập email trường đại học (.edu)')
       setIsLoading(false)

@@ -14,6 +14,7 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '@/components/providers/Providers'
+import { validateEmailAvailability } from '@/lib/auth/email-validation'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -67,6 +68,20 @@ export default function RegisterPage() {
       return
     }
 
+    // Check if email is already registered
+    try {
+      const { available, message } = await validateEmailAvailability(formData.email)
+
+      if (!available) {
+        setError(message)
+        setIsLoading(false)
+        return
+      }
+    } catch (emailCheckError) {
+      console.warn('Email validation failed, continuing with signup:', emailCheckError)
+      // Continue with signup even if email check fails
+    }
+
     try {
       await signUp(formData.email, formData.password, {
         full_name: formData.fullName
@@ -74,7 +89,16 @@ export default function RegisterPage() {
       setStep(2)
     } catch (error: unknown) {
       if (error instanceof Error) {
-        setError(error.message)
+        // Handle specific Supabase error messages
+        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+          setError('Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.')
+        } else if (error.message.includes('invalid email')) {
+          setError('Email không hợp lệ. Vui lòng kiểm tra lại.')
+        } else if (error.message.includes('weak password')) {
+          setError('Mật khẩu quá yếu. Vui lòng sử dụng mật khẩu mạnh hơn.')
+        } else {
+          setError(error.message)
+        }
       } else {
         setError('Có lỗi xảy ra khi đăng ký')
       }
