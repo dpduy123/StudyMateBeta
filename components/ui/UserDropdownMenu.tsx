@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/components/providers/Providers'
 import {
   ChevronDownIcon,
@@ -26,8 +26,10 @@ export function UserDropdownMenu({
 }: UserDropdownMenuProps) {
   const { user, signOut } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [showMenu, setShowMenu] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -46,6 +48,23 @@ export function UserDropdownMenu({
       document.removeEventListener('click', handleClickOutside)
     }
   }, [showMenu])
+
+  // Auto-close dropdown when navigation completes
+  useEffect(() => {
+    if (navigatingTo && pathname === navigatingTo) {
+      setShowMenu(false)
+      setNavigatingTo(null)
+      setLoadingPage?.(null)
+    }
+  }, [pathname, navigatingTo, setLoadingPage])
+
+  // Auto-close dropdown when user changes (sign out completed)
+  useEffect(() => {
+    if (!user && isSigningOut) {
+      setShowMenu(false)
+      setIsSigningOut(false)
+    }
+  }, [user, isSigningOut])
 
   const avatarSize = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'
   const textSize = size === 'sm' ? 'text-sm' : 'text-sm'
@@ -72,10 +91,9 @@ export function UserDropdownMenu({
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
           <button
             onClick={() => {
+              setNavigatingTo(redirectTo)
               setLoadingPage?.(redirectTo)
               router.push(redirectTo)
-              // Đóng menu sau khi navigate thành công
-              setTimeout(() => setShowMenu(false), 200)
             }}
             disabled={loadingPage === redirectTo}
             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -91,12 +109,8 @@ export function UserDropdownMenu({
           <button
             onClick={async () => {
               setIsSigningOut(true)
-              try {
-                await signOut()
-              } finally {
-                setIsSigningOut(false)
-                setShowMenu(false)
-              }
+              await signOut()
+              // Menu will auto-close when user state changes
             }}
             disabled={isSigningOut}
             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
