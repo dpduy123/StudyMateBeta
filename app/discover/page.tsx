@@ -8,6 +8,7 @@ import { useAuth } from '@/components/providers/Providers'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import {
   SparklesIcon,
   AdjustmentsHorizontalIcon,
@@ -20,18 +21,13 @@ import {
   ChatBubbleLeftRightIcon,
   EyeIcon,
   BoltIcon,
-  ArrowRightOnRectangleIcon,
-  UserCircleIcon,
-  ChevronDownIcon,
-  UserIcon
 } from '@heroicons/react/24/outline'
 
 export default function DiscoverPage() {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
-  const [showUserMenu, setShowUserMenu] = useState(false)
 
   // Mock data - in real app this would come from AI matching API
   const potentialMatches = [
@@ -96,24 +92,6 @@ export default function DiscoverPage() {
 
   const currentMatch = potentialMatches[currentCardIndex]
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element
-      if (showUserMenu && !target.closest('[data-user-menu]')) {
-        setShowUserMenu(false)
-      }
-    }
-
-    if (showUserMenu) {
-      document.addEventListener('click', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside)
-    }
-  }, [showUserMenu])
-
   const handleLike = () => {
     console.log('Liked:', currentMatch.name)
     nextCard()
@@ -161,79 +139,26 @@ export default function DiscoverPage() {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center">
-                <SparklesIcon className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Khám phá</h1>
-                <p className="text-gray-600">Tìm bạn học phù hợp với AI</p>
-              </div>
-              <div className="hidden md:flex md:items-center md:space-x-8 ml-10">
-                <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">Dashboard</Link>
-                <Link href="/discover" className="text-gray-900 font-semibold">Khám phá</Link>
-                <Link href="/rooms" className="text-gray-600 hover:text-primary-600 font-medium">Phòng học</Link>
-                <Link href="/messages" className="text-gray-600 hover:text-primary-600 font-medium">Tin nhắn</Link>
-                <Link href="/achievements" className="text-gray-600 hover:text-primary-600 font-medium">Thành tích</Link>
-              </div>
+      <DashboardHeader
+        title="Khám phá"
+        description="Tìm bạn học phù hợp với AI"
+        icon={SparklesIcon}
+        currentPage="/discover"
+        rightContent={
+          <>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+            >
+              <AdjustmentsHorizontalIcon className="h-5 w-5" />
+              <span>Bộ lọc</span>
+            </button>
+            <div className="text-sm text-gray-600">
+              {currentCardIndex + 1} / {potentialMatches.length}
             </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-              >
-                <AdjustmentsHorizontalIcon className="h-5 w-5" />
-                <span>Bộ lọc</span>
-              </button>
-              <div className="text-sm text-gray-600">
-                {currentCardIndex + 1} / {potentialMatches.length}
-              </div>
-              <div className="relative" data-user-menu>
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors"
-                >
-                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {user?.email?.charAt(0).toUpperCase() || 'S'}
-                  </div>
-                  <span className="hidden sm:inline text-sm font-medium text-gray-900">{user?.email?.split('@')[0] || 'Student'}</span>
-                  <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* User Menu Dropdown */}
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        router.push('/profile')
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                    >
-                      <UserIcon className="h-4 w-4" />
-                      <span>Hồ sơ cá nhân</span>
-                    </button>
-                    <hr className="my-1 border-gray-200" />
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        signOut()
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-                    >
-                      <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                      <span>Đăng xuất</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

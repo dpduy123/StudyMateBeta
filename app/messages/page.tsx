@@ -3,9 +3,8 @@
 import { useState } from 'react'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import Link from 'next/link'
 import {
   ChatBubbleLeftRightIcon,
@@ -13,17 +12,11 @@ import {
   MagnifyingGlassIcon,
   VideoCameraIcon,
   PhoneIcon,
-  EllipsisVerticalIcon,
-  ArrowRightOnRectangleIcon,
-  UserCircleIcon,
-  ChevronDownIcon,
-  UserIcon
+  EllipsisVerticalIcon
 } from '@heroicons/react/24/outline'
 
 export default function MessagesPage() {
-  const { user, signOut } = useAuth()
-  const router = useRouter()
-  const [showUserMenu, setShowUserMenu] = useState(false)
+  const { user } = useAuth()
   // Mock data based on Prisma schema
   const conversations = [
     {
@@ -65,24 +58,6 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element
-      if (showUserMenu && !target.closest('[data-user-menu]')) {
-        setShowUserMenu(false)
-      }
-    }
-
-    if (showUserMenu) {
-      document.addEventListener('click', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside)
-    }
-  }, [showUserMenu])
-
   const messages = [
     { id: 1, sender: 'them', content: 'Chào bạn, mình là Minh Anh. Rất vui được match!', timestamp: '10:30 AM' },
     { id: 2, sender: 'me', content: 'Chào Minh Anh, mình cũng rất vui!', timestamp: '10:31 AM' },
@@ -96,68 +71,13 @@ export default function MessagesPage() {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
-                <ChatBubbleLeftRightIcon className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Tin nhắn</h1>
-                <p className="text-gray-600">Các cuộc trò chuyện của bạn</p>
-              </div>
-              <div className="hidden md:flex md:items-center md:space-x-8 ml-10">
-                <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">Dashboard</Link>
-                <Link href="/discover" className="text-gray-600 hover:text-primary-600 font-medium">Khám phá</Link>
-                <Link href="/rooms" className="text-gray-600 hover:text-primary-600 font-medium">Phòng học</Link>
-                <Link href="/messages" className="text-gray-900 font-semibold">Tin nhắn</Link>
-                <Link href="/achievements" className="text-gray-600 hover:text-primary-600 font-medium">Thành tích</Link>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative" data-user-menu>
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors"
-                >
-                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {user?.email?.charAt(0).toUpperCase() || 'S'}
-                  </div>
-                  <span className="hidden sm:inline text-sm font-medium text-gray-900">{user?.email?.split('@')[0] || 'Student'}</span>
-                  <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* User Menu Dropdown */}
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        router.push('/profile')
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                    >
-                      <UserIcon className="h-4 w-4" />
-                      <span>Hồ sơ cá nhân</span>
-                    </button>
-                    <hr className="my-1 border-gray-200" />
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        signOut()
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-                    >
-                      <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                      <span>Đăng xuất</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="flex-shrink-0">
+        <DashboardHeader
+          title="Tin nhắn"
+          description="Các cuộc trò chuyện của bạn"
+          icon={ChatBubbleLeftRightIcon}
+          currentPage="/messages"
+        />
       </div>
 
       <div className="flex-grow mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">

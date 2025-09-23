@@ -8,6 +8,7 @@ import { useAuth } from '@/components/providers/Providers'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
 import { useRouter } from 'next/navigation'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import {
   SparklesIcon,
   UserGroupIcon,
@@ -20,45 +21,23 @@ import {
   ClockIcon,
   ArrowRightIcon,
   PlusIcon,
-  FireIcon,
-  ArrowRightOnRectangleIcon,
-  ChevronDownIcon,
-  UserIcon
+  FireIcon
 } from '@heroicons/react/24/outline'
 import {
   StarIcon
 } from '@heroicons/react/24/solid'
 
 export default function DashboardPage() {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [clickedAction, setClickedAction] = useState<string | null>(null)
-  const [showUserMenu, setShowUserMenu] = useState(false)
 
   // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000)
     return () => clearTimeout(timer)
   }, [])
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element
-      if (showUserMenu && !target.closest('[data-user-menu]')) {
-        setShowUserMenu(false)
-      }
-    }
-
-    if (showUserMenu) {
-      document.addEventListener('click', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside)
-    }
-  }, [showUserMenu])
 
   // Mock data - in real app this would come from API/database
   const userStats = {
@@ -171,69 +150,18 @@ export default function DashboardPage() {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-primary-500 rounded-xl flex items-center justify-center">
-                <AcademicCapIcon className="h-7 w-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-600">Chào mừng trở lại, {user?.email?.split('@')[0] || 'Student'}!</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                <BellIcon className="h-6 w-6" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <div className="relative" data-user-menu>
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors"
-                >
-                  <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {user?.email?.charAt(0).toUpperCase() || 'S'}
-                  </div>
-                  <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium text-gray-900">{user?.email?.split('@')[0] || 'Student'}</p>
-                    <p className="text-xs text-gray-500">Dashboard</p>
-                  </div>
-                  <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* User Menu Dropdown */}
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        router.push('/profile')
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                    >
-                      <UserIcon className="h-4 w-4" />
-                      <span>Hồ sơ cá nhân</span>
-                    </button>
-                    <hr className="my-1 border-gray-200" />
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        signOut()
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-                    >
-                      <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                      <span>Đăng xuất</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Dashboard"
+        description={`Chào mừng trở lại, ${user?.email?.split('@')[0] || 'Student'}!`}
+        icon={AcademicCapIcon}
+        currentPage="/dashboard"
+        rightContent={
+          <button className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors">
+            <BellIcon className="h-6 w-6" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+        }
+      />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}

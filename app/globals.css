@@ -170,4 +170,41 @@
   .text-responsive-2xl {
     @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl;
   }
+
+  /* Dashboard specific utilities */
+  .dashboard-card {
+    @apply bg-white rounded-2xl p-6 shadow-sm border border-gray-100;
+  }
+
+  .stats-card {
+    @apply dashboard-card transition-all duration-200 hover:shadow-lg;
+  }
+
+  .action-button {
+    @apply p-4 rounded-xl transition-all duration-200 hover:scale-105 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  .user-avatar {
+    @apply bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold;
+  }
+
+  .dropdown-menu {
+    @apply absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50;
+  }
+
+  .dropdown-item {
+    @apply w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2;
+  }
+
+  .dropdown-item-danger {
+    @apply dropdown-item text-red-600 hover:bg-red-50;
+  }
+
+  .header-nav-link {
+    @apply text-gray-600 hover:text-primary-600 font-medium transition-colors;
+  }
+
+  .header-nav-link-active {
+    @apply text-gray-900 font-semibold;
+  }
 }
