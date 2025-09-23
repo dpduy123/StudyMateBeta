@@ -180,6 +180,11 @@
     @apply dashboard-card transition-all duration-200 hover:shadow-lg;
   }
 
+  /* Mobile navigation spacing */
+  .mobile-safe-area {
+    @apply pb-20 md:pb-0;
+  }
+
   .action-button {
     @apply p-4 rounded-xl transition-all duration-200 hover:scale-105 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100;
   }

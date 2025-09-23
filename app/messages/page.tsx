@@ -80,7 +80,7 @@ export default function MessagesPage() {
         />
       </div>
 
-      <div className="flex-grow mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-grow mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mobile-safe-area">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 h-[calc(100vh-200px)] flex">
           {/* Conversation List */}
           <div className="w-1/3 border-r border-gray-200 flex flex-col">

@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { UserDropdownMenu } from './UserDropdownMenu'
 
 interface DashboardHeaderProps {
@@ -20,6 +22,9 @@ export function DashboardHeader({
   rightContent,
   showNavigation = true
 }: DashboardHeaderProps) {
+  const router = useRouter()
+  const [loadingPage, setLoadingPage] = useState<string | null>(null)
+
   const navigationItems = [
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Khám phá', href: '/discover' },
@@ -27,6 +32,13 @@ export function DashboardHeader({
     { name: 'Tin nhắn', href: '/messages' },
     { name: 'Thành tích', href: '/achievements' }
   ]
+
+  const handleNavigation = (href: string, e: React.MouseEvent) => {
+    if (href === currentPage) return
+    e.preventDefault()
+    setLoadingPage(href)
+    router.push(href)
+  }
 
   return (
     <div className="bg-white shadow-sm border-b border-gray-200">
@@ -46,11 +58,21 @@ export function DashboardHeader({
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`text-gray-600 hover:text-primary-600 font-medium transition-colors ${
+                    onClick={(e) => handleNavigation(item.href, e)}
+                    className={`relative text-gray-600 hover:text-primary-600 font-medium transition-colors ${
                       currentPage === item.href ? 'text-gray-900 font-semibold' : ''
+                    } ${
+                      loadingPage === item.href ? 'opacity-70' : ''
                     }`}
                   >
-                    {item.name}
+                    {loadingPage === item.href ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 border border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span>{item.name}</span>
+                      </div>
+                    ) : (
+                      item.name
+                    )}
                   </Link>
                 ))}
               </div>
@@ -58,7 +80,7 @@ export function DashboardHeader({
           </div>
           <div className="flex items-center space-x-4">
             {rightContent}
-            <UserDropdownMenu />
+            <UserDropdownMenu loadingPage={loadingPage} setLoadingPage={setLoadingPage} />
           </div>
         </div>
       </div>

@@ -13,16 +13,21 @@ interface UserDropdownMenuProps {
   showUsername?: boolean
   size?: 'sm' | 'md'
   redirectTo?: string // Where to redirect when clicking profile (default: '/profile')
+  loadingPage?: string | null
+  setLoadingPage?: (page: string | null) => void
 }
 
 export function UserDropdownMenu({
   showUsername = true,
   size = 'md',
-  redirectTo = '/profile'
+  redirectTo = '/profile',
+  loadingPage,
+  setLoadingPage
 }: UserDropdownMenuProps) {
   const { user, signOut } = useAuth()
   const router = useRouter()
   const [showMenu, setShowMenu] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -67,24 +72,41 @@ export function UserDropdownMenu({
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
           <button
             onClick={() => {
-              setShowMenu(false)
+              setLoadingPage?.(redirectTo)
               router.push(redirectTo)
+              // Đóng menu sau khi navigate thành công
+              setTimeout(() => setShowMenu(false), 200)
             }}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+            disabled={loadingPage === redirectTo}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <UserIcon className="h-4 w-4" />
+            {loadingPage === redirectTo ? (
+              <div className="w-4 h-4 border border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <UserIcon className="h-4 w-4" />
+            )}
             <span>{redirectTo === '/dashboard' ? 'Dashboard' : 'Hồ sơ cá nhân'}</span>
           </button>
           <hr className="my-1 border-gray-200" />
           <button
-            onClick={() => {
-              setShowMenu(false)
-              signOut()
+            onClick={async () => {
+              setIsSigningOut(true)
+              try {
+                await signOut()
+              } finally {
+                setIsSigningOut(false)
+                setShowMenu(false)
+              }
             }}
-            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+            disabled={isSigningOut}
+            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ArrowRightOnRectangleIcon className="h-4 w-4" />
-            <span>Đăng xuất</span>
+            {isSigningOut ? (
+              <div className="w-4 h-4 border border-red-600 border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <ArrowRightOnRectangleIcon className="h-4 w-4" />
+            )}
+            <span>{isSigningOut ? 'Đang đăng xuất...' : 'Đăng xuất'}</span>
           </button>
         </div>
       )}
