@@ -14,7 +14,7 @@ import {
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, signOut } = useAuth()
+  const { user, signOut, loading } = useAuth()
 
   const navigation = [
     { name: 'Tính năng', href: '#features' },
@@ -53,14 +53,22 @@ export function Header() {
 
           {/* Auth Actions */}
           <div className="flex items-center space-x-4">
-            {user ? (
+            {loading ? (
+              <div className="w-8 h-8 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin"></div>
+            ) : user ? (
               <div className="flex items-center space-x-4">
                 <Link
                   href="/dashboard"
                   className="hidden sm:inline-flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
                 >
-                  <UserCircleIcon className="h-5 w-5" />
                   <span>Dashboard</span>
+                </Link>
+                <Link
+                  href="/profile"
+                  className="hidden sm:inline-flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
+                >
+                  <UserCircleIcon className="h-5 w-5" />
+                  <span>Hồ sơ</span>
                 </Link>
                 <button
                   onClick={signOut}
@@ -122,13 +130,22 @@ export function Header() {
                 </Link>
               ))}
               {user && (
-                <Link
-                  href="/dashboard"
-                  className="block text-gray-600 hover:text-primary-600 font-medium transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="block text-gray-600 hover:text-primary-600 font-medium transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="block text-gray-600 hover:text-primary-600 font-medium transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Hồ sơ
+                  </Link>
+                </>
               )}
             </div>
           </motion.div>

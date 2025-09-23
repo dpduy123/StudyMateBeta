@@ -2,6 +2,12 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import AuthGuard from '@/components/guards/AuthGuard'
+import { useAuth } from '@/components/providers/Providers'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
+import { useRouter } from 'next/navigation'
+import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
 import {
   SparklesIcon,
   UserGroupIcon,
@@ -14,13 +20,46 @@ import {
   ClockIcon,
   ArrowRightIcon,
   PlusIcon,
-  FireIcon
+  FireIcon,
+  ArrowRightOnRectangleIcon,
+  ChevronDownIcon,
+  UserIcon
 } from '@heroicons/react/24/outline'
 import {
   StarIcon
 } from '@heroicons/react/24/solid'
 
 export default function DashboardPage() {
+  const { user, signOut } = useAuth()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+  const [clickedAction, setClickedAction] = useState<string | null>(null)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (showUserMenu && !target.closest('[data-user-menu]')) {
+        setShowUserMenu(false)
+      }
+    }
+
+    if (showUserMenu) {
+      document.addEventListener('click', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [showUserMenu])
+
   // Mock data - in real app this would come from API/database
   const userStats = {
     matches: 12,
@@ -117,8 +156,20 @@ export default function DashboardPage() {
     return colors[color as keyof typeof colors] || colors.primary
   }
 
+  const handleActionClick = (href: string, title: string) => {
+    setClickedAction(title)
+    setTimeout(() => {
+      router.push(href)
+    }, 100) // Short delay to show loading feedback
+  }
+
+  if (isLoading) {
+    return <PageLoading />
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AuthGuard>
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -129,7 +180,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-600">Chào mừng trở lại, Student!</p>
+                <p className="text-gray-600">Chào mừng trở lại, {user?.email?.split('@')[0] || 'Student'}!</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -137,8 +188,47 @@ export default function DashboardPage() {
                 <BellIcon className="h-6 w-6" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-              <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
-                S
+              <div className="relative" data-user-menu>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
+                    {user?.email?.charAt(0).toUpperCase() || 'S'}
+                  </div>
+                  <div className="hidden sm:block text-left">
+                    <p className="text-sm font-medium text-gray-900">{user?.email?.split('@')[0] || 'Student'}</p>
+                    <p className="text-xs text-gray-500">Dashboard</p>
+                  </div>
+                  <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* User Menu Dropdown */}
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        router.push('/profile')
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
+                      <UserIcon className="h-4 w-4" />
+                      <span>Hồ sơ cá nhân</span>
+                    </button>
+                    <hr className="my-1 border-gray-200" />
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        signOut()
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                    >
+                      <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -185,19 +275,26 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold text-gray-900 mb-6">Thao tác nhanh</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {quickActions.map((action, index) => (
-                  <Link key={index} href={action.href}>
-                    <div
-                      className={`p-4 rounded-xl transition-all duration-200 hover:scale-105 ${getColorClasses(action.color)} cursor-pointer`}
-                    >
-                      <div className="flex items-start space-x-3">
+                  <button
+                    key={index}
+                    onClick={() => handleActionClick(action.href, action.title)}
+                    disabled={clickedAction === action.title}
+                    className={`p-4 rounded-xl transition-all duration-200 hover:scale-105 ${getColorClasses(action.color)} cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      {clickedAction === action.title ? (
+                        <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin flex-shrink-0 mt-1" />
+                      ) : (
                         <action.icon className="h-6 w-6 flex-shrink-0 mt-1" />
-                        <div className="text-left">
-                          <h3 className="font-semibold">{action.title}</h3>
-                          <p className="text-sm opacity-80 mt-1">{action.description}</p>
-                        </div>
+                      )}
+                      <div className="text-left">
+                        <h3 className="font-semibold">{action.title}</h3>
+                        <p className="text-sm opacity-80 mt-1">
+                          {clickedAction === action.title ? 'Đang chuyển hướng...' : action.description}
+                        </p>
                       </div>
                     </div>
-                  </Link>
+                  </button>
                 ))}
               </div>
             </div>
@@ -345,6 +442,11 @@ export default function DashboardPage() {
           </div>
         </motion.div>
       </div>
-    </div>
+
+      {/* Mobile Navigation */}
+      <BottomTabNavigation />
+      <FloatingActionButton />
+      </div>
+    </AuthGuard>
   )
 }

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/Providers'
+import { PageLoading } from '@/components/ui/LoadingSpinner'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -29,14 +30,7 @@ export default function AuthGuard({
 
   // Show loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang kiểm tra xác thực...</p>
-        </div>
-      </div>
-    )
+    return <PageLoading />
   }
 
   // Show fallback or nothing if not authenticated

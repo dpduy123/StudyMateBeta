@@ -1,6 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import AuthGuard from '@/components/guards/AuthGuard'
+import { useAuth } from '@/components/providers/Providers'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
 import Link from 'next/link'
 import {
   ChatBubbleLeftRightIcon,
@@ -8,10 +13,17 @@ import {
   MagnifyingGlassIcon,
   VideoCameraIcon,
   PhoneIcon,
-  EllipsisVerticalIcon
+  EllipsisVerticalIcon,
+  ArrowRightOnRectangleIcon,
+  UserCircleIcon,
+  ChevronDownIcon,
+  UserIcon
 } from '@heroicons/react/24/outline'
 
 export default function MessagesPage() {
+  const { user, signOut } = useAuth()
+  const router = useRouter()
+  const [showUserMenu, setShowUserMenu] = useState(false)
   // Mock data based on Prisma schema
   const conversations = [
     {
@@ -50,6 +62,26 @@ export default function MessagesPage() {
   ]
 
   const [selectedConversation, setSelectedConversation] = useState(conversations[0])
+  const [newMessage, setNewMessage] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (showUserMenu && !target.closest('[data-user-menu]')) {
+        setShowUserMenu(false)
+      }
+    }
+
+    if (showUserMenu) {
+      document.addEventListener('click', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [showUserMenu])
 
   const messages = [
     { id: 1, sender: 'them', content: 'Chào bạn, mình là Minh Anh. Rất vui được match!', timestamp: '10:30 AM' },
@@ -61,7 +93,8 @@ export default function MessagesPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <AuthGuard>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -80,6 +113,47 @@ export default function MessagesPage() {
                 <Link href="/rooms" className="text-gray-600 hover:text-primary-600 font-medium">Phòng học</Link>
                 <Link href="/messages" className="text-gray-900 font-semibold">Tin nhắn</Link>
                 <Link href="/achievements" className="text-gray-600 hover:text-primary-600 font-medium">Thành tích</Link>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="relative" data-user-menu>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    {user?.email?.charAt(0).toUpperCase() || 'S'}
+                  </div>
+                  <span className="hidden sm:inline text-sm font-medium text-gray-900">{user?.email?.split('@')[0] || 'Student'}</span>
+                  <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* User Menu Dropdown */}
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        router.push('/profile')
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
+                      <UserIcon className="h-4 w-4" />
+                      <span>Hồ sơ cá nhân</span>
+                    </button>
+                    <hr className="my-1 border-gray-200" />
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        signOut()
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                    >
+                      <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -184,16 +258,36 @@ export default function MessagesPage() {
 
                 {/* Message Input */}
                 <div className="p-4 bg-white border-t border-gray-200">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Nhập tin nhắn..."
-                      className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    />
-                    <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-primary-600 text-white rounded-full hover:bg-primary-700">
-                      <PaperAirplaneIcon className="h-5 w-5" />
-                    </button>
-                  </div>
+                  {isTyping && (
+                    <div className="mb-3 text-sm text-gray-500 italic">
+                      {selectedConversation.user.name} đang gõ...
+                    </div>
+                  )}
+                  <form onSubmit={(e) => {
+                    e.preventDefault()
+                    if (newMessage.trim()) {
+                      // TODO: Send message logic
+                      console.log('Sending:', newMessage)
+                      setNewMessage('')
+                    }
+                  }}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Nhập tin nhắn..."
+                        className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!newMessage.trim()}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <PaperAirplaneIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </>
             ) : (
@@ -208,6 +302,11 @@ export default function MessagesPage() {
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Mobile Navigation */}
+      <BottomTabNavigation />
+      <FloatingActionButton />
+      </div>
+    </AuthGuard>
   )
 }
