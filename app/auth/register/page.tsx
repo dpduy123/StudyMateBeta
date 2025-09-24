@@ -14,7 +14,6 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '@/components/providers/Providers'
-import { validateEmailAvailability } from '@/lib/auth/email-validation'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -68,19 +67,8 @@ export default function RegisterPage() {
       return
     }
 
-    // Check if email is already registered
-    try {
-      const { available, message } = await validateEmailAvailability(formData.email)
-
-      if (!available) {
-        setError(message)
-        setIsLoading(false)
-        return
-      }
-    } catch (emailCheckError) {
-      console.warn('Email validation failed, continuing with signup:', emailCheckError)
-      // Continue with signup even if email check fails
-    }
+    // Supabase signUp will handle duplicate email detection automatically
+    console.log('Attempting signup for:', formData.email)
 
     try {
       await signUp(formData.email, formData.password, {
@@ -89,18 +77,20 @@ export default function RegisterPage() {
       setStep(2)
     } catch (error: unknown) {
       if (error instanceof Error) {
-        // Handle specific Supabase error messages
-        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-          setError('Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.')
-        } else if (error.message.includes('invalid email')) {
-          setError('Email không hợp lệ. Vui lòng kiểm tra lại.')
-        } else if (error.message.includes('weak password')) {
-          setError('Mật khẩu quá yếu. Vui lòng sử dụng mật khẩu mạnh hơn.')
-        } else {
+        // Handle specific error messages from our signUp function
+        if (error.message.includes('Email này đã được đăng ký')) {
+          // Custom duplicate email message from our signUp logic
           setError(error.message)
+        } else if (error.message.includes('invalid email') || error.message.includes('Invalid email')) {
+          setError('Email không hợp lệ. Vui lòng kiểm tra lại.')
+        } else if (error.message.includes('weak password') || error.message.includes('Password should be')) {
+          setError('Mật khẩu quá yếu. Vui lòng sử dụng mật khẩu mạnh hơn (it nhất 6 ký tự).')
+        } else {
+          setError('Lỗi đăng ký: ' + error.message)
         }
       } else {
-        setError('Có lỗi xảy ra khi đăng ký')
+        console.error('Unknown signup error:', error)
+        setError('Có lỗi không xác định xảy ra khi đăng ký. Vui lòng thử lại.')
       }
     } finally {
       setIsLoading(false)

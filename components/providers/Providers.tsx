@@ -99,7 +99,26 @@ export function Providers({ children }: { children: React.ReactNode }) {
         data: metaData,
       },
     });
-    if (error) throw error;
+
+    // Handle Supabase auth errors
+    if (error) {
+      console.error('Supabase signup error:', error.message);
+      throw error;
+    }
+
+    // Check for duplicate email - Supabase returns user=null for existing emails
+    if (!data.user) {
+      console.log('Duplicate email detected:', email);
+      throw new Error('Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.');
+    }
+
+    // Additional check: user with empty identities array = existing user
+    if (data.user?.identities && data.user.identities.length === 0) {
+      console.log('Existing user with empty identities:', email);
+      throw new Error('Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.');
+    }
+
+    console.log('New user created successfully:', data.user.email);
 
     // If user is created and confirmed (no email verification needed), create profile
     if (data.user && data.user.email_confirmed_at) {

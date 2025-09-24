@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { handleAuthCallback } from '@/lib/supabase/auth-helpers'
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
