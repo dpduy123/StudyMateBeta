@@ -112,10 +112,11 @@ export default function EditProfilePage() {
   }
 
   const addToArray = (arrayName: keyof EditProfileForm, value: string, setValue: (val: string) => void) => {
-    if (value.trim() && !form[arrayName].includes(value.trim())) {
+    const currentArray = form[arrayName]
+    if (value.trim() && Array.isArray(currentArray) && !currentArray.includes(value.trim())) {
       setForm(prev => ({
         ...prev,
-        [arrayName]: [...prev[arrayName], value.trim()]
+        [arrayName]: [...(prev[arrayName] as string[]), value.trim()]
       }))
       setValue('')
     }
@@ -124,7 +125,7 @@ export default function EditProfilePage() {
   const removeFromArray = (arrayName: keyof EditProfileForm, index: number) => {
     setForm(prev => ({
       ...prev,
-      [arrayName]: prev[arrayName].filter((_, i) => i !== index)
+      [arrayName]: (prev[arrayName] as string[]).filter((_, i) => i !== index)
     }))
   }
 
