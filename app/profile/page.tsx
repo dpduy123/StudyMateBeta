@@ -145,6 +145,7 @@ export default function ProfilePage() {
             <div className="flex items-end -mt-16 mb-4">
               <div className="relative">
                 {profile.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={profile.avatar}
                     alt={`${profile.firstName} ${profile.lastName}`}
