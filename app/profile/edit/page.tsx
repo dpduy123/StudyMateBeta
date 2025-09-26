@@ -153,56 +153,6 @@ export default function EditProfilePage() {
     }
   }
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file ảnh')
-      return
-    }
-
-    // Validate file size (33MB max)
-    if (file.size > 33 * 1024 * 1024) {
-      toast.error('Kích thước file không được vượt quá 33MB')
-      return
-    }
-
-    const avatarUrl = await handleImageUpload(file)
-    if (avatarUrl) {
-      // Update form state
-      setForm(prev => ({
-        ...prev,
-        avatar: avatarUrl
-      }))
-
-      // Automatically save avatar URL to database
-      try {
-        const response = await fetch('/api/profile', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...form,
-            avatar: avatarUrl
-          }),
-        })
-
-        if (response.ok) {
-          console.log('Avatar saved to database successfully')
-          toast.success('Ảnh đại diện đã được cập nhật!')
-        } else {
-          console.error('Failed to save avatar to database:', response.status)
-          toast.error('Tải lên thành công nhưng không thể lưu vào hồ sơ')
-        }
-      } catch (error) {
-        console.error('Error saving avatar to profile:', error)
-        toast.error('Tải lên thành công nhưng không thể lưu vào hồ sơ')
-      }
-    }
-  }
 
   const handleCameraClick = () => {
     fileInputRef.current?.click()
