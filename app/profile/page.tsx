@@ -48,32 +48,43 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    if (user) {
-      // Mock data - replace with actual API call
-      setProfile({
-        id: user.id,
-        firstName: 'Nguyễn',
-        lastName: 'Văn A',
-        email: user.email || '',
-        avatar: undefined,
-        bio: 'Sinh viên năm 3 chuyên ngành Khoa học máy tính. Đam mê AI và Machine Learning. Tìm bạn học để cùng nghiên cứu và phát triển dự án.',
-        university: 'Đại học Bách Khoa TP.HCM',
-        major: 'Khoa học máy tính',
-        year: 3,
-        gpa: 3.7,
-        interests: ['Machine Learning', 'Web Development', 'Data Science', 'Algorithms'],
-        skills: ['Python', 'JavaScript', 'React', 'TensorFlow'],
-        studyGoals: ['Hoàn thành đồ án tốt nghiệp', 'Học Deep Learning', 'Tìm việc internship'],
-        preferredStudyTime: ['Buổi tối', 'Cuối tuần'],
-        languages: ['Tiếng Việt', 'English'],
-        totalMatches: 24,
-        successfulMatches: 18,
-        averageRating: 4.5,
-        createdAt: '2024-01-15'
+  const fetchProfile = async () => {
+    if (!user) {
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      // Add cache-busting parameter to force fresh data
+      const response = await fetch(`/api/profile?t=${Date.now()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('Profile data from API:', data.profile)
+      console.log('Avatar URL from profile:', data.profile?.avatar)
+      setProfile(data.profile)
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+      // If profile doesn't exist, redirect to edit profile page
+      if (error instanceof Error && error.message.includes('404')) {
+        window.location.href = '/profile/edit'
+        return
+      }
+    } finally {
       setIsLoading(false)
     }
+  }
+
+  useEffect(() => {
+    fetchProfile()
   }, [user])
 
 
@@ -150,15 +161,20 @@ export default function ProfilePage() {
                     src={profile.avatar}
                     alt={`${profile.firstName} ${profile.lastName}`}
                     className="w-32 h-32 rounded-full border-4 border-white object-cover"
+                    onLoad={() => console.log('Avatar image loaded successfully:', profile.avatar)}
+                    onError={(e) => {
+                      console.error('Avatar image failed to load:', profile.avatar)
+                      console.error('Image error event:', e)
+                    }}
                   />
                 ) : (
                   <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center">
                     <UserCircleIcon className="w-20 h-20 text-gray-400" />
                   </div>
-                )}
+                )} {/*
                 <button className="absolute bottom-2 right-2 p-2 bg-primary-600 rounded-full hover:bg-primary-700 transition-colors">
                   <CameraIcon className="h-4 w-4 text-white" />
-                </button>
+                </button> */}
               </div>
               <div className="ml-6 flex-1">
                 <div className="flex items-center justify-between">

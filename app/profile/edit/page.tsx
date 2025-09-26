@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
 import { useRouter } from 'next/navigation'
@@ -32,6 +32,7 @@ interface EditProfileForm {
   studyGoals: string[]
   preferredStudyTime: string[]
   languages: string[]
+  avatar?: string
 }
 
 export default function EditProfilePage() {
@@ -42,7 +43,9 @@ export default function EditProfilePage() {
   const [newSkill, setNewSkill] = useState('')
   const [newGoal, setNewGoal] = useState('')
   const [newLanguage, setNewLanguage] = useState('')
-
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [avtImage, setavtImage] = useState<File | null>(null)
   const [form, setForm] = useState<EditProfileForm>({
     firstName: '',
     lastName: '',
@@ -55,7 +58,8 @@ export default function EditProfilePage() {
     skills: [],
     studyGoals: [],
     preferredStudyTime: [],
-    languages: []
+    languages: [],
+    avatar: undefined
   })
 
   const studyTimeOptions = [
@@ -75,36 +79,229 @@ export default function EditProfilePage() {
   ]
 
   useEffect(() => {
-    if (user) {
-      // Mock data - replace with actual API call
-      setForm({
-        firstName: 'Nguyễn',
-        lastName: 'Văn A',
-        bio: 'Sinh viên năm 3 chuyên ngành Khoa học máy tính.',
-        university: 'Đại học Bách Khoa TP.HCM',
-        major: 'Khoa học máy tính',
-        year: 3,
-        gpa: 3.7,
-        interests: ['Machine Learning', 'Web Development'],
-        skills: ['Python', 'JavaScript'],
-        studyGoals: ['Hoàn thành đồ án tốt nghiệp'],
-        preferredStudyTime: ['Buổi tối'],
-        languages: ['Tiếng Việt', 'English']
-      })
+    const fetchProfile = async () => {
+      if (!user) return
+
+      try {
+        const response = await fetch('/api/profile', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          const profile = data.profile
+          setForm({
+            firstName: profile.firstName || '',
+            lastName: profile.lastName || '',
+            bio: profile.bio || '',
+            university: profile.university || '',
+            major: profile.major || '',
+            year: profile.year || 1,
+            gpa: profile.gpa || null,
+            interests: profile.interests || [],
+            skills: profile.skills || [],
+            studyGoals: profile.studyGoals || [],
+            preferredStudyTime: profile.preferredStudyTime || [],
+            languages: profile.languages || [],
+            avatar: profile.avatar || undefined
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+      }
     }
+
+    fetchProfile()
   }, [user])
+
+  const handleImageUpload = async (file: File) => {
+    if (!user) return null
+
+    setIsUploading(true)
+    try {
+      // Create FormData to send file
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Upload via API endpoint
+      const response = await fetch('/api/upload/avatar', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Upload failed')
+      }
+
+      console.log('Upload successful, URL:', data.url)
+      return data.url
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      if (error instanceof Error) {
+        toast.error(`Lỗi tải lên ảnh: ${error.message}`)
+      } else {
+        toast.error('Lỗi khi tải lên ảnh')
+      }
+      return null
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file ảnh')
+      return
+    }
+
+    // Validate file size (33MB max)
+    if (file.size > 33 * 1024 * 1024) {
+      toast.error('Kích thước file không được vượt quá 33MB')
+      return
+    }
+
+    const avatarUrl = await handleImageUpload(file)
+    if (avatarUrl) {
+      // Update form state
+      setForm(prev => ({
+        ...prev,
+        avatar: avatarUrl
+      }))
+
+      // Automatically save avatar URL to database
+      try {
+        const response = await fetch('/api/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...form,
+            avatar: avatarUrl
+          }),
+        })
+
+        if (response.ok) {
+          console.log('Avatar saved to database successfully')
+          toast.success('Ảnh đại diện đã được cập nhật!')
+        } else {
+          console.error('Failed to save avatar to database:', response.status)
+          toast.error('Tải lên thành công nhưng không thể lưu vào hồ sơ')
+        }
+      } catch (error) {
+        console.error('Error saving avatar to profile:', error)
+        toast.error('Tải lên thành công nhưng không thể lưu vào hồ sơ')
+      }
+    }
+  }
+
+  const handleCameraClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleDisplayImage = () => {
+    // Priority order:
+    // 1. If user just selected a new file, show preview of that file
+    // 2. If no new file but has existing avatar URL, show that
+    // 3. Otherwise show default icon
+
+    if (avtImage) {
+      // Show preview of newly selected file
+      return URL.createObjectURL(avtImage)
+    } else if (form.avatar) {
+      // Show existing avatar from database
+      return form.avatar
+    }
+    // Return null to show default UserCircleIcon
+    return null
+  }
+
+  const handleAvtChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file ảnh')
+      return
+    }
+
+    // Validate file size (33MB max)
+    if (file.size > 33 * 1024 * 1024) {
+      toast.error('Kích thước file không được vượt quá 33MB')
+      return
+    }
+
+    // Set the image file to state
+    setavtImage(file)
+
+    // Upload and save avatar
+    const avatarUrl = await handleImageUpload(file)
+    if (avatarUrl) {
+      // Update form state
+      setForm(prev => ({
+        ...prev,
+        avatar: avatarUrl
+      }))
+
+      // Automatically save avatar URL to database
+      try {
+        const response = await fetch('/api/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...form,
+            avatar: avatarUrl
+          }),
+        })
+
+        if (response.ok) {
+          console.log('Avatar saved to database successfully')
+          toast.success('Ảnh đại diện đã được cập nhật!')
+        } else {
+          console.error('Failed to save avatar to database:', response.status)
+          toast.error('Tải lên thành công nhưng không thể lưu vào hồ sơ')
+        }
+      } catch (error) {
+        console.error('Error saving avatar to profile:', error)
+        toast.error('Tải lên thành công nhưng không thể lưu vào hồ sơ')
+      }
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // TODO: Call API to update profile
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Mock delay
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      await response.json()
       toast.success('Cập nhật hồ sơ thành công!')
       router.push('/profile')
     } catch (error) {
+      console.error('Error updating profile:', error)
       toast.error('Có lỗi xảy ra khi cập nhật hồ sơ')
     } finally {
       setIsLoading(false)
@@ -177,20 +374,45 @@ export default function EditProfilePage() {
             {/* Avatar Section */}
             <div className="flex items-center space-x-6">
               <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
-                  <UserCircleIcon className="w-16 h-16 text-gray-400" />
-                </div>
+                {handleDisplayImage() ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={handleDisplayImage()!}
+                    alt="Avatar preview"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center border-4 border-white shadow-lg">
+                    <UserCircleIcon className="w-16 h-16 text-gray-400" />
+                  </div>
+                )}
                 <button
                   type="button"
-                  className="absolute bottom-0 right-0 p-1.5 bg-primary-600 rounded-full hover:bg-primary-700 transition-colors"
+                  onClick={handleCameraClick}
+                  disabled={isUploading}
+                  className="absolute bottom-0 right-0 p-1.5 bg-primary-600 rounded-full hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <CameraIcon className="h-4 w-4 text-white" />
+                  {isUploading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <CameraIcon className="h-4 w-4 text-white" />
+                  )}
                 </button>
               </div>
               <div>
                 <h3 className="text-lg font-medium text-gray-900">Ảnh đại diện</h3>
-                <p className="text-sm text-gray-600">Tải lên ảnh đại diện của bạn</p>
+                <p className="text-sm text-gray-600">
+                  {isUploading ? 'Đang tải lên...' : 'Tải lên ảnh đại diện của bạn (Tối đa 33MB)'}
+                </p>
               </div>
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvtChange}
+                className="hidden"
+              />
             </div>
 
             {/* Basic Info */}
@@ -357,7 +579,7 @@ export default function EditProfilePage() {
                   type="text"
                   value={newInterest}
                   onChange={(e) => setNewInterest(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addToArray('interests', newInterest, setNewInterest))}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addToArray('interests', newInterest, setNewInterest))}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Thêm sở thích..."
                 />
@@ -398,7 +620,7 @@ export default function EditProfilePage() {
                   type="text"
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addToArray('skills', newSkill, setNewSkill))}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addToArray('skills', newSkill, setNewSkill))}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Thêm kỹ năng..."
                 />
@@ -437,7 +659,7 @@ export default function EditProfilePage() {
                   type="text"
                   value={newGoal}
                   onChange={(e) => setNewGoal(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addToArray('studyGoals', newGoal, setNewGoal))}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addToArray('studyGoals', newGoal, setNewGoal))}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Thêm mục tiêu..."
                 />
@@ -479,7 +701,7 @@ export default function EditProfilePage() {
                   type="text"
                   value={newLanguage}
                   onChange={(e) => setNewLanguage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addToArray('languages', newLanguage, setNewLanguage))}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addToArray('languages', newLanguage, setNewLanguage))}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Thêm ngôn ngữ..."
                 />
