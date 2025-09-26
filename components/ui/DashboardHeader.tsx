@@ -43,7 +43,7 @@ export function DashboardHeader({
   return (
     <div className="bg-white shadow-sm border-b border-gray-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
+        <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-4">
             <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center">
               <Icon className="h-6 w-6 text-white" />

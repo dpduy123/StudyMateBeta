@@ -27,72 +27,121 @@ import {
   StarIcon
 } from '@heroicons/react/24/solid'
 
+interface DashboardData {
+  profile: {
+    name: string
+    avatar?: string
+    university: string
+    major: string
+  }
+  userStats: {
+    matches: number
+    studySessions: number
+    hoursStudied: number
+    badges: number
+  }
+  recentMatches: {
+    id: string
+    userId: string
+    name: string
+    university: string
+    subject: string
+    avatar?: string
+    matchScore: number
+    isOnline: boolean
+    matchedAt: string
+  }[]
+  upcomingEvents: {
+    id: string
+    title: string
+    time: string
+    participants: number
+    type: string
+    topic?: string
+    isOwner?: boolean
+    maxMembers?: number
+    roomType?: string
+    description?: string
+  }[]
+  recentActivity: {
+    id: string
+    icon: string
+    iconColor: string
+    iconBg: string
+    title: string
+    description: string
+    time: string
+  }[]
+}
+
 export default function DashboardPage() {
   const { user } = useAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [clickedAction, setClickedAction] = useState<string | null>(null)
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  // Simulate loading
+  // Fetch real dashboard data
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000)
-    return () => clearTimeout(timer)
-  }, [])
+    const fetchDashboardData = async () => {
+      if (!user) {
+        setIsLoading(false)
+        return
+      }
 
-  // Mock data - in real app this would come from API/database
-  const userStats = {
-    matches: 12,
-    studySessions: 45,
-    hoursStudied: 127,
-    badges: 8
+      try {
+        const response = await fetch('/api/dashboard', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data = await response.json()
+        setDashboardData(data)
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+        setError('Không thể tải dữ liệu dashboard')
+        // Fallback to mock data if API fails
+        setDashboardData({
+          profile: {
+            name: user.email?.split('@')[0] || 'Student',
+            university: 'Đại học',
+            major: 'Ngành học',
+          },
+          userStats: {
+            matches: 0,
+            studySessions: 0,
+            hoursStudied: 0,
+            badges: 0
+          },
+          recentMatches: [],
+          upcomingEvents: [],
+          recentActivity: []
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [user])
+
+  // Get data with fallback
+  const userStats = dashboardData?.userStats || {
+    matches: 0,
+    studySessions: 0, 
+    hoursStudied: 0,
+    badges: 0
   }
 
-  const recentMatches = [
-    {
-      id: 1,
-      name: 'Nguyễn Minh Anh',
-      university: 'Đại học Bách khoa HN',
-      subject: 'Data Structures',
-      avatar: 'MA',
-      matchScore: 95,
-      isOnline: true
-    },
-    {
-      id: 2,
-      name: 'Trần Thị Hương',
-      university: 'Đại học Kinh tế QD',
-      subject: 'Marketing',
-      avatar: 'TH',
-      matchScore: 88,
-      isOnline: false
-    },
-    {
-      id: 3,
-      name: 'Lê Văn Đức',
-      university: 'Đại học Công nghệ',
-      subject: 'Software Engineering',
-      avatar: 'LD',
-      matchScore: 92,
-      isOnline: true
-    }
-  ]
-
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: 'Study Group: Algorithms',
-      time: '2:00 PM',
-      participants: 4,
-      type: 'study'
-    },
-    {
-      id: 2,
-      title: 'Marketing Workshop',
-      time: '7:00 PM',
-      participants: 12,
-      type: 'workshop'
-    }
-  ]
+  const recentMatches = dashboardData?.recentMatches || []
+  const upcomingEvents = dashboardData?.upcomingEvents || []
 
   const quickActions = [
     {
@@ -146,13 +195,33 @@ export default function DashboardPage() {
     return <PageLoading />
   }
 
+  if (error) {
+    return (
+      <AuthGuard>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <TrophyIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Không thể tải dashboard</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
+            >
+              Thử lại
+            </button>
+          </div>
+        </div>
+      </AuthGuard>
+    )
+  }
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <DashboardHeader
         title="Dashboard"
-        description={`Chào mừng trở lại, ${user?.email?.split('@')[0] || 'Student'}!`}
+        description={`Chào mừng trở lại, ${dashboardData?.profile.name || user?.email?.split('@')[0] || 'Student'}!`}
         icon={AcademicCapIcon}
         currentPage="/dashboard"
         rightContent={
@@ -240,23 +309,45 @@ export default function DashboardPage() {
                 <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
               </div>
               <div className="space-y-4">
-                {upcomingEvents.map((event, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                    <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{event.title}</h3>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <ClockIcon className="h-4 w-4" />
-                        <span>{event.time}</span>
-                        <span>•</span>
-                        <span>{event.participants} người</span>
+                {upcomingEvents.length > 0 ? (
+                  upcomingEvents.slice(0, 3).map((event, index) => (
+                    <div key={event.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className={`w-2 h-2 rounded-full ${event.type === 'study' ? 'bg-primary-500' : event.type === 'help' ? 'bg-green-500' : event.type === 'discussion' ? 'bg-blue-500' : 'bg-gray-500'}`}></div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-gray-900 truncate">{event.title}</h3>
+                          {event.isOwner && (
+                            <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full">Chủ phòng</span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
+                          <ClockIcon className="h-4 w-4" />
+                          <span>{event.time}</span>
+                          <span>•</span>
+                          <span>{event.participants}/{event.maxMembers || 10} người</span>
+                          {event.topic && (
+                            <>
+                              <span>•</span>
+                              <span className="text-primary-600 font-medium">{event.topic}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4">
+                    <CalendarDaysIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">Chưa có sự kiện nào</p>
                   </div>
-                ))}
-                <button className="w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary-400 hover:text-primary-600 transition-colors">
-                  <PlusIcon className="h-5 w-5 mx-auto" />
-                </button>
+                )}
+                <Link 
+                  href="/rooms" 
+                  className="w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <PlusIcon className="h-5 w-5" />
+                  <span>Tạo phòng học mới</span>
+                </Link>
               </div>
             </div>
           </motion.div>
@@ -278,43 +369,72 @@ export default function DashboardPage() {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {recentMatches.map((match, index) => (
-                <div key={index} className="card p-4 hover:shadow-lg transition-shadow duration-200">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="relative">
-                        <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
-                          {match.avatar}
+              {recentMatches.length > 0 ? (
+                recentMatches.map((match, index) => (
+                  <div key={match.id} className="card p-4 hover:shadow-lg transition-shadow duration-200">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="relative">
+                          {match.avatar ? (
+                            <img
+                              src={match.avatar}
+                              alt={match.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                              onError={(e) => {
+                                // Fallback to initials if image fails
+                                const target = e.target as HTMLImageElement
+                                const initials = match.name.split(' ').map(n => n[0]).join('').toUpperCase()
+                                target.style.display = 'none'
+                                target.nextElementSibling!.textContent = initials
+                              }}
+                            />
+                          ) : null}
+                          <div className={`w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold ${match.avatar ? 'hidden' : ''}`}>
+                            {match.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </div>
+                          {match.isOnline && (
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                          )}
                         </div>
-                        {match.isOnline && (
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-                        )}
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{match.name}</h3>
+                          <p className="text-sm text-gray-600">{match.university}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{match.name}</h3>
-                        <p className="text-sm text-gray-600">{match.university}</p>
+                      <div className="flex items-center space-x-1">
+                        <StarIcon className="h-4 w-4 text-yellow-400" />
+                        <span className="text-sm font-medium text-gray-700">{match.matchScore}%</span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <StarIcon className="h-4 w-4 text-yellow-400" />
-                      <span className="text-sm font-medium text-gray-700">{match.matchScore}%</span>
+                    <div className="mb-4">
+                      <span className="inline-block bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs font-medium">
+                        {match.subject}
+                      </span>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button className="flex-1 btn-primary text-sm py-2">
+                        Nhắn tin
+                      </button>
+                      <button className="flex-1 btn-secondary text-sm py-2">
+                        Xem hồ sơ
+                      </button>
                     </div>
                   </div>
-                  <div className="mb-4">
-                    <span className="inline-block bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs font-medium">
-                      {match.subject}
-                    </span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button className="flex-1 btn-primary text-sm py-2">
-                      Nhắn tin
-                    </button>
-                    <button className="flex-1 btn-secondary text-sm py-2">
-                      Xem hồ sơ
-                    </button>
-                  </div>
+                ))
+              ) : (
+                <div className="md:col-span-3 text-center py-8">
+                  <UserGroupIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có matches nào</h3>
+                  <p className="text-gray-600 mb-4">Hãy bắt đầu tìm bạn học để kết nối!</p>
+                  <Link
+                    href="/discover"
+                    className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
+                  >
+                    <SparklesIcon className="h-4 w-4 mr-2" />
+                    Tìm bạn học ngay
+                  </Link>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </motion.div>
@@ -329,43 +449,35 @@ export default function DashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Hoạt động gần đây</h2>
             <div className="space-y-4">
-              {[
-                {
-                  icon: TrophyIcon,
-                  iconColor: 'text-yellow-600',
-                  iconBg: 'bg-yellow-100',
-                  title: 'Đạt badge "Study Streak"',
-                  description: 'Học liên tục 7 ngày',
-                  time: '2 giờ trước'
-                },
-                {
-                  icon: UserGroupIcon,
-                  iconColor: 'text-blue-600',
-                  iconBg: 'bg-blue-100',
-                  title: 'Match với Nguyễn Minh Anh',
-                  description: 'Độ tương thích 95%',
-                  time: '1 ngày trước'
-                },
-                {
-                  icon: FireIcon,
-                  iconColor: 'text-red-600',
-                  iconBg: 'bg-red-100',
-                  title: 'Hoàn thành study session',
-                  description: 'Data Structures - 2 tiếng',
-                  time: '2 ngày trước'
-                }
-              ].map((activity, index) => (
-                <div key={index} className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-xl transition-colors">
-                  <div className={`w-10 h-10 ${activity.iconBg} rounded-xl flex items-center justify-center`}>
-                    <activity.icon className={`h-5 w-5 ${activity.iconColor}`} />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{activity.title}</h3>
-                    <p className="text-sm text-gray-600">{activity.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
-                  </div>
+              {dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 ? (
+                dashboardData.recentActivity.map((activity, index) => {
+                  // Map icon names to actual icon components
+                  const IconComponent = {
+                    TrophyIcon,
+                    UserGroupIcon,
+                    FireIcon
+                  }[activity.icon] || TrophyIcon
+
+                  return (
+                    <div key={activity.id} className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-xl transition-colors">
+                      <div className={`w-10 h-10 ${activity.iconBg} rounded-xl flex items-center justify-center`}>
+                        <IconComponent className={`h-5 w-5 ${activity.iconColor}`} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{activity.title}</h3>
+                        <p className="text-sm text-gray-600">{activity.description}</p>
+                        <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="text-center py-8">
+                  <ClockIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có hoạt động nào</h3>
+                  <p className="text-gray-600">Các hoạt động của bạn sẽ xuất hiện ở đây</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </motion.div>
