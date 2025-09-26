@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/providers/Providers'
 import { VideoCameraIcon, UserGroupIcon, HashtagIcon, LockClosedIcon } from '@heroicons/react/24/outline'
 import { Room } from './types'
+import { ChatContainer } from '../chat/ChatContainer'
 
 interface RoomPageProps {
   roomId: string
@@ -116,13 +117,14 @@ export function RoomPage({ roomId }: RoomPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Chat Area */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-96">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Chat</h3>
-                <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                  <p className="text-gray-500">Chat functionality coming soon...</p>
-                </div>
-              </div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-[600px]">
+              <ChatContainer
+                chatId={roomId}
+                chatType="room"
+                currentUserId={user?.id || ''}
+                title={`Chat - ${room.name}`}
+                className="h-full rounded-xl overflow-hidden"
+              />
             </div>
           </div>
 

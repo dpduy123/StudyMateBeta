@@ -110,6 +110,7 @@ model User {
   receivedMatches   Match[]      @relation("MatchReceiver")
   sentMessages      Message[]    @relation("MessageSender")
   receivedMessages  Message[]    @relation("MessageReceiver")
+  roomMessages      RoomMessage[] @relation("RoomMessageSender")
   ownedRooms        Room[]       @relation("RoomOwner")
   roomMemberships   RoomMember[]
   userBadges        UserBadge[]
@@ -155,6 +156,7 @@ model Message {
 
   // Timestamps
   createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   readAt      DateTime?
 
   // Relations
@@ -190,6 +192,7 @@ model Room {
   // Relations
   owner           User         @relation("RoomOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members         RoomMember[]
+  messages        RoomMessage[]
 
   @@map("rooms")
 }
@@ -209,6 +212,33 @@ model RoomMember {
 
   @@unique([roomId, userId])
   @@map("room_members")
+}
+
+// Room Messages for Group Chat
+model RoomMessage {
+  id          String      @id @default(cuid())
+  roomId      String
+  senderId    String
+  type        MessageType @default(TEXT)
+  content     String
+  fileUrl     String?     // For file attachments
+  fileName    String?     // Original file name
+  fileSize    Int?        // File size in bytes
+  replyToId   String?     // For message replies
+  isEdited    Boolean     @default(false)
+  editedAt    DateTime?
+
+  // Timestamps
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  room        Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender      User        @relation("RoomMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo     RoomMessage? @relation("MessageReply", fields: [replyToId], references: [id])
+  replies     RoomMessage[] @relation("MessageReply")
+
+  @@map("room_messages")
 }
 
 // Achievement System
