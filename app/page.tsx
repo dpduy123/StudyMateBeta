@@ -12,17 +12,9 @@ import { Footer } from '@/components/layout/Footer'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
 
 export default function HomePage() {
-  const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    // Simulate loading time for homepage components
-    const timer = setTimeout(() => setIsLoading(false), 800)
-    return () => clearTimeout(timer)
-  }, [])
+ 
 
-  if (isLoading) {
-    return <PageLoading />
-  }
   return (
     <div className="min-h-screen">
       <Header />
