@@ -8,8 +8,10 @@ import {
   ChevronDownIcon,
   UserIcon,
   UserCircleIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  CogIcon
 } from '@heroicons/react/24/outline'
+import { useIsAdmin } from '@/components/guards/AdminGuard'
 
 interface UserDropdownMenuProps {
   showUsername?: boolean
@@ -33,6 +35,7 @@ export function UserDropdownMenu({
   const [showMenu, setShowMenu] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null)
+  const isAdmin = useIsAdmin()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -150,6 +153,27 @@ export function UserDropdownMenu({
             )}
             <span>{redirectTo === '/dashboard' ? 'Dashboard' : 'Hồ sơ cá nhân'}</span>
           </button>
+
+          {/* Admin Panel Link */}
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setNavigatingTo('/admin')
+                setLoadingPage?.('/admin')
+                router.push('/admin')
+              }}
+              disabled={loadingPage === '/admin'}
+              className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingPage === '/admin' ? (
+                <div className="w-4 h-4 border border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <CogIcon className="h-4 w-4" />
+              )}
+              <span>Admin Panel</span>
+            </button>
+          )}
+
           <hr className="my-1 border-gray-200" />
           <button
             onClick={async () => {
