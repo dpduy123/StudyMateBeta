@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
+import { useMatches, useMatchActions } from '@/hooks/useMatching'
 import {
   SparklesIcon,
   AdjustmentsHorizontalIcon,
@@ -34,9 +34,24 @@ export default function DiscoverPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [animationDirection, setAnimationDirection] = useState<'left' | 'right' | null>(null)
+  const [processedUserIds, setProcessedUserIds] = useState<string[]>([])
 
-  // Mock data - in real app this would come from AI matching API
-  const potentialMatches = [
+  // Use AI matching system
+  const { matches, isLoading, error, refetch } = useMatches(10, processedUserIds)
+  const { likeUser, passUser, isProcessing } = useMatchActions()
+
+  // Get current match
+  const currentMatch = matches[currentCardIndex]
+
+  // If we've reached the end of current matches, fetch more
+  useEffect(() => {
+    if (currentCardIndex >= matches.length - 2 && matches.length > 0) {
+      refetch()
+    }
+  }, [currentCardIndex, matches.length, refetch])
+
+  // Legacy mock data for fallback (remove this when API is stable)
+  const fallbackMatches = [
     {
       id: 1,
       firstName: 'Minh',
@@ -53,7 +68,7 @@ export default function DiscoverPage() {
       skills: ['Python', 'JavaScript', 'React', 'Node.js', 'Machine Learning', 'Data Science'],
       languages: ['Tiếng Việt', 'English', 'Japanese'],
       preferredStudyTime: ['Tối (19:00-22:00)', 'Cuối tuần'],
-      goals: ['Trở thành AI Engineer', 'Tham gia các dự án open source', 'Học thêm về Deep Learning'],
+      studyGoals: ['Trở thành AI Engineer', 'Tham gia các dự án open source', 'Học thêm về Deep Learning'],
       totalMatches: 45,
       successfulMatches: 32,
       averageRating: 4.9,
@@ -77,7 +92,7 @@ export default function DiscoverPage() {
       skills: ['Digital Marketing', 'Content Creation', 'Social Media', 'Analytics', 'Photoshop', 'Canva'],
       languages: ['Tiếng Việt', 'English', 'Korean'],
       preferredStudyTime: ['Chiều (14:00-17:00)', 'Tối (19:00-21:00)'],
-      goals: ['Trở thành Digital Marketing Manager', 'Khởi nghiệp với startup riêng', 'Học thêm về UX/UI Design'],
+      studyGoals: ['Trở thành Digital Marketing Manager', 'Khởi nghiệp với startup riêng', 'Học thêm về UX/UI Design'],
       totalMatches: 38,
       successfulMatches: 25,
       averageRating: 4.7,
@@ -101,7 +116,7 @@ export default function DiscoverPage() {
       skills: ['Java', 'Spring Boot', 'Docker', 'Kubernetes', 'AWS', 'System Design'],
       languages: ['Tiếng Việt', 'English'],
       preferredStudyTime: ['Sáng (8:00-11:00)', 'Chiều (14:00-16:00)'],
-      goals: ['Trở thành Solution Architect', 'Contribute cho open source projects', 'Học thêm về Cloud Computing'],
+      studyGoals: ['Trở thành Solution Architect', 'Contribute cho open source projects', 'Học thêm về Cloud Computing'],
       totalMatches: 52,
       successfulMatches: 41,
       averageRating: 4.8,
@@ -111,28 +126,63 @@ export default function DiscoverPage() {
     }
   ]
 
-  const currentMatch = potentialMatches[currentCardIndex]
+  // Use real matches or fallback to mock data
+  const potentialMatches = matches.length > 0 ? matches : fallbackMatches
 
-  const handleLike = () => {
+  const handleLike = async () => {
+    if (!currentMatch || isProcessing) return
+
     console.log('Liked:', `${currentMatch.firstName} ${currentMatch.lastName}`)
     setIsAnimating(true)
     setAnimationDirection('right')
-    setTimeout(() => {
-      nextCard()
+
+    try {
+      const result = await likeUser(currentMatch.id)
+
+      // Add to processed list
+      setProcessedUserIds(prev => [...prev, currentMatch.id])
+
+      // Show match notification if it's a mutual match
+      if (result.match) {
+        // You could show a modal or notification here
+        console.log('🎉 It\'s a match!', result.message)
+      }
+
+      setTimeout(() => {
+        nextCard()
+        setIsAnimating(false)
+        setAnimationDirection(null)
+      }, 300)
+    } catch (error) {
+      console.error('Error liking user:', error)
       setIsAnimating(false)
       setAnimationDirection(null)
-    }, 300)
+    }
   }
 
-  const handlePass = () => {
+  const handlePass = async () => {
+    if (!currentMatch || isProcessing) return
+
     console.log('Passed:', `${currentMatch.firstName} ${currentMatch.lastName}`)
     setIsAnimating(true)
     setAnimationDirection('left')
-    setTimeout(() => {
-      nextCard()
+
+    try {
+      await passUser(currentMatch.id)
+
+      // Add to processed list
+      setProcessedUserIds(prev => [...prev, currentMatch.id])
+
+      setTimeout(() => {
+        nextCard()
+        setIsAnimating(false)
+        setAnimationDirection(null)
+      }, 300)
+    } catch (error) {
+      console.error('Error passing user:', error)
       setIsAnimating(false)
       setAnimationDirection(null)
-    }, 300)
+    }
   }
 
   const handleDirectMessage = () => {
@@ -145,8 +195,8 @@ export default function DiscoverPage() {
     if (currentCardIndex < potentialMatches.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1)
     } else {
-      // Show end screen or load more matches
-      setCurrentCardIndex(0)
+      // End of matches - show end screen
+      setCurrentCardIndex(0) // Reset for now, in production you'd handle this differently
     }
   }
 
@@ -156,19 +206,61 @@ export default function DiscoverPage() {
     'English', 'Data Science', 'Engineering', 'Medicine', 'Law'
   ]
 
+  // Loading state
+  if (isLoading && matches.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Đang tìm kiếm matches...</h2>
+          <p className="text-gray-600">AI đang phân tích profile của bạn để tìm những người phù hợp nhất</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <SparklesIcon className="h-16 w-16 text-red-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Có lỗi xảy ra</h2>
+          <p className="text-gray-600 mb-6">Không thể tải danh sách matches. Vui lòng thử lại.</p>
+          <button
+            onClick={() => refetch()}
+            className="btn-primary"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // No matches state
   if (!currentMatch) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <SparklesIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Không còn matches nào!</h2>
-          <p className="text-gray-600 mb-6">Hãy thử lại sau hoặc điều chỉnh bộ lọc</p>
-          <button
-            onClick={() => setCurrentCardIndex(0)}
-            className="btn-primary"
-          >
-            Tìm kiếm lại
-          </button>
+          <p className="text-gray-600 mb-6">Hãy hoàn thiện profile hoặc điều chỉnh bộ lọc để tìm thêm bạn học</p>
+          <div className="space-y-3">
+            <button
+              onClick={() => {
+                setProcessedUserIds([])
+                setCurrentCardIndex(0)
+                refetch()
+              }}
+              className="btn-primary"
+            >
+              Tìm kiếm lại
+            </button>
+            <Link href="/profile" className="block text-primary-600 hover:text-primary-700">
+              Hoàn thiện profile
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -407,8 +499,8 @@ export default function DiscoverPage() {
           >
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Mục tiêu học tập</h3>
             <div className="space-y-3">
-              {currentMatch.goals?.length ? (
-                currentMatch.goals.map((goal, index) => (
+              {currentMatch.studyGoals?.length ? (
+                currentMatch.studyGoals.map((goal, index) => (
                   <div key={index} className="flex items-center">
                     <TrophyIcon className="h-5 w-5 text-yellow-500 mr-3" />
                     <span className="text-gray-700">{goal}</span>
