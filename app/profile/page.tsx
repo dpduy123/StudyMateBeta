@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import AuthGuard from '@/components/guards/AuthGuard'
+import { useState } from 'react'
 import { useAuth } from '@/components/providers/Providers'
 import { useProfile } from '@/hooks/useProfile'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
@@ -12,7 +11,6 @@ import { ProfileContent } from '@/components/profile/ProfileContent'
 import { ProfileError } from '@/components/profile/ProfileError'
 import { UserProfile } from '@/components/profile/types'
 import { UserCircleIcon } from '@heroicons/react/24/outline'
-import Link from 'next/link'
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -20,22 +18,8 @@ export default function ProfilePage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900">Vui lòng đăng nhập</h2>
-          <Link href="/auth/login" className="text-primary-600 hover:text-primary-500">
-            Đăng nhập ngay
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <AuthGuard>
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <DashboardHeader
         title="Hồ sơ cá nhân"
         description="Thông tin và cài đặt tài khoản"
@@ -57,19 +41,18 @@ export default function ProfilePage() {
           )}
         </div>
 
-      {/* Edit Profile Dialog */}
-      <EditProfileDialog
-        isOpen={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
-        onSuccess={refetch}
-        currentProfile={profile}
-      />
+        {/* Edit Profile Dialog */}
+        <EditProfileDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          onSuccess={refetch}
+          currentProfile={profile}
+        />
 
-      {/* Mobile Navigation */}
-      <BottomTabNavigation />
-      <FloatingActionButton />
+        {/* Mobile Navigation */}
+        <BottomTabNavigation />
+        <FloatingActionButton />
       </div>
-      </div>
-    </AuthGuard>
+    </div>
   )
 }

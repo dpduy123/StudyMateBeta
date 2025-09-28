@@ -22,7 +22,7 @@ export function useProfile() {
       return globalProfile
     }
 
-    if (!user || globalLoadingState) return null
+    if (globalLoadingState) return null
 
     globalLoadingState = true
     setIsLoading(true)
@@ -99,19 +99,17 @@ export function useProfile() {
     }
   }
 
-  // Fetch profile when user changes and we don't have cached data
+  // Fetch profile when component mounts and we don't have cached data
   useEffect(() => {
-    if (user && !globalProfile && !globalLoadingState) {
+    if (!globalProfile && !globalLoadingState) {
       fetchProfile()
-    } else if (!user) {
-      clearProfile()
     } else if (globalProfile) {
       // We have cached data, use it immediately
       setProfile(globalProfile)
       setIsLoading(false)
       setError(globalError)
     }
-  }, [user])
+  }, [])
 
   return {
     profile,

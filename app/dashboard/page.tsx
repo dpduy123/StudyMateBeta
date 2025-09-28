@@ -84,10 +84,8 @@ export default function DashboardPage() {
   // Fetch real dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!user) {
-        setIsLoading(false)
-        return
-      }
+      setIsLoading(true)
+      setError(null)
 
       try {
         const response = await fetch('/api/dashboard', {
@@ -109,7 +107,7 @@ export default function DashboardPage() {
         // Fallback to mock data if API fails
         setDashboardData({
           profile: {
-            name: user.email?.split('@')[0] || 'Student',
+            name: user?.email?.split('@')[0] || 'Student',
             university: 'Đại học',
             major: 'Ngành học',
           },
@@ -129,7 +127,7 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData()
-  }, [user])
+  }, [])
 
   // Get data with fallback
   const userStats = dashboardData?.userStats || {
