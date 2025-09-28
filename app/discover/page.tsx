@@ -32,6 +32,8 @@ export default function DiscoverPage() {
   const router = useRouter()
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [animationDirection, setAnimationDirection] = useState<'left' | 'right' | null>(null)
 
   // Mock data - in real app this would come from AI matching API
   const potentialMatches = [
@@ -113,12 +115,24 @@ export default function DiscoverPage() {
 
   const handleLike = () => {
     console.log('Liked:', `${currentMatch.firstName} ${currentMatch.lastName}`)
-    nextCard()
+    setIsAnimating(true)
+    setAnimationDirection('right')
+    setTimeout(() => {
+      nextCard()
+      setIsAnimating(false)
+      setAnimationDirection(null)
+    }, 300)
   }
 
   const handlePass = () => {
     console.log('Passed:', `${currentMatch.firstName} ${currentMatch.lastName}`)
-    nextCard()
+    setIsAnimating(true)
+    setAnimationDirection('left')
+    setTimeout(() => {
+      nextCard()
+      setIsAnimating(false)
+      setAnimationDirection(null)
+    }, 300)
   }
 
   const handleDirectMessage = () => {
@@ -200,7 +214,14 @@ export default function DiscoverPage() {
           {/* Profile Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{
+              opacity: isAnimating ? 0 : 1,
+              y: isAnimating ? (animationDirection === 'left' ? -100 : 100) : 0,
+              x: isAnimating ? (animationDirection === 'left' ? -300 : 300) : 0,
+              rotate: isAnimating ? (animationDirection === 'left' ? -15 : 15) : 0,
+              scale: isAnimating ? 0.8 : 1
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8"
           >
             {/* Cover Photo */}
@@ -318,8 +339,12 @@ export default function DiscoverPage() {
             {/* Interests */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
+              animate={{
+                opacity: isAnimating ? 0 : 1,
+                x: isAnimating ? (animationDirection === 'left' ? -300 : 300) : 0,
+                scale: isAnimating ? 0.8 : 1
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut", delay: isAnimating ? 0 : 0.1 }}
               className="bg-white rounded-2xl shadow-xl p-6"
             >
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Sở thích</h3>
@@ -342,8 +367,12 @@ export default function DiscoverPage() {
             {/* Skills */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
+              animate={{
+                opacity: isAnimating ? 0 : 1,
+                x: isAnimating ? (animationDirection === 'left' ? -300 : 300) : 0,
+                scale: isAnimating ? 0.8 : 1
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut", delay: isAnimating ? 0 : 0.2 }}
               className="bg-white rounded-2xl shadow-xl p-6"
             >
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Kỹ năng</h3>
@@ -367,8 +396,13 @@ export default function DiscoverPage() {
           {/* Goals Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            animate={{
+              opacity: isAnimating ? 0 : 1,
+              y: isAnimating ? (animationDirection === 'left' ? -100 : 100) : 0,
+              x: isAnimating ? (animationDirection === 'left' ? -300 : 300) : 0,
+              scale: isAnimating ? 0.8 : 1
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut", delay: isAnimating ? 0 : 0.3 }}
             className="bg-white rounded-2xl shadow-xl p-6 mb-8"
           >
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Mục tiêu học tập</h3>
@@ -392,8 +426,12 @@ export default function DiscoverPage() {
           {/* Actions Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            animate={{
+              opacity: isAnimating ? 0 : 1,
+              y: 0,
+              scale: isAnimating ? 0.95 : 1
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut", delay: isAnimating ? 0 : 0.3 }}
             className="bg-white rounded-2xl shadow-xl p-6"
           >
             <h2 className="text-xl font-bold text-gray-900 mb-6">Hành động</h2>
