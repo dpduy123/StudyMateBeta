@@ -5,7 +5,6 @@ import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
-import { PageLoading } from '@/components/ui/LoadingSpinner'
 import { motion } from 'framer-motion'
 import {
   UserCircleIcon,
@@ -101,9 +100,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (isLoading) {
-    return <PageLoading />
-  }
+
 
   if (!profile) {
     return (

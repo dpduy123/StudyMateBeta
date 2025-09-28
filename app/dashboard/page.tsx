@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
-import { PageLoading } from '@/components/ui/LoadingSpinner'
 import { useRouter } from 'next/navigation'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
@@ -191,13 +190,11 @@ export default function DashboardPage() {
     }, 100) // Short delay to show loading feedback
   }
 
-  if (isLoading) {
-    return <PageLoading />
-  }
+
 
   if (error) {
     return (
-      <AuthGuard>
+      
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <TrophyIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -211,7 +208,7 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
-      </AuthGuard>
+      
     )
   }
 

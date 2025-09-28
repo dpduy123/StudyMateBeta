@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
@@ -35,7 +34,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <AuthGuard>
+
       <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="flex-shrink-0">
@@ -124,6 +123,6 @@ export default function MessagesPage() {
       <BottomTabNavigation />
       <FloatingActionButton />
       </div>
-    </AuthGuard>
+
   )
 }
