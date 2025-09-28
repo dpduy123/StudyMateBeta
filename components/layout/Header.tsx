@@ -79,7 +79,7 @@ export function Header() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="hidden md:flex items-center space-x-4">
                 <Link
                   href="/auth/login"
                   className="text-gray-600 hover:text-primary-600 font-medium transition-colors duration-200"
@@ -145,6 +145,26 @@ export function Header() {
                   >
                     Hồ sơ
                   </Link>
+                </>
+              )}
+              {!user && (
+                <>
+                  <div className="border-t border-gray-200 pt-4 space-y-4">
+                    <Link
+                      href="/auth/login"
+                      className="block text-gray-600 hover:text-primary-600 font-medium transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Đăng nhập
+                    </Link>
+                    <Link
+                      href="/auth/register"
+                      className="block w-full text-center btn-primary"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Đăng ký
+                    </Link>
+                  </div>
                 </>
               )}
             </div>

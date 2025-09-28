@@ -16,7 +16,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main>
+      <main className="pt-24">
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />

@@ -70,7 +70,7 @@ export function PricingSection() {
   const getColorClasses = (color: string, popular: boolean) => {
     if (popular) {
       return {
-        card: 'border-2 border-primary-500 bg-white relative transform scale-105',
+        card: 'border-2 border-primary-500 bg-white relative md:transform md:scale-105',
         button: 'btn-primary w-full',
         icon: 'text-primary-500 bg-primary-100',
         badge: 'bg-primary-500 text-white'
