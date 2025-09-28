@@ -19,14 +19,18 @@ export function ProfileSkills({ profile }: ProfileSkillsProps) {
       >
         <h3 className="text-xl font-semibold text-gray-900 mb-4">Sở thích</h3>
         <div className="flex flex-wrap gap-2">
-          {profile.interests.map((interest, index) => (
-            <span
-              key={index}
-              className="px-3 py-2 bg-primary-100 text-primary-700 rounded-xl text-sm font-medium"
-            >
-              {interest}
-            </span>
-          ))}
+          {profile.interests?.length ? (
+            profile.interests.map((interest, index) => (
+              <span
+                key={index}
+                className="px-3 py-2 bg-primary-100 text-primary-700 rounded-xl text-sm font-medium"
+              >
+                {interest}
+              </span>
+            ))
+          ) : (
+            <span className="text-sm text-gray-500">Chưa cập nhật</span>
+          )}
         </div>
       </motion.div>
 
@@ -39,14 +43,18 @@ export function ProfileSkills({ profile }: ProfileSkillsProps) {
       >
         <h3 className="text-xl font-semibold text-gray-900 mb-4">Kỹ năng</h3>
         <div className="flex flex-wrap gap-2">
-          {profile.skills.map((skill, index) => (
-            <span
-              key={index}
-              className="px-3 py-2 bg-green-100 text-green-700 rounded-xl text-sm font-medium"
-            >
-              {skill}
-            </span>
-          ))}
+          {profile.skills?.length ? (
+            profile.skills.map((skill, index) => (
+              <span
+                key={index}
+                className="px-3 py-2 bg-green-100 text-green-700 rounded-xl text-sm font-medium"
+              >
+                {skill}
+              </span>
+            ))
+          ) : (
+            <span className="text-sm text-gray-500">Chưa cập nhật</span>
+          )}
         </div>
       </motion.div>
     </div>

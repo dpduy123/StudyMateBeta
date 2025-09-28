@@ -18,12 +18,19 @@ export function ProfileGoals({ profile }: ProfileGoalsProps) {
     >
       <h3 className="text-xl font-semibold text-gray-900 mb-4">Mục tiêu học tập</h3>
       <div className="space-y-3">
-        {profile.studyGoals.map((goal, index) => (
-          <div key={index} className="flex items-center">
-            <TrophyIcon className="h-5 w-5 text-yellow-500 mr-3" />
-            <span className="text-gray-700">{goal}</span>
+        {profile.studyGoals?.length ? (
+          profile.studyGoals.map((goal, index) => (
+            <div key={index} className="flex items-center">
+              <TrophyIcon className="h-5 w-5 text-yellow-500 mr-3" />
+              <span className="text-gray-700">{goal}</span>
+            </div>
+          ))
+        ) : (
+          <div className="flex items-center">
+            <TrophyIcon className="h-5 w-5 text-gray-400 mr-3" />
+            <span className="text-gray-500">Chưa thiết lập mục tiêu</span>
           </div>
-        ))}
+        )}
       </div>
     </motion.div>
   )

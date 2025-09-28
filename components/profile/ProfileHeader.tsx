@@ -115,7 +115,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
                 <CalendarIcon className="h-5 w-5 text-primary-600 mr-3" />
                 <div>
                   <div className="font-medium text-gray-900">Thời gian học</div>
-                  <div className="text-sm text-gray-600">{profile.preferredStudyTime.join(', ')}</div>
+                  <div className="text-sm text-gray-600">{profile.preferredStudyTime?.join(', ') || 'Chưa cập nhật'}</div>
                 </div>
               </div>
             </div>
@@ -123,14 +123,18 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Ngôn ngữ</h3>
             <div className="flex flex-wrap gap-2">
-              {profile.languages.map((language, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
-                >
-                  {language}
-                </span>
-              ))}
+              {profile.languages?.length ? (
+                profile.languages.map((language, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                  >
+                    {language}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm text-gray-500">Chưa cập nhật</span>
+              )}
             </div>
           </div>
         </div>

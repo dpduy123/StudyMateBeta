@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/components/providers/Providers'
+import { useProfile } from '@/hooks/useProfile'
 import { UserProfile, EditProfileFormData } from './types'
 import {
   XMarkIcon,
@@ -31,6 +32,7 @@ export function EditProfileDialog({
   currentProfile
 }: EditProfileDialogProps) {
   const { user } = useAuth()
+  const { updateProfile } = useProfile()
   const [isLoading, setIsLoading] = useState(false)
   const [avatar, setAvatar] = useState('')
   const [formData, setFormData] = useState<EditProfileFormData>({
@@ -135,6 +137,25 @@ export function EditProfileDialog({
       })
 
       if (response.ok) {
+        const updatedData = await response.json()
+
+        // Update global cache with complete data
+        updateProfile({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          bio: formData.bio,
+          avatar: avatar,
+          university: formData.university,
+          major: formData.major,
+          year: formData.year,
+          gpa: formData.gpa ? parseFloat(formData.gpa) : undefined,
+          interests: formData.interests,
+          skills: formData.skills,
+          studyGoals: formData.studyGoals,
+          preferredStudyTime: formData.preferredStudyTime,
+          languages: formData.languages
+        })
+
         toast.success('Hồ sơ đã được cập nhật!')
         onSuccess()
         onClose()

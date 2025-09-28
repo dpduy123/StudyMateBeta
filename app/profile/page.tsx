@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
+import { useProfile } from '@/hooks/useProfile'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
@@ -15,48 +16,8 @@ import Link from 'next/link'
 
 export default function ProfilePage() {
   const { user } = useAuth()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { profile, isLoading, refetch } = useProfile()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-
-  const fetchProfile = async () => {
-    if (!user) {
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      // Add cache-busting parameter to force fresh data
-      const response = await fetch(`/api/profile?t=${Date.now()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log('Profile data from API:', data.profile)
-      console.log('Avatar URL from profile:', data.profile?.avatar)
-      setProfile(data.profile)
-    } catch (error) {
-      console.error('Error fetching profile:', error)
-      // If profile doesn't exist, redirect to edit profile page
-      if (error instanceof Error && error.message.includes('404')) {
-        window.location.href = '/profile/edit'
-        return
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchProfile()
-  }, [user])
 
 
   if (!user) {
@@ -87,7 +48,7 @@ export default function ProfilePage() {
           {isLoading ? (
             <ProfileSkeleton />
           ) : !profile ? (
-            <ProfileError onRetry={() => window.location.reload()} />
+            <ProfileError onRetry={refetch} />
           ) : (
             <ProfileContent
               profile={profile}
@@ -100,7 +61,7 @@ export default function ProfilePage() {
       <EditProfileDialog
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
-        onSuccess={fetchProfile}
+        onSuccess={refetch}
         currentProfile={profile}
       />
 

@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/components/providers/Providers'
+import { useProfile } from '@/hooks/useProfile'
 import {
   ChevronDownIcon,
   UserIcon,
+  UserCircleIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
 
@@ -25,6 +27,7 @@ export function UserDropdownMenu({
   setLoadingPage
 }: UserDropdownMenuProps) {
   const { user, signOut } = useAuth()
+  const { profile, isLoading: isLoadingProfile } = useProfile()
   const router = useRouter()
   const pathname = usePathname()
   const [showMenu, setShowMenu] = useState(false)
@@ -69,18 +72,35 @@ export function UserDropdownMenu({
   const avatarSize = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'
   const textSize = size === 'sm' ? 'text-sm' : 'text-sm'
 
+  // Get display name and avatar
+  const displayName = profile
+    ? `${profile.firstName} ${profile.lastName}`
+    : user?.email?.split('@')[0] || 'Student'
+
+  const avatarInitials = profile
+    ? `${profile.firstName?.charAt(0) || ''}${profile.lastName?.charAt(0) || ''}`.toUpperCase()
+    : user?.email?.charAt(0).toUpperCase() || 'S'
+
   return (
     <div className="relative" data-user-menu>
       <button
         onClick={() => setShowMenu(!showMenu)}
         className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors"
       >
-        <div className={`${avatarSize} bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold ${size === 'sm' ? 'text-sm' : ''}`}>
-          {user?.email?.charAt(0).toUpperCase() || 'S'}
-        </div>
+        {profile?.avatar ? (
+          <img
+            src={profile.avatar}
+            alt={displayName}
+            className={`${avatarSize} rounded-full object-cover border-2 border-primary-200`}
+          />
+        ) : (
+          <div className={`${avatarSize} bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold ${size === 'sm' ? 'text-sm' : ''}`}>
+            {avatarInitials}
+          </div>
+        )}
         {showUsername && (
-          <span className={`hidden sm:inline ${textSize} font-medium text-gray-900`}>
-            {user?.email?.split('@')[0] || 'Student'}
+          <span className={`hidden sm:inline ${textSize} font-medium text-gray-900 max-w-32 truncate`}>
+            {displayName}
           </span>
         )}
         <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform ${showMenu ? 'rotate-180' : ''}`} />
@@ -88,7 +108,32 @@ export function UserDropdownMenu({
 
       {/* User Menu Dropdown */}
       {showMenu && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+          {/* User Info Header */}
+          <div className="px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              {profile?.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt={displayName}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-primary-200"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  {avatarInitials}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-gray-900 truncate">
+                  {displayName}
+                </div>
+                <div className="text-sm text-gray-600 truncate">
+                  {user?.email}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button
             onClick={() => {
               setNavigatingTo(redirectTo)
