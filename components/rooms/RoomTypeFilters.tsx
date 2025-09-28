@@ -1,6 +1,9 @@
 'use client'
 
-import { RoomTypeFiltersProps } from './types'
+interface RoomTypeFiltersProps {
+  typeFilter: string
+  onTypeFilterChange: (filter: string) => void
+}
 
 const roomTypes = [
   { key: 'STUDY_GROUP', label: 'Học nhóm', color: 'bg-blue-100 text-blue-700' },

@@ -4,7 +4,13 @@ import { useState } from 'react'
 import { LockClosedIcon, VideoCameraIcon, MicrophoneIcon, ChatBubbleLeftRightIcon, ComputerDesktopIcon, UserGroupIcon, HashtagIcon, TrashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { RoomCardProps } from './types'
+import { Room } from '@/hooks/useRooms'
+
+interface RoomCardProps {
+  room: Room
+  onJoinRoom: (roomId: string) => void
+  onRoomDeleted?: () => void
+}
 import { DeleteDialog } from '@/components/ui/DeleteDialog'
 import toast from 'react-hot-toast'
 

@@ -2,8 +2,15 @@
 
 import { motion } from 'framer-motion'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { RoomGridProps } from './types'
+import { Room } from '@/hooks/useRooms'
 import RoomCard from './RoomCard'
+
+interface RoomGridProps {
+  rooms: Room[]
+  isLoading: boolean
+  onJoinRoom: (roomId: string) => void
+  onRoomDeleted?: () => void
+}
 
 export function RoomGrid({ rooms, isLoading, onJoinRoom, onRoomDeleted }: RoomGridProps) {
   if (isLoading) {

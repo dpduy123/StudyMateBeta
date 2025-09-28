@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
 import { Toaster } from 'react-hot-toast'
+import { SWRConfig } from 'swr'
+import { swrConfig } from '@/lib/swrConfig'
 
 interface AuthContextType {
   user: User | null;
@@ -163,9 +165,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, signUp, signIn, signInWithGoogle }}>
-      {children}
-      <Toaster
+    <SWRConfig value={swrConfig}>
+      <AuthContext.Provider value={{ user, loading, signOut, signUp, signIn, signInWithGoogle }}>
+        {children}
+        <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
@@ -192,6 +195,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           },
         }}
       />
-    </AuthContext.Provider>
+      </AuthContext.Provider>
+    </SWRConfig>
   )
 }

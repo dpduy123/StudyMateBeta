@@ -1,6 +1,9 @@
 'use client'
 
-import { RoomFilterTabsProps } from './types'
+interface RoomFilterTabsProps {
+  roomFilter: 'all' | 'public' | 'my-rooms' | 'joined'
+  onRoomFilterChange: (filter: 'all' | 'public' | 'my-rooms' | 'joined') => void
+}
 
 const filterOptions: { key: 'all' | 'public' | 'my-rooms' | 'joined', label: string }[] = [
   { key: 'all', label: 'Tất cả' },

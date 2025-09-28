@@ -27,6 +27,7 @@
     "react-hot-toast": "^2.4.1",
     "simple-peer": "^9.11.1",
     "socket.io-client": "^4.8.1",
+    "swr": "^2.3.6",
     "zod": "^3.24.1"
   },
   "devDependencies": {

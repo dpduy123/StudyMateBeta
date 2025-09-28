@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
 import { useRouter } from 'next/navigation'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
+import { useDashboard } from '@/hooks/useDashboard'
 import {
   SparklesIcon,
   UserGroupIcon,
@@ -26,119 +27,38 @@ import {
   StarIcon
 } from '@heroicons/react/24/solid'
 
-interface DashboardData {
-  profile: {
-    name: string
-    avatar?: string
-    university: string
-    major: string
-  }
-  userStats: {
-    matches: number
-    studySessions: number
-    hoursStudied: number
-    badges: number
-  }
-  recentMatches: {
-    id: string
-    userId: string
-    name: string
-    university: string
-    subject: string
-    avatar?: string
-    matchScore: number
-    isOnline: boolean
-    matchedAt: string
-  }[]
-  upcomingEvents: {
-    id: string
-    title: string
-    time: string
-    participants: number
-    type: string
-    topic?: string
-    isOwner?: boolean
-    maxMembers?: number
-    roomType?: string
-    description?: string
-  }[]
-  recentActivity: {
-    id: string
-    icon: string
-    iconColor: string
-    iconBg: string
-    title: string
-    description: string
-    time: string
-  }[]
-}
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
   const [clickedAction, setClickedAction] = useState<string | null>(null)
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
-  // Fetch real dashboard data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      setIsLoading(true)
-      setError(null)
+  // Use SWR hook for data fetching with caching
+  const { data: dashboardData, isLoading, error, refetch } = useDashboard()
 
-      try {
-        const response = await fetch('/api/dashboard', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        setDashboardData(data)
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error)
-        setError('Không thể tải dữ liệu dashboard')
-        // Fallback to mock data if API fails
-        setDashboardData({
-          profile: {
-            name: user?.email?.split('@')[0] || 'Student',
-            university: 'Đại học',
-            major: 'Ngành học',
-          },
-          userStats: {
-            matches: 0,
-            studySessions: 0,
-            hoursStudied: 0,
-            badges: 0
-          },
-          recentMatches: [],
-          upcomingEvents: [],
-          recentActivity: []
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchDashboardData()
-  }, [])
-
-  // Get data with fallback
-  const userStats = dashboardData?.userStats || {
-    matches: 0,
-    studySessions: 0, 
-    hoursStudied: 0,
-    badges: 0
+  // Fallback data when loading or error
+  const fallbackData = {
+    profile: {
+      name: user?.email?.split('@')[0] || 'Student',
+      university: 'Đại học',
+      major: 'Ngành học',
+    },
+    userStats: {
+      matches: 0,
+      studySessions: 0,
+      hoursStudied: 0,
+      badges: 0
+    },
+    recentMatches: [],
+    upcomingEvents: [],
+    recentActivity: []
   }
 
-  const recentMatches = dashboardData?.recentMatches || []
-  const upcomingEvents = dashboardData?.upcomingEvents || []
+  // Get data with fallback
+  const currentData = dashboardData || fallbackData
+  const userStats = currentData.userStats
+  const recentMatches = currentData.recentMatches
+  const upcomingEvents = currentData.upcomingEvents
 
   const quickActions = [
     {
@@ -197,9 +117,9 @@ export default function DashboardPage() {
           <div className="text-center">
             <TrophyIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Không thể tải dashboard</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <p className="text-gray-600 mb-4">{error.message || 'Đã xảy ra lỗi'}</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => refetch()}
               className="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
             >
               Thử lại
@@ -216,7 +136,7 @@ export default function DashboardPage() {
       {/* Header */}
       <DashboardHeader
         title="Dashboard"
-        description={`Chào mừng trở lại, ${dashboardData?.profile.name || user?.email?.split('@')[0] || 'Student'}!`}
+        description={`Chào mừng trở lại, ${currentData.profile.name || user?.email?.split('@')[0] || 'Student'}!`}
         icon={AcademicCapIcon}
         currentPage="/dashboard"
         rightContent={
@@ -444,8 +364,8 @@ export default function DashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Hoạt động gần đây</h2>
             <div className="space-y-4">
-              {dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 ? (
-                dashboardData.recentActivity.map((activity, index) => {
+              {currentData?.recentActivity && currentData.recentActivity.length > 0 ? (
+                currentData.recentActivity.map((activity, index) => {
                   // Map icon names to actual icon components
                   const IconComponent = {
                     TrophyIcon,

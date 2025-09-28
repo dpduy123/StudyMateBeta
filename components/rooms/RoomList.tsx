@@ -2,7 +2,7 @@
 
 import { RoomFilters } from './RoomFilters'
 import { RoomGrid } from './RoomGrid'
-import { Room, RoomFilters as RoomFiltersType } from './types'
+import { Room, RoomFilters as RoomFiltersType } from '@/hooks/useRooms'
 
 interface RoomListProps {
   rooms: Room[]

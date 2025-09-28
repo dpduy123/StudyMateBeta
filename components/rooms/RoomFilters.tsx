@@ -1,6 +1,6 @@
 'use client'
 
-import { RoomFilters as RoomFiltersType } from './types'
+import { RoomFilters as RoomFiltersType } from '@/hooks/useRooms'
 import { RoomSearch } from './RoomSearch'
 import { RoomFilterTabs } from './RoomFilterTabs'
 import { RoomTypeFilters } from './RoomTypeFilters'

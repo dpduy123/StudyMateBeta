@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/providers/Providers'
 import { VideoCameraIcon, UserGroupIcon, HashtagIcon, LockClosedIcon } from '@heroicons/react/24/outline'
-import { Room } from './types'
+import { Room } from '@/hooks/useRooms'
 import { ChatContainer } from '../chat/ChatContainer'
 
 interface RoomPageProps {

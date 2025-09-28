@@ -1,7 +1,10 @@
 'use client'
 
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { RoomSearchProps } from './types'
+interface RoomSearchProps {
+  filter: string
+  onFilterChange: (filter: string) => void
+}
 
 export function RoomSearch({ filter, onFilterChange }: RoomSearchProps) {
   return (
