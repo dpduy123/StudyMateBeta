@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "precompute:matches": "tsx scripts/precompute-matches.ts",
+    "precompute:dev": "NODE_ENV=development tsx scripts/precompute-matches.ts",
+    "redis:check": "tsx -e \"import { SimpleRedis } from './lib/cache/redis-simple'; SimpleRedis.isHealthy().then(h => console.log('Redis healthy:', h))\"",
+    "redis:check:full": "tsx -e \"import { RedisCache } from './lib/cache/redis-client'; RedisCache.getInstance().isHealthy().then(h => console.log('Redis healthy:', h))\"",
+    "matching:debug": "tsx -e \"import { SmartMatchingEngine } from './lib/matching/smart-engine'; console.log('Performance metrics:', SmartMatchingEngine.getPerformanceMetrics())\""
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -18,6 +23,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.15.0",
+    "ioredis": "^5.8.0",
     "lucide-react": "^0.468.0",
     "next": "15.5.3",
     "next-auth": "^4.24.11",

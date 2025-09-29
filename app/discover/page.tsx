@@ -36,19 +36,49 @@ export default function DiscoverPage() {
   const [animationDirection, setAnimationDirection] = useState<'left' | 'right' | null>(null)
   const [processedUserIds, setProcessedUserIds] = useState<string[]>([])
 
-  // Use AI matching system
-  const { matches, isLoading, error, refetch } = useMatches(10, processedUserIds)
-  const { likeUser, passUser, isProcessing } = useMatchActions()
+  // Use Smart AI matching system
+  const {
+    matches,
+    isLoading,
+    error,
+    refetch,
+    prefetch,
+    bufferStatus,
+    debugInfo,
+    getNextMatches,
+    getRemainingCount
+  } = useMatches(15, processedUserIds) // Increased buffer size
+
+  const {
+    smartLikeUser,
+    smartPassUser,
+    isProcessing,
+    queuedActions,
+    flushBatch
+  } = useMatchActions()
 
   // Get current match
   const currentMatch = matches[currentCardIndex]
 
-  // If we've reached the end of current matches, fetch more
+  // Smart prefetching - trigger when buffer gets low
   useEffect(() => {
-    if (currentCardIndex >= matches.length - 2 && matches.length > 0) {
-      refetch()
+    if (getRemainingCount() <= 3 && getRemainingCount() > 0) {
+      prefetch()
     }
-  }, [currentCardIndex, matches.length, refetch])
+  }, [currentCardIndex, getRemainingCount, prefetch])
+
+  // Show buffer status in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && bufferStatus) {
+      console.log('🔧 Smart Discovery Debug:', {
+        bufferStatus,
+        debugInfo,
+        currentCardIndex,
+        remainingCount: getRemainingCount(),
+        queuedActions
+      })
+    }
+  }, [bufferStatus, debugInfo, currentCardIndex, queuedActions])
 
   // Legacy mock data for fallback (remove this when API is stable)
   const fallbackMatches = [
@@ -137,22 +167,21 @@ export default function DiscoverPage() {
     setAnimationDirection('right')
 
     try {
-      const result = await likeUser(currentMatch.id)
+      // Use smart batch processing
+      await smartLikeUser(currentMatch.id)
 
       // Add to processed list
       setProcessedUserIds(prev => [...prev, currentMatch.id])
 
-      // Show match notification if it's a mutual match
-      if (result.match) {
-        // You could show a modal or notification here
-        console.log('🎉 It\'s a match!', result.message)
-      }
+      // Process the action in our local buffer (handled by SmartMatchBuffer)
 
+      // Instant UI feedback - no waiting for API
       setTimeout(() => {
         nextCard()
         setIsAnimating(false)
         setAnimationDirection(null)
       }, 300)
+
     } catch (error) {
       console.error('Error liking user:', error)
       setIsAnimating(false)
@@ -168,16 +197,21 @@ export default function DiscoverPage() {
     setAnimationDirection('left')
 
     try {
-      await passUser(currentMatch.id)
+      // Use smart batch processing
+      await smartPassUser(currentMatch.id)
 
       // Add to processed list
       setProcessedUserIds(prev => [...prev, currentMatch.id])
 
+      // Process the action in our local buffer (handled by SmartMatchBuffer)
+
+      // Instant UI feedback - no waiting for API
       setTimeout(() => {
         nextCard()
         setIsAnimating(false)
         setAnimationDirection(null)
       }, 300)
+
     } catch (error) {
       console.error('Error passing user:', error)
       setIsAnimating(false)
@@ -301,6 +335,24 @@ export default function DiscoverPage() {
               <BoltIcon className="h-5 w-5" />
               <span className="font-bold">{currentMatch.matchScore}% Match với bạn</span>
             </div>
+
+            {/* Debug Panel for Development */}
+            {process.env.NODE_ENV === 'development' && debugInfo && (
+              <div className="mt-4 bg-gray-900 text-white p-3 rounded-lg text-sm">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>Source: <span className="text-green-400">{debugInfo.source || 'unknown'}</span></div>
+                  <div>Time: <span className="text-blue-400">{debugInfo.executionTime || 0}ms</span></div>
+                  <div>Remaining: <span className="text-yellow-400">{getRemainingCount()}</span></div>
+                  <div>Queued: <span className="text-purple-400">{queuedActions}</span></div>
+                  {debugInfo.precomputedScores && (
+                    <div className="col-span-2">
+                      Pre-computed: <span className="text-green-400">{debugInfo.precomputedScores}</span> /
+                      Real-time: <span className="text-red-400">{debugInfo.realtimeScores}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </motion.div>
 
           {/* Profile Header */}

@@ -61,7 +61,7 @@ export class AIMatchingEngine {
   /**
    * Calculate university compatibility
    */
-  private static calculateUniversityMatch(user1: UserProfile, user2: UserProfile): number {
+  public static calculateUniversityMatch(user1: UserProfile, user2: UserProfile): number {
     if (user1.university === user2.university) return 1.0
 
     // You could add logic here for sister universities or nearby universities
@@ -72,7 +72,7 @@ export class AIMatchingEngine {
   /**
    * Calculate major compatibility
    */
-  private static calculateMajorMatch(user1: UserProfile, user2: UserProfile): number {
+  public static calculateMajorMatch(user1: UserProfile, user2: UserProfile): number {
     if (user1.major === user2.major) return 1.0
 
     // Related majors get higher scores
@@ -99,7 +99,7 @@ export class AIMatchingEngine {
   /**
    * Calculate year compatibility (closer years are better)
    */
-  private static calculateYearCompatibility(user1: UserProfile, user2: UserProfile): number {
+  public static calculateYearCompatibility(user1: UserProfile, user2: UserProfile): number {
     const yearDiff = Math.abs(user1.year - user2.year)
 
     if (yearDiff === 0) return 1.0      // Same year
@@ -111,7 +111,7 @@ export class AIMatchingEngine {
   /**
    * Calculate interests overlap
    */
-  private static calculateInterestsMatch(user1: UserProfile, user2: UserProfile): number {
+  public static calculateInterestsMatch(user1: UserProfile, user2: UserProfile): number {
     if (user1.interests.length === 0 || user2.interests.length === 0) return 0.3
 
     const commonInterests = user1.interests.filter(interest =>
@@ -126,7 +126,7 @@ export class AIMatchingEngine {
   /**
    * Calculate skills compatibility (both overlap and complementary)
    */
-  private static calculateSkillsMatch(user1: UserProfile, user2: UserProfile): number {
+  public static calculateSkillsMatch(user1: UserProfile, user2: UserProfile): number {
     if (user1.skills.length === 0 || user2.skills.length === 0) return 0.3
 
     const commonSkills = user1.skills.filter(skill =>
@@ -173,7 +173,7 @@ export class AIMatchingEngine {
   /**
    * Calculate study time compatibility
    */
-  private static calculateStudyTimeMatch(user1: UserProfile, user2: UserProfile): number {
+  public static calculateStudyTimeMatch(user1: UserProfile, user2: UserProfile): number {
     if (user1.preferredStudyTime.length === 0 || user2.preferredStudyTime.length === 0) return 0.5
 
     const commonTimes = user1.preferredStudyTime.filter(time =>
@@ -186,7 +186,7 @@ export class AIMatchingEngine {
   /**
    * Calculate language compatibility
    */
-  private static calculateLanguageMatch(user1: UserProfile, user2: UserProfile): number {
+  public static calculateLanguageMatch(user1: UserProfile, user2: UserProfile): number {
     if (user1.languages.length === 0 || user2.languages.length === 0) return 0.5
 
     const commonLanguages = user1.languages.filter(lang =>
