@@ -12,7 +12,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("SUPABASE_CONNECTION_STRING")
-  //directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Enums

@@ -269,7 +269,9 @@ export class SmartMatchingEngine {
     // Implement LRU eviction if cache is full
     if (this.memoryCache.size >= this.config.maxCacheSize) {
       const oldestKey = this.memoryCache.keys().next().value
-      this.memoryCache.delete(oldestKey)
+      if (oldestKey) {
+        this.memoryCache.delete(oldestKey)
+      }
     }
 
     this.memoryCache.set(cacheKey, {
