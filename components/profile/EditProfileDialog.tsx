@@ -99,7 +99,7 @@ export function EditProfileDialog({
     if (!file) return
 
     const formData = new FormData()
-    formData.append('avatar', file)
+    formData.append('file', file)
 
     try {
       const response = await fetch('/api/upload/avatar', {
