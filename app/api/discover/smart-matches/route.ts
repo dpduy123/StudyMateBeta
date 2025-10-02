@@ -40,87 +40,34 @@ export async function GET(request: NextRequest) {
 
     console.log(`Smart matches API called for user ${currentUser.id}, limit: ${limit}, excludeIds: ${excludeIds.length}`)
 
-    // Initialize Redis cache
-    const redis = RedisCache.getInstance()
+    // Temporarily disable Redis for testing optimized queries
+    const redis = null // RedisCache.getInstance()
+    console.log('Redis disabled for testing - using optimized database queries only')
 
-    // SmartMatchingEngine buffer is handled client-side only
-    // Server-side focuses on Redis cache and database queries
+    // Skip Redis cache check for now
+    // const cachedMatches = await redis.getUserMatches(currentUser.id, excludeIds)
 
-    // Check Redis cache
-    const cachedMatches = await redis.getUserMatches(currentUser.id, excludeIds)
-    if (cachedMatches && !forceRefresh) {
-      // Check if cache is still valid (less than 30 minutes old)
-      const cacheAge = Date.now() - cachedMatches.timestamp
-      if (cacheAge < 30 * 60 * 1000) { // 30 minutes
-        console.log(`Returning ${cachedMatches.matches.length} matches from Redis cache`)
-
-        return NextResponse.json({
-          matches: cachedMatches.matches.slice(0, limit),
-          source: 'redis',
-          cacheAge: Math.floor(cacheAge / 1000),
-          executionTime: Date.now() - startTime
-        })
-      }
-    }
-
-    // Get current user profile
-    const currentUserProfile = await getCurrentUserProfile(currentUser.id, redis)
+    // Single optimized query to get everything at once
+    console.log(`[MAIN] Starting getSingleOptimizedMatches...`)
+    const dbStartTime = Date.now()
+    const { currentUserProfile, candidateUsers } = await getSingleOptimizedMatches(currentUser.id, excludeIds, limit)
+    console.log(`[MAIN] Database queries completed in ${Date.now() - dbStartTime}ms`)
+    
     if (!currentUserProfile) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    // Get excluded user IDs (matches + manual excludes)
-    const allExcludedIds = await getAllExcludedIds(currentUser.id, excludeIds)
-
-    // Try to get pre-computed scores from Redis
-    const candidateUsers = await getCandidateUsers(allExcludedIds, limit * 3)
-
-    // Check for pre-computed scores
-    const userPairs = candidateUsers.map(candidate => ({
-      userId1: currentUser.id,
-      userId2: candidate.id
-    }))
-
-    const precomputedScores = await redis.batchGetMatchScores(userPairs)
-    console.log(`Found ${precomputedScores.size} pre-computed scores out of ${candidateUsers.length} candidates`)
-
-    // Separate candidates with and without pre-computed scores
-    const candidatesWithScores: Array<{candidate: any, score: number}> = []
-    const candidatesWithoutScores: any[] = []
-
-    for (const candidate of candidateUsers) {
-      const pairKey = `${currentUser.id}:${candidate.id}`
-      const precomputedScore = precomputedScores.get(pairKey)
-
-      if (precomputedScore !== undefined) {
-        candidatesWithScores.push({ candidate, score: precomputedScore })
-      } else {
-        candidatesWithoutScores.push(candidate)
-      }
-    }
-
-    // If we have candidates without pre-computed scores, trigger background computation
-    if (candidatesWithoutScores.length > 0) {
-      const precompService = MatchPrecomputationService.getInstance()
-      await precompService.schedulePrecomputation(currentUser.id, 'high')
-
-      console.log(`Triggered background precomputation for ${candidatesWithoutScores.length} candidates`)
-    }
-
-    // Compute scores for remaining candidates (real-time fallback)
-    const remainingScores = await computeRealTimeScores(
-      currentUserProfile,
-      candidatesWithoutScores.slice(0, limit) // Limit real-time computation
-    )
-
-    // Combine pre-computed and real-time scores
-    const allScoredCandidates = [
-      ...candidatesWithScores,
-      ...remainingScores
-    ]
+    // Compute all scores in one go (skip Redis complexity for now)
+    console.log(`[MAIN] Computing scores for ${candidateUsers.length} candidates...`)
+    const scoringStartTime = Date.now()
+    const scoredCandidates = candidateUsers.map(candidate => {
+      const score = computeMatchScore(currentUserProfile, candidate)
+      return { candidate, score }
+    })
+    console.log(`[MAIN] Scoring completed in ${Date.now() - scoringStartTime}ms`)
 
     // Sort by score and take top matches
-    const sortedMatches = allScoredCandidates
+    const sortedMatches = scoredCandidates
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
 
@@ -130,12 +77,12 @@ export async function GET(request: NextRequest) {
       firstName: candidate.firstName,
       lastName: candidate.lastName,
       email: candidate.email,
-      avatar: candidate.avatar,
-      bio: candidate.bio,
+      avatar: candidate.avatar || undefined, // Fix: null -> undefined
+      bio: candidate.bio || undefined, // Fix: null -> undefined
       university: candidate.university,
       major: candidate.major,
       year: candidate.year,
-      gpa: candidate.gpa,
+      gpa: candidate.gpa || undefined, // Fix: null -> undefined
       interests: candidate.interests,
       skills: candidate.skills,
       studyGoals: candidate.studyGoals,
@@ -150,21 +97,14 @@ export async function GET(request: NextRequest) {
       isOnline: isUserOnline(candidate.lastActive)
     }))
 
-    // Cache results in Redis
-    await redis.cacheUserMatches(currentUser.id, matches, allExcludedIds)
-
-    // Note: SmartMatchingEngine buffer is client-side only
-    // Server-side initialization would cause fetch issues
-
-    // Cache any newly computed scores
-    if (remainingScores.length > 0) {
-      const scoresToCache = remainingScores.map(({ candidate, score }) => ({
-        userId1: currentUser.id,
-        userId2: candidate.id,
-        score
-      }))
-      await redis.batchCacheMatchScores(scoresToCache)
-    }
+    // Try to cache results (disabled for testing)
+    // try {
+    //   if (redis) {
+    //     await redis.cacheUserMatches(currentUser.id, matches, excludeIds)
+    //   }
+    // } catch (error) {
+    //   console.log('Redis cache failed (non-blocking):', error instanceof Error ? error.message : error)
+    // }
 
     const executionTime = Date.now() - startTime
     console.log(`Smart matches API completed in ${executionTime}ms, returning ${matches.length} matches`)
@@ -172,11 +112,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       matches,
       totalAvailable: candidateUsers.length,
-      excludedCount: allExcludedIds.length,
-      source: 'computed',
+      excludedCount: 0, // Will be calculated in optimized query
+      source: 'optimized_single_query',
       executionTime,
-      precomputedScores: precomputedScores.size,
-      realtimeScores: remainingScores.length
+      precomputedScores: 0,
+      realtimeScores: matches.length
     })
 
   } catch (error) {
@@ -229,6 +169,150 @@ export async function POST(request: NextRequest) {
     console.error('Error in smart matches POST:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+// OPTIMIZED SINGLE QUERY FUNCTION
+async function getSingleOptimizedMatches(currentUserId: string, excludeIds: string[], limit: number) {
+  console.log(`[DB Query 1] Finding current user: ${currentUserId}`)
+  const queryStartTime = Date.now()
+  
+  const queryResult = await prisma.user.findFirst({
+    where: { id: currentUserId },
+    include: {
+      // Get current user profile data
+      sentMatches: {
+        select: { receiverId: true }
+      },
+      receivedMatches: {
+        select: { senderId: true }
+      }
+    }
+  })
+
+  console.log(`[DB Query 1] Completed in ${Date.now() - queryStartTime}ms`)
+  
+  if (!queryResult) {
+    throw new Error('Current user not found')
+  }
+
+  // Extract excluded IDs from matches
+  const matchedUserIds = [
+    ...queryResult.sentMatches.map(m => m.receiverId),
+    ...queryResult.receivedMatches.map(m => m.senderId)
+  ]
+  
+  const allExcludedIds = [...new Set([...matchedUserIds, ...excludeIds, currentUserId])]
+  console.log(`[DEBUG] Excluded IDs count: ${allExcludedIds.length}`, allExcludedIds.slice(0, 5))
+
+  // Get candidate users in single query
+  console.log(`[DB Query 2] Finding candidate users with limit: ${limit * 2}`)
+  const candidatesStartTime = Date.now()
+  
+  const candidateUsers = await prisma.user.findMany({
+    where: {
+      id: { notIn: allExcludedIds },
+      isProfilePublic: true,
+      lastActive: {
+        gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) // Last 60 days
+      }
+    },
+    take: limit * 2, // Get more to ensure good matches after scoring
+    orderBy: { lastActive: 'desc' }
+  })
+
+  console.log(`[DB Query 2] Completed in ${Date.now() - candidatesStartTime}ms`)
+  console.log(`[DEBUG] Found ${candidateUsers.length} candidate users`)
+
+  // Convert current user to UserProfile format
+  const currentUserProfile = {
+    id: queryResult.id,
+    firstName: queryResult.firstName,
+    lastName: queryResult.lastName,
+    email: queryResult.email,
+    avatar: queryResult.avatar || undefined,
+    bio: queryResult.bio || undefined,
+    university: queryResult.university,
+    major: queryResult.major,
+    year: queryResult.year,
+    gpa: queryResult.gpa || undefined,
+    interests: queryResult.interests,
+    skills: queryResult.skills,
+    studyGoals: queryResult.studyGoals,
+    preferredStudyTime: queryResult.preferredStudyTime,
+    languages: queryResult.languages,
+    totalMatches: queryResult.totalMatches,
+    successfulMatches: queryResult.successfulMatches,
+    averageRating: queryResult.averageRating,
+    createdAt: queryResult.createdAt.toISOString()
+  }
+
+  return { currentUserProfile, candidateUsers }
+}
+
+// SIMPLIFIED MATCH SCORING (no external imports needed)
+function computeMatchScore(currentUser: any, candidate: any): number {
+  let score = 0
+  
+  // University match (20%)
+  if (currentUser.university === candidate.university) {
+    score += 20
+  } else {
+    score += 5 // Different university but still some points
+  }
+  
+  // Major match (25%)
+  if (currentUser.major === candidate.major) {
+    score += 25
+  } else {
+    // Check for related majors
+    const relatedMajors: Record<string, string[]> = {
+      'Computer Science': ['Software Engineering', 'Information Technology'],
+      'Business': ['Marketing', 'Economics'],
+      'Engineering': ['Computer Science', 'Software Engineering']
+    }
+    const related = relatedMajors[currentUser.major as string] || []
+    if (related.includes(candidate.major)) {
+      score += 15
+    } else {
+      score += 5
+    }
+  }
+  
+  // Year compatibility (15%)
+  const yearDiff = Math.abs(currentUser.year - candidate.year)
+  if (yearDiff === 0) score += 15
+  else if (yearDiff === 1) score += 12
+  else if (yearDiff === 2) score += 8
+  else score += 3
+  
+  // Interests overlap (20%)
+  const userInterests = (currentUser.interests as string[]) || []
+  const candidateInterests = (candidate.interests as string[]) || []
+  const commonInterests = userInterests.filter(interest => 
+    candidateInterests.includes(interest)
+  ).length
+  const maxInterests = Math.max(userInterests.length || 1, candidateInterests.length || 1)
+  score += (commonInterests / maxInterests) * 20
+  
+  // Skills overlap (10%)
+  const userSkills = (currentUser.skills as string[]) || []
+  const candidateSkills = (candidate.skills as string[]) || []
+  const commonSkills = userSkills.filter(skill => 
+    candidateSkills.includes(skill)
+  ).length
+  const maxSkills = Math.max(userSkills.length || 1, candidateSkills.length || 1)
+  score += (commonSkills / maxSkills) * 10
+  
+  // Study time compatibility (10%)
+  const userTimes = (currentUser.preferredStudyTime as string[]) || []
+  const candidateTimes = (candidate.preferredStudyTime as string[]) || []
+  const commonTimes = userTimes.filter(time => 
+    candidateTimes.includes(time)
+  ).length
+  const maxTimes = Math.max(userTimes.length || 1, candidateTimes.length || 1)
+  score += (commonTimes / maxTimes) * 10
+  
+  return Math.min(100, Math.max(10, score)) // Ensure score is between 10-100
 }
 
 // Helper methods for the API

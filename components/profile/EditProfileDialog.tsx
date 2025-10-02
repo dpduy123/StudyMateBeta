@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/components/providers/Providers'
 import { useProfile } from '@/hooks/useProfile'
 import { UserProfile, EditProfileFormData } from './types'
+import { SearchableDropdown, DropdownOption } from '@/components/ui/SearchableDropdown'
+import { UNIVERSITIES, MAJORS, University, Major } from '@/lib/data/universities'
 import {
   XMarkIcon,
   CameraIcon,
@@ -49,6 +51,22 @@ export function EditProfileDialog({
     preferredStudyTime: [],
     languages: []
   })
+
+  // Convert data for dropdowns
+  const universityOptions: DropdownOption[] = UNIVERSITIES.map(uni => ({
+    id: uni.id,
+    name: uni.name,
+    description: uni.shortName,
+    location: uni.location,
+    category: uni.type === 'public' ? 'Công lập' : uni.type === 'private' ? 'Tư thục' : 'Quốc tế'
+  }))
+
+  const majorOptions: DropdownOption[] = MAJORS.map(major => ({
+    id: major.id,
+    name: major.name,
+    description: major.description,
+    category: major.category
+  }))
 
   // Populate form data when dialog opens
   useEffect(() => {
@@ -282,11 +300,13 @@ export function EditProfileDialog({
                       <MapPinIcon className="h-4 w-4 inline mr-1" />
                       Trường đại học
                     </label>
-                    <input
-                      type="text"
+                    <SearchableDropdown
+                      options={universityOptions}
                       value={formData.university}
-                      onChange={(e) => handleInputChange('university', e.target.value)}
-                      className="input-field"
+                      onChange={(value) => handleInputChange('university', value)}
+                      placeholder="Chọn trường đại học..."
+                      searchPlaceholder="Tìm kiếm trường..."
+                      className="w-full"
                       required
                     />
                   </div>
@@ -295,11 +315,13 @@ export function EditProfileDialog({
                       <AcademicCapIcon className="h-4 w-4 inline mr-1" />
                       Ngành học
                     </label>
-                    <input
-                      type="text"
+                    <SearchableDropdown
+                      options={majorOptions}
                       value={formData.major}
-                      onChange={(e) => handleInputChange('major', e.target.value)}
-                      className="input-field"
+                      onChange={(value) => handleInputChange('major', value)}
+                      placeholder="Chọn ngành học..."
+                      searchPlaceholder="Tìm kiếm ngành..."
+                      className="w-full"
                       required
                     />
                   </div>
