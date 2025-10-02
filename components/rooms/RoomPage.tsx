@@ -305,21 +305,21 @@ export function RoomPage({ roomId }: RoomPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Main Video Interface */}
       <div className="flex-1 flex relative">
         {/* Primary Video Area */}
-        <div className={`flex-1 relative bg-gray-900 ${showChat ? 'mr-80' : ''} transition-all duration-300`}>
+        <div className={`flex-1 relative bg-white ${showChat ? 'mr-80' : ''} transition-all duration-300`}>
           {/* Top Control Bar - Like Meet/Zoom */}
           {inCall && (
             <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-20">
-              <div className="flex items-center space-x-2 bg-gray-800/90 backdrop-blur-sm rounded-xl px-4 py-3 shadow-2xl">
+              <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-3 shadow-2xl border border-gray-200">
                 <button
                   onClick={handleMicrophoneToggle}
                   disabled={!localStream}
                   className={`p-3 rounded-xl transition-all duration-200 ${
                     !localStream 
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                       : (localStream && isMicOn) 
                         ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                         : 'bg-red-600 hover:bg-red-700 text-white'
@@ -344,7 +344,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
                   disabled={!localStream}
                   className={`p-3 rounded-xl transition-all duration-200 ${
                     !localStream 
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                       : (localStream && isCameraOn) 
                         ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                         : 'bg-red-600 hover:bg-red-700 text-white'
@@ -369,10 +369,10 @@ export function RoomPage({ roomId }: RoomPageProps) {
                   disabled={!localStream}
                   className={`p-3 rounded-xl transition-all duration-200 ${
                     !localStream 
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                       : isScreenSharing 
                         ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
                   }`}
                   title={
                     !localStream 
@@ -400,19 +400,19 @@ export function RoomPage({ roomId }: RoomPageProps) {
           {inCall && (
             <div className="absolute top-6 right-6 z-20">
               <div className="flex items-center space-x-2">
-                <button className="p-3 rounded-xl bg-gray-800/90 hover:bg-gray-700/90 text-gray-300 backdrop-blur-sm transition-all duration-200">
+                <button className="p-3 rounded-xl bg-white/90 hover:bg-gray-50/90 text-gray-600 backdrop-blur-sm transition-all duration-200 border border-gray-200">
                   <MessageSquare className="h-5 w-5" />
                 </button>
-                <button className="p-3 rounded-xl bg-gray-800/90 hover:bg-gray-700/90 text-gray-300 backdrop-blur-sm transition-all duration-200">
+                <button className="p-3 rounded-xl bg-white/90 hover:bg-gray-50/90 text-gray-600 backdrop-blur-sm transition-all duration-200 border border-gray-200">
                   <Users className="h-5 w-5" />
                 </button>
-                <button className="p-3 rounded-xl bg-gray-800/90 hover:bg-gray-700/90 text-gray-300 backdrop-blur-sm transition-all duration-200">
+                <button className="p-3 rounded-xl bg-white/90 hover:bg-gray-50/90 text-gray-600 backdrop-blur-sm transition-all duration-200 border border-gray-200">
                   <Grid3X3 className="h-5 w-5" />
                 </button>
-                <button className="p-3 rounded-xl bg-gray-800/90 hover:bg-gray-700/90 text-gray-300 backdrop-blur-sm transition-all duration-200">
+                <button className="p-3 rounded-xl bg-white/90 hover:bg-gray-50/90 text-gray-600 backdrop-blur-sm transition-all duration-200 border border-gray-200">
                   <Settings className="h-5 w-5" />
                 </button>
-                <button className="p-3 rounded-xl bg-gray-800/90 hover:bg-gray-700/90 text-gray-300 backdrop-blur-sm transition-all duration-200">
+                <button className="p-3 rounded-xl bg-white/90 hover:bg-gray-50/90 text-gray-600 backdrop-blur-sm transition-all duration-200 border border-gray-200">
                   <Maximize className="h-5 w-5" />
                 </button>
               </div>
@@ -426,16 +426,16 @@ export function RoomPage({ roomId }: RoomPageProps) {
                 {/* Central Video Area */}
                 <div className="flex-1 flex items-center justify-center">
                   {participants.length === 0 ? (
-                    <div className="text-center text-gray-400">
-                      <div className="w-32 h-32 bg-gray-800 rounded-full flex items-center justify-center mb-6 mx-auto">
-                        <Users className="h-16 w-16 text-gray-600" />
+                    <div className="text-center text-gray-600">
+                      <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <Users className="h-16 w-16 text-gray-400" />
                       </div>
-                      <h3 className="text-xl font-medium mb-2">Đang chờ người tham gia...</h3>
+                      <h3 className="text-xl font-medium mb-2 text-gray-800">Đang chờ người tham gia...</h3>
                       <p className="text-gray-500">Hãy mời bạn bè tham gia cuộc gọi</p>
                     </div>
                   ) : (
                     /* Main speaker view - largest participant */
-                    <div className="w-full h-full max-w-4xl max-h-[70vh] rounded-2xl overflow-hidden bg-gray-800">
+                    <div className="w-full h-full max-w-4xl max-h-[70vh] rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
                       {participants[0] && (
                         <div className="relative w-full h-full">
                           {participants[0].stream && participants[0].isCameraOn ? (
@@ -454,10 +454,10 @@ export function RoomPage({ roomId }: RoomPageProps) {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                              <div className="text-center text-white">
-                                <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-4 mx-auto">
-                                  <span className="text-4xl font-bold">
+                            <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+                              <div className="text-center text-gray-700">
+                                <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                  <span className="text-4xl font-bold text-white">
                                     {participants[0].name.charAt(0).toUpperCase()}
                                   </span>
                                 </div>
@@ -468,8 +468,8 @@ export function RoomPage({ roomId }: RoomPageProps) {
                           
                           {/* Participant name overlay */}
                           <div className="absolute bottom-4 left-4">
-                            <div className="bg-black/60 rounded-lg px-3 py-1 backdrop-blur-sm">
-                              <span className="text-white text-sm font-medium">{participants[0].name}</span>
+                            <div className="bg-white/90 rounded-lg px-3 py-1 backdrop-blur-sm border border-gray-200">
+                              <span className="text-gray-800 text-sm font-medium">{participants[0].name}</span>
                             </div>
                           </div>
                         </div>
@@ -483,7 +483,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
                   <div className="flex items-center space-x-3">
                     {/* Local user tile */}
                     {localStream && (
-                      <div className="relative w-32 h-24 rounded-xl overflow-hidden bg-gray-800 border-2 border-blue-500 shadow-lg">
+                      <div className="relative w-32 h-24 rounded-xl overflow-hidden bg-gray-100 border-2 border-blue-500 shadow-lg">
                         {isCameraOn ? (
                           <video
                             ref={localVideoRef}
@@ -493,10 +493,10 @@ export function RoomPage({ roomId }: RoomPageProps) {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-green-600 to-blue-700 flex items-center justify-center">
-                            <div className="text-center text-white">
-                              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mx-auto">
-                                <span className="text-sm font-bold">
+                          <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+                            <div className="text-center text-gray-700">
+                              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mx-auto">
+                                <span className="text-sm font-bold text-white">
                                   {(user?.email?.split('@')[0] || 'You').charAt(0).toUpperCase()}
                                 </span>
                               </div>
@@ -522,7 +522,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
 
                     {/* Other participants tiles */}
                     {participants.slice(1, 5).map((participant) => (
-                      <div key={participant.id} className="relative w-32 h-24 rounded-xl overflow-hidden bg-gray-800 shadow-lg">
+                      <div key={participant.id} className="relative w-32 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-lg">
                         {participant.stream && participant.isCameraOn ? (
                           <video
                             ref={(video) => {
@@ -535,10 +535,10 @@ export function RoomPage({ roomId }: RoomPageProps) {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-700 flex items-center justify-center">
-                            <div className="text-center text-white">
-                              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mx-auto">
-                                <span className="text-sm font-bold">
+                          <div className="w-full h-full bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+                            <div className="text-center text-gray-700">
+                              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mx-auto">
+                                <span className="text-sm font-bold text-white">
                                   {participant.name.charAt(0).toUpperCase()}
                                 </span>
                               </div>
@@ -567,14 +567,14 @@ export function RoomPage({ roomId }: RoomPageProps) {
             ) : (
               // Room preview when not in call
               <div className="h-full flex items-center justify-center">
-                <div className="text-center text-gray-400">
-                  <div className="w-32 h-32 bg-gray-800 rounded-full flex items-center justify-center mb-6 mx-auto">
-                    <Video className="h-16 w-16 text-gray-600" />
+                <div className="text-center text-gray-600">
+                  <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mb-6 mx-auto border border-gray-200">
+                    <Video className="h-16 w-16 text-gray-400" />
                   </div>
-                  <h3 className="text-2xl font-medium text-white mb-2">
+                  <h3 className="text-2xl font-medium text-gray-800 mb-2">
                     {room?.name}
                   </h3>
-                  <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
                     {room?.description || 'Tham gia cuộc gọi để bắt đầu học tập cùng nhau'}
                   </p>
                   
@@ -599,7 +599,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
           {inCall && (
             <button
               onClick={() => setShowChat(!showChat)}
-              className="absolute bottom-6 right-6 z-10 p-3 rounded-xl bg-gray-800/90 hover:bg-gray-700/90 text-gray-300 backdrop-blur-sm transition-all duration-200 shadow-lg"
+              className="absolute bottom-6 right-6 z-10 p-3 rounded-xl bg-white/90 hover:bg-gray-50/90 text-gray-600 backdrop-blur-sm transition-all duration-200 shadow-lg border border-gray-200"
               title="Toggle chat"
             >
               <MessageSquare className="h-5 w-5" />
@@ -610,46 +610,46 @@ export function RoomPage({ roomId }: RoomPageProps) {
 
         {/* Right Sidebar */}
         {showChat && (
-          <div className="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
+          <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
             {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-700">
-              <h3 className="text-lg font-semibold text-white">Room Info</h3>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-800">Room Info</h3>
               <button
                 onClick={() => setShowChat(false)}
-                className="p-1 rounded-lg hover:bg-gray-700 transition-colors"
+                className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <XMarkIcon className="h-5 w-5 text-gray-400" />
+                <XMarkIcon className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
             {/* Room Information */}
-            <div className="p-4 border-b border-gray-700">
+            <div className="p-4 border-b border-gray-200">
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Subject:</span>
-                  <span className="text-white">{room?.topic}</span>
+                  <span className="text-gray-500">Subject:</span>
+                  <span className="text-gray-800">{room?.topic}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Type:</span>
-                  <span className="text-white capitalize">{room?.type.replace('_', ' ')}</span>
+                  <span className="text-gray-500">Type:</span>
+                  <span className="text-gray-800 capitalize">{room?.type.replace('_', ' ')}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Participants:</span>
-                  <span className="text-white">{totalMembers}/{maxMembers}</span>
+                  <span className="text-gray-500">Participants:</span>
+                  <span className="text-gray-800">{totalMembers}/{maxMembers}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Room ID:</span>
-                  <span className="text-white font-mono">{roomId.slice(0, 8)}...</span>
+                  <span className="text-gray-500">Room ID:</span>
+                  <span className="text-gray-800 font-mono">{roomId.slice(0, 8)}...</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Owner:</span>
-                  <span className="text-white">{room?.owner.name}</span>
+                  <span className="text-gray-500">Owner:</span>
+                  <span className="text-gray-800">{room?.owner.name}</span>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-400">Tags:</span>
+                  <span className="text-gray-500">Tags:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {room?.tags.map((tag, index) => (
-                      <span key={index} className="px-2 py-1 bg-blue-600/20 text-blue-300 rounded text-xs">
+                      <span key={index} className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs border border-blue-200">
                         {tag}
                       </span>
                     ))}
@@ -659,43 +659,43 @@ export function RoomPage({ roomId }: RoomPageProps) {
             </div>
 
             {/* Participants List */}
-            <div className="p-4 border-b border-gray-700">
-              <h4 className="text-sm font-medium text-white mb-3">Participants ({totalMembers})</h4>
+            <div className="p-4 border-b border-gray-200">
+              <h4 className="text-sm font-medium text-gray-800 mb-3">Participants ({totalMembers})</h4>
               <div className="space-y-2">
                 {/* Current user */}
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-gray-700/50">
+                <div className="flex items-center space-x-3 p-2 rounded-lg bg-blue-50">
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
                       {(user?.email?.split('@')[0] || 'You').charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="flex-1">
-                    <div className="text-white text-sm font-medium">
+                    <div className="text-gray-800 text-sm font-medium">
                       {user?.email?.split('@')[0] || 'You'} (You)
                     </div>
-                    <div className="text-gray-400 text-xs">Host</div>
+                    <div className="text-gray-500 text-xs">Host</div>
                   </div>
                   <div className="flex items-center space-x-1">
-                    {!isMicOn && <MicOff className="h-3 w-3 text-red-400" />}
-                    {!isCameraOn && <VideoOff className="h-3 w-3 text-red-400" />}
+                    {!isMicOn && <MicOff className="h-3 w-3 text-red-500" />}
+                    {!isCameraOn && <VideoOff className="h-3 w-3 text-red-500" />}
                   </div>
                 </div>
 
                 {/* Other participants */}
                 {participants.map((participant) => (
-                  <div key={participant.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700/30">
+                  <div key={participant.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50">
                     <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-medium">
                         {participant.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1">
-                      <div className="text-white text-sm font-medium">{participant.name}</div>
-                      <div className="text-gray-400 text-xs">Participant</div>
+                      <div className="text-gray-800 text-sm font-medium">{participant.name}</div>
+                      <div className="text-gray-500 text-xs">Participant</div>
                     </div>
                     <div className="flex items-center space-x-1">
-                      {!participant.isMicOn && <MicOff className="h-3 w-3 text-red-400" />}
-                      {!participant.isCameraOn && <VideoOff className="h-3 w-3 text-red-400" />}
+                      {!participant.isMicOn && <MicOff className="h-3 w-3 text-red-500" />}
+                      {!participant.isCameraOn && <VideoOff className="h-3 w-3 text-red-500" />}
                     </div>
                   </div>
                 ))}
@@ -704,8 +704,8 @@ export function RoomPage({ roomId }: RoomPageProps) {
 
             {/* Chat Section */}
             <div className="flex-1 flex flex-col">
-              <div className="p-4 border-b border-gray-700">
-                <h4 className="text-sm font-medium text-white">Chat</h4>
+              <div className="p-4 border-b border-gray-200">
+                <h4 className="text-sm font-medium text-gray-800">Chat</h4>
               </div>
               <div className="flex-1 min-h-0">
                 <ChatContainer
@@ -713,7 +713,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
                   chatType="room"
                   currentUserId={user?.id || ''}
                   title=""
-                  className="h-full bg-gray-800"
+                  className="h-full bg-white"
                 />
               </div>
             </div>
