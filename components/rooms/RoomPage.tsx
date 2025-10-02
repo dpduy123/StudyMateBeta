@@ -31,37 +31,141 @@ interface RoomPageProps {
 
 export function RoomPage({ roomId }: RoomPageProps) {
   const { user } = useAuth()
-  const [room, setRoom] = useState<Room | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  
+  // Hardcoded mock room data
+  const mockRoom: Room = {
+    id: roomId,
+    name: "Toán Cao Cấp A1 - Ôn thi cuối kỳ",
+    description: "Phòng học nhóm ôn tập Toán Cao Cấp A1. Chúng ta sẽ cùng nhau ôn lại các chương về đạo hàm, tích phân và chuỗi số. Mọi người chuẩn bị sẵn tài liệu và bài tập nhé!",
+    topic: "Toán Cao Cấp A1",
+    type: "study_group",
+    maxMembers: 8,
+    currentMembers: 5,
+    isPrivate: false,
+    owner: {
+      id: "owner-123",
+      name: "Nguyễn Văn Minh",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+    },
+    tags: ["toán", "cao cấp", "ôn thi", "đạo hàm", "tích phân"],
+    isMember: true,
+    isOwner: false,
+    allowVideo: true,
+    allowVoice: true,
+    allowText: true,
+    allowScreenShare: true,
+    createdAt: "2024-01-15T10:00:00Z",
+    lastActivity: "2024-01-20T15:30:00Z",
+    members: [
+      {
+        id: "member-1",
+        name: "Nguyễn Văn Minh",
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+        joinedAt: "2024-01-15T10:00:00Z"
+      },
+      {
+        id: "member-2", 
+        name: "Trần Thị Hoa",
+        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face",
+        joinedAt: "2024-01-16T14:30:00Z"
+      },
+      {
+        id: "member-3",
+        name: "Lê Văn Đức",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face", 
+        joinedAt: "2024-01-17T09:15:00Z"
+      },
+      {
+        id: "member-4",
+        name: "Phạm Thị Mai",
+        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+        joinedAt: "2024-01-18T16:45:00Z"
+      },
+      {
+        id: "member-5",
+        name: "Hoàng Văn Nam",
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+        joinedAt: "2024-01-19T11:20:00Z"
+      }
+    ]
+  }
+
+  const [room, setRoom] = useState<Room | null>(mockRoom)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showChat, setShowChat] = useState(true)
   const [inCall, setInCall] = useState(false)
 
-  // Video call functionality
+  // Mock participants data for demo
+  const mockParticipants = [
+    {
+      id: "participant-1",
+      name: "Trần Thị Hoa", 
+      isCameraOn: true,
+      isMicOn: true,
+      isScreenSharing: false,
+      stream: null as MediaStream | null
+    },
+    {
+      id: "participant-2",
+      name: "Lê Văn Đức",
+      isCameraOn: false,
+      isMicOn: true, 
+      isScreenSharing: false,
+      stream: null as MediaStream | null
+    },
+    {
+      id: "participant-3", 
+      name: "Phạm Thị Mai",
+      isCameraOn: true,
+      isMicOn: false,
+      isScreenSharing: false,
+      stream: null as MediaStream | null
+    },
+    {
+      id: "participant-4",
+      name: "Hoàng Văn Nam", 
+      isCameraOn: true,
+      isMicOn: true,
+      isScreenSharing: true,
+      stream: null as MediaStream | null
+    }
+  ]
+
+  // Video call functionality - using mock data when in call
   const {
-    participants,
+    participants: realParticipants,
     localStream,
-    isCameraOn,
-    isMicOn,
-    isScreenSharing,
+    isCameraOn: realIsCameraOn,
+    isMicOn: realIsMicOn,
+    isScreenSharing: realIsScreenSharing,
     error: callError,
     localVideoRef,
-    joinCall,
-    leaveCall,
+    joinCall: realJoinCall,
+    leaveCall: realLeaveCall,
     toggleCamera,
     toggleMicrophone,
     startScreenShare,
     stopScreenShare
   } = useVideoCall(roomId)
 
+  // Use mock data when in call for demo
+  const participants = inCall ? mockParticipants : realParticipants
+  const isCameraOn = inCall ? true : realIsCameraOn
+  const isMicOn = inCall ? true : realIsMicOn  
+  const isScreenSharing = inCall ? false : realIsScreenSharing
 
-  // Room members management
+  // Room members management - using mock data
   const {
-    totalMembers,
-    maxMembers,
-    isMember,
-    joinRoom
+    totalMembers: realTotalMembers,
+    maxMembers: realMaxMembers,
+    isMember: realIsMember,
+    joinRoom: realJoinRoom
   } = useRoomMembers(roomId)
+
+  const totalMembers = mockRoom?.currentMembers || realTotalMembers
+  const maxMembers = mockRoom?.maxMembers || realMaxMembers
+  const isMember = mockRoom?.isMember || realIsMember
 
   // Handler functions for media controls
   const handleMicrophoneToggle = async () => {
@@ -107,7 +211,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
 
   const handleLeaveCall = () => {
     try {
-      leaveCall()
+      realLeaveCall()
       setInCall(false)
     } catch (error) {
       console.error('Error leaving call:', error)
@@ -117,7 +221,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
 
   const handleJoinCall = async () => {
     if (!isMember) {
-      const result = await joinRoom()
+      const result = await realJoinRoom()
       if (!result.success) {
         setError('Không thể tham gia phòng')
         return
@@ -126,7 +230,8 @@ export function RoomPage({ roomId }: RoomPageProps) {
     
     try {
       setInCall(true)
-      await joinCall()
+      // Simulate joining with mock data
+      await realJoinCall()
     } catch (error) {
       console.error('Error joining call:', error)
       setError('Không thể tham gia cuộc gọi')
@@ -134,32 +239,12 @@ export function RoomPage({ roomId }: RoomPageProps) {
     }
   }
 
+  // Using mock data, no need to fetch from API
   useEffect(() => {
-    const fetchRoom = async () => {
-      if (!user) {
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        const response = await fetch(`/api/rooms/${roomId}`)
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        setRoom(data.room)
-      } catch (error) {
-        console.error('Error fetching room:', error)
-        setError('Không thể tải thông tin phòng')
-      } finally {
-        setIsLoading(false)
-      }
+    if (user) {
+      setIsLoading(false)
     }
-
-    fetchRoom()
-  }, [user, roomId])
+  }, [user])
 
   if (isLoading) {
     return (
@@ -541,8 +626,12 @@ export function RoomPage({ roomId }: RoomPageProps) {
             <div className="p-4 border-b border-gray-700">
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Language:</span>
-                  <span className="text-white">Vietnamese</span>
+                  <span className="text-gray-400">Subject:</span>
+                  <span className="text-white">{room?.topic}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">Type:</span>
+                  <span className="text-white capitalize">{room?.type.replace('_', ' ')}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">Participants:</span>
@@ -551,6 +640,20 @@ export function RoomPage({ roomId }: RoomPageProps) {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">Room ID:</span>
                   <span className="text-white font-mono">{roomId.slice(0, 8)}...</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">Owner:</span>
+                  <span className="text-white">{room?.owner.name}</span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-gray-400">Tags:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {room?.tags.map((tag, index) => (
+                      <span key={index} className="px-2 py-1 bg-blue-600/20 text-blue-300 rounded text-xs">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
