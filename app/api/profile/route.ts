@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/prisma'
+import { getUniversityById, getMajorById } from '@/lib/data/universities'
 
 export async function GET(request: NextRequest) {
   try {
@@ -68,7 +69,18 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ profile })
+    // Get full university and major information
+    const universityInfo = profile.university ? getUniversityById(profile.university) : null
+    const majorInfo = profile.major ? getMajorById(profile.major) : null
+
+    // Return profile with full university and major details
+    const profileWithDetails = {
+      ...profile,
+      universityInfo,
+      majorInfo
+    }
+
+    return NextResponse.json({ profile: profileWithDetails })
   } catch (error) {
     console.error('Error fetching profile:', error)
     return NextResponse.json(

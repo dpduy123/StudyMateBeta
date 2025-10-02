@@ -2,13 +2,15 @@
 
 import { motion } from 'framer-motion'
 import { UserProfile } from './types'
+import { getUniversityById, getMajorById } from '@/lib/data/universities'
 import {
   UserCircleIcon,
   CameraIcon,
   AcademicCapIcon,
   MapPinIcon,
   CalendarIcon,
-  StarIcon
+  StarIcon,
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
 
 interface ProfileHeaderProps {
@@ -16,6 +18,10 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
+  // Use university and major info from API if available, otherwise fallback to lookup
+  const university = profile.universityInfo || getUniversityById(profile.university)
+  const major = profile.majorInfo || getMajorById(profile.major)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -61,7 +67,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
                 </h1>
                 <div className="flex items-center text-gray-600 mt-1">
                   <MapPinIcon className="h-4 w-4 mr-1" />
-                  {profile.university}
+                  {university ? university.name : profile.university}
                 </div>
               </div>
             </div>
@@ -103,18 +109,60 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Thông tin học tập</h3>
-            <div className="space-y-3">
-              <div className="flex items-center">
-                <AcademicCapIcon className="h-5 w-5 text-primary-600 mr-3" />
-                <div>
-                  <div className="font-medium text-gray-900">{profile.major}</div>
-                  <div className="text-sm text-gray-600">Năm {profile.year}</div>
+            <div className="space-y-4">
+              {/* University Info */}
+              {university && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <BuildingOfficeIcon className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="font-medium text-blue-900">{university.name}</div>
+                      <div className="text-sm text-blue-600 mt-1">
+                        {university.shortName} • {university.location}
+                      </div>
+                      <div className="text-xs text-blue-500 mt-1">
+                        {university.type === 'public' ? 'Công lập' : 
+                         university.type === 'private' ? 'Tư thục' : 'Quốc tế'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Major Info */}
+              {major && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <AcademicCapIcon className="h-5 w-5 text-green-600 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="font-medium text-green-900">{major.name}</div>
+                      <div className="text-sm text-green-600 mt-1">
+                        {major.category}
+                      </div>
+                      {major.description && (
+                        <div className="text-xs text-green-500 mt-1">
+                          {major.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Year Info */}
               <div className="flex items-center">
                 <CalendarIcon className="h-5 w-5 text-primary-600 mr-3" />
                 <div>
-                  <div className="font-medium text-gray-900">Thời gian học</div>
+                  <div className="font-medium text-gray-900">Năm học</div>
+                  <div className="text-sm text-gray-600">Năm {profile.year}</div>
+                </div>
+              </div>
+
+              {/* Study Time */}
+              <div className="flex items-center">
+                <CalendarIcon className="h-5 w-5 text-primary-600 mr-3" />
+                <div>
+                  <div className="font-medium text-gray-900">Thời gian học ưa thích</div>
                   <div className="text-sm text-gray-600">{profile.preferredStudyTime?.join(', ') || 'Chưa cập nhật'}</div>
                 </div>
               </div>

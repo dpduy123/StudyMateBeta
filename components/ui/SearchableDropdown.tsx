@@ -143,7 +143,7 @@ export function SearchableDropdown({
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             {selectedOption ? (
-              <div>
+              <div className="flex-1 min-w-0">
                 <div className="font-medium text-gray-900 truncate">
                   {selectedOption.name}
                 </div>
@@ -152,9 +152,9 @@ export function SearchableDropdown({
                     {selectedOption.description}
                   </div>
                 )}
-                {selectedOption.location && (
-                  <div className="text-xs text-gray-400 truncate">
-                    {selectedOption.location}
+                {selectedOption.category && (
+                  <div className="text-xs text-primary-600 truncate">
+                    {selectedOption.category}
                   </div>
                 )}
               </div>
@@ -222,11 +222,6 @@ export function SearchableDropdown({
                         {option.description && (
                           <div className="text-sm text-gray-500 truncate">
                             {option.description}
-                          </div>
-                        )}
-                        {option.location && (
-                          <div className="text-xs text-gray-400 truncate">
-                            {option.location}
                           </div>
                         )}
                         {option.category && (

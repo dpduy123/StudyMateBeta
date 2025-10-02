@@ -6,6 +6,7 @@ import { useAuth } from '@/components/providers/Providers'
 import { useProfile } from '@/hooks/useProfile'
 import { UserProfile, EditProfileFormData } from './types'
 import { SearchableDropdown, DropdownOption } from '@/components/ui/SearchableDropdown'
+import { SelectedInfoDisplay } from './SelectedInfoDisplay'
 import { UNIVERSITIES, MAJORS, University, Major } from '@/lib/data/universities'
 import {
   XMarkIcon,
@@ -56,7 +57,7 @@ export function EditProfileDialog({
   const universityOptions: DropdownOption[] = UNIVERSITIES.map(uni => ({
     id: uni.id,
     name: uni.name,
-    description: uni.shortName,
+    description: `${uni.shortName} • ${uni.location}`,
     location: uni.location,
     category: uni.type === 'public' ? 'Công lập' : uni.type === 'private' ? 'Tư thục' : 'Quốc tế'
   }))
@@ -64,7 +65,7 @@ export function EditProfileDialog({
   const majorOptions: DropdownOption[] = MAJORS.map(major => ({
     id: major.id,
     name: major.name,
-    description: major.description,
+    description: major.description || major.category,
     category: major.category
   }))
 
@@ -326,6 +327,15 @@ export function EditProfileDialog({
                     />
                   </div>
                 </div>
+
+                {/* Selected Info Display */}
+                {(formData.university || formData.major) && (
+                  <SelectedInfoDisplay
+                    universityId={formData.university}
+                    majorId={formData.major}
+                    className="mt-4"
+                  />
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>

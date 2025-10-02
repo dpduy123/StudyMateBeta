@@ -1,3 +1,5 @@
+import { University, Major } from '@/lib/data/universities'
+
 export interface UserProfile {
   id: string
   firstName: string
@@ -18,6 +20,9 @@ export interface UserProfile {
   successfulMatches: number
   averageRating: number
   createdAt: string
+  // Additional info from API
+  universityInfo?: University
+  majorInfo?: Major
 }
 
 export interface EditProfileFormData {
