@@ -59,6 +59,15 @@ export default function DiscoverPage() {
 
   // Get current match
   const currentMatch = matches[currentCardIndex]
+  
+  // Generate a random match score between 80-99 for better UI (mock data only)
+  const generateRandomMatchScore = (userId: string | number, cardIndex: number) => {
+    // Use userId + cardIndex as seed for random numbers that change with each card
+    const userSeed = typeof userId === 'string' ? userId.length * 17 : userId * 17
+    const seed = userSeed + cardIndex * 23 // Add cardIndex to make it change
+    const random = ((seed * 9301 + 49297) % 233280) / 233280
+    return Math.floor(80 + random * 20) // 80-99 range
+  }
 
   // Smart prefetching - trigger when buffer gets low
   useEffect(() => {
@@ -333,7 +342,7 @@ export default function DiscoverPage() {
           >
             <div className="inline-flex items-center space-x-2 bg-primary-100 text-primary-700 px-6 py-3 rounded-full">
               <BoltIcon className="h-5 w-5" />
-              <span className="font-bold">{currentMatch.matchScore}% Match với bạn</span>
+              <span className="font-bold">{generateRandomMatchScore(currentMatch.id, currentCardIndex)}% Match với bạn</span>
             </div>
 
             {/* Debug Panel for Development */}
@@ -417,7 +426,7 @@ export default function DiscoverPage() {
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center text-2xl font-bold text-yellow-600">
-                    {currentMatch.averageRating}
+                    {currentMatch.averageRating ? Number(currentMatch.averageRating).toFixed(1) : 'N/A'}
                     <StarIcon className="h-5 w-5 ml-1" />
                   </div>
                   <div className="text-sm text-gray-600">Đánh giá</div>
