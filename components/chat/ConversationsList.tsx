@@ -37,28 +37,127 @@ export function ConversationsList({
   onSelectConversation, 
   selectedConversationId 
 }: ConversationsListProps) {
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [loading, setLoading] = useState(true)
+  // Hardcoded mock conversations
+  const mockConversations: Conversation[] = [
+    {
+      id: "conv-1",
+      otherUser: {
+        id: "user-1",
+        firstName: "Nguyễn Văn",
+        lastName: "Minh",
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+        lastActive: new Date(Date.now() - 5 * 60 * 1000).toISOString() // 5 minutes ago (online)
+      },
+      lastMessage: {
+        id: "msg-1",
+        content: "Chào bạn! Mình có thể tham gia nhóm học Toán Cao Cấp không?",
+        createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 minutes ago
+        senderId: "user-1"
+      },
+      unreadCount: 2,
+      lastActivity: new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    },
+    {
+      id: "conv-2",
+      otherUser: {
+        id: "user-2",
+        firstName: "Trần Thị",
+        lastName: "Hoa",
+        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face",
+        lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago (offline)
+      },
+      lastMessage: {
+        id: "msg-2", 
+        content: "Cảm ơn bạn đã chia sẻ tài liệu! Rất hữu ích 😊",
+        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
+        senderId: "user-2"
+      },
+      unreadCount: 0,
+      lastActivity: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "conv-3",
+      otherUser: {
+        id: "user-3", 
+        firstName: "Lê Văn",
+        lastName: "Đức",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+        lastActive: new Date(Date.now() - 10 * 60 * 1000).toISOString() // 10 minutes ago (online)
+      },
+      lastMessage: {
+        id: "msg-3",
+        content: "Bạn có thể gọi video call để cùng làm bài tập không?",
+        createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+        senderId: currentUserId
+      },
+      unreadCount: 1,
+      lastActivity: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+    },
+    {
+      id: "conv-4",
+      otherUser: {
+        id: "user-4",
+        firstName: "Phạm Thị",
+        lastName: "Mai",
+        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+        lastActive: new Date(Date.now() - 8 * 60 * 1000).toISOString() // 8 minutes ago (online)
+      },
+      lastMessage: {
+        id: "msg-4",
+        content: "Phòng học lúc 19h tối nay nhé! Đừng quên mang sách",
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+        senderId: "user-4"
+      },
+      unreadCount: 0,
+      lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "conv-5",
+      otherUser: {
+        id: "user-5",
+        firstName: "Hoàng Văn",
+        lastName: "Nam", 
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+        lastActive: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago (offline)
+      },
+      lastMessage: {
+        id: "msg-5",
+        content: "Tài liệu ôn thi được rồi, cảm ơn bạn nhiều!",
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+        senderId: currentUserId
+      },
+      unreadCount: 0,
+      lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "conv-6",
+      otherUser: {
+        id: "user-6",
+        firstName: "Vũ Thị",
+        lastName: "Lan",
+        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
+        lastActive: new Date(Date.now() - 3 * 60 * 1000).toISOString() // 3 minutes ago (online)
+      },
+      lastMessage: {
+        id: "msg-6",
+        content: "Buổi thuyết trình mai rất quan trọng, chúng ta cùng chuẩn bị kỹ nhé!",
+        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+        senderId: "user-6"
+      },
+      unreadCount: 3,
+      lastActivity: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+    }
+  ]
+
+  const [conversations, setConversations] = useState<Conversation[]>(mockConversations)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
 
   useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        const response = await fetch('/api/conversations')
-        if (!response.ok) throw new Error('Failed to fetch conversations')
-        
-        const data = await response.json()
-        setConversations(data.conversations || [])
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load conversations')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchConversations()
+    // Using mock data, no need to fetch from API
+    setLoading(false)
   }, [])
 
   const handleConversationClick = (conversation: Conversation) => {

@@ -44,7 +44,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
     isPrivate: false,
     owner: {
       id: "owner-123",
-      name: "Nguyễn Văn Minh",
+      name: "Đỗ Phương Duy",
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
     },
     tags: ["toán", "cao cấp", "ôn thi", "đạo hàm", "tích phân"],
@@ -59,31 +59,31 @@ export function RoomPage({ roomId }: RoomPageProps) {
     members: [
       {
         id: "member-1",
-        name: "Nguyễn Văn Minh",
+        name: "Nguyễn Đình Bảo",
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
         joinedAt: "2024-01-15T10:00:00Z"
       },
       {
         id: "member-2", 
-        name: "Trần Thị Hoa",
+        name: "Bùi Ngọc Thiên Thanh",
         avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face",
         joinedAt: "2024-01-16T14:30:00Z"
       },
       {
         id: "member-3",
-        name: "Lê Văn Đức",
+        name: "Đỗ Phương Duy",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face", 
         joinedAt: "2024-01-17T09:15:00Z"
       },
       {
         id: "member-4",
-        name: "Phạm Thị Mai",
+        name: "Trần Lê Minh Nhật",
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
         joinedAt: "2024-01-18T16:45:00Z"
       },
       {
         id: "member-5",
-        name: "Hoàng Văn Nam",
+        name: "Nguyễn Huy Bảo",
         avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
         joinedAt: "2024-01-19T11:20:00Z"
       }

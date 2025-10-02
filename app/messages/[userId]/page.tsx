@@ -28,35 +28,87 @@ export default function PrivateChatPage() {
   const { user } = useAuth()
   const otherUserId = params.userId as string
   
+  // Mock user data based on userId
+  const mockUsers: { [key: string]: OtherUser } = {
+    "user-1": {
+      id: "user-1",
+      firstName: "Nguyễn Văn",
+      lastName: "Minh",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+      university: "Đại học Bách Khoa Hà Nội",
+      major: "Khoa học Máy tính",
+      lastActive: new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    },
+    "user-2": {
+      id: "user-2", 
+      firstName: "Trần Thị",
+      lastName: "Hoa",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face",
+      university: "Đại học Quốc gia Hà Nội",
+      major: "Toán học",
+      lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    },
+    "user-3": {
+      id: "user-3",
+      firstName: "Lê Văn", 
+      lastName: "Đức",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+      university: "Đại học Bách Khoa Hà Nội",
+      major: "Kỹ thuật Điện tử",
+      lastActive: new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    },
+    "user-4": {
+      id: "user-4",
+      firstName: "Phạm Thị",
+      lastName: "Mai",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face", 
+      university: "Đại học Kinh tế Quốc dân",
+      major: "Quản trị Kinh doanh",
+      lastActive: new Date(Date.now() - 8 * 60 * 1000).toISOString()
+    },
+    "user-5": {
+      id: "user-5",
+      firstName: "Hoàng Văn",
+      lastName: "Nam",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+      university: "Đại học Sư phạm Hà Nội",
+      major: "Ngôn ngữ Anh",
+      lastActive: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    },
+    "user-6": {
+      id: "user-6",
+      firstName: "Vũ Thị",
+      lastName: "Lan",
+      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
+      university: "Đại học Y Hà Nội",
+      major: "Y khoa",
+      lastActive: new Date(Date.now() - 3 * 60 * 1000).toISOString()
+    }
+  }
+  
   const [otherUser, setOtherUser] = useState<OtherUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchOtherUser = async () => {
-      if (!user || !otherUserId) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        // Fetch other user's profile
-        const response = await fetch(`/api/users/${otherUserId}`)
-        
-        if (!response.ok) {
-          throw new Error('User not found')
-        }
-
-        const data = await response.json()
-        setOtherUser(data.user)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load user')
-      } finally {
-        setLoading(false)
-      }
+    // Using mock data
+    if (!user || !otherUserId) {
+      setLoading(false)
+      return
     }
 
-    fetchOtherUser()
+    // Get mock user or create default one
+    const mockUser = mockUsers[otherUserId] || {
+      id: otherUserId,
+      firstName: "Người dùng",
+      lastName: "StudyMate",
+      university: "Đại học StudyMate",
+      major: "Chưa xác định",
+      lastActive: new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    }
+
+    setOtherUser(mockUser)
+    setLoading(false)
   }, [user, otherUserId])
 
   const isOnline = otherUser?.lastActive && 

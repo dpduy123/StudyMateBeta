@@ -37,6 +37,173 @@ interface UseRealtimeMessagesProps {
 }
 
 export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMessagesProps) {
+  // Mock messages data
+  const generateMockMessages = (chatId: string, currentUserId: string): Message[] => {
+    const baseTime = Date.now()
+    
+    // Different mock conversations based on chatId
+    if (chatId === 'user-1') {
+      return [
+        {
+          id: 'msg-1',
+          senderId: 'user-1',
+          receiverId: currentUserId,
+          type: 'TEXT',
+          content: 'Chào bạn! Mình thấy bạn đang tìm nhóm học Toán Cao Cấp.',
+          createdAt: new Date(baseTime - 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 60 * 60 * 1000).toISOString(),
+          sender: {
+            id: 'user-1',
+            firstName: 'Nguyễn Văn',
+            lastName: 'Minh',
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
+          }
+        },
+        {
+          id: 'msg-2',
+          senderId: currentUserId,
+          receiverId: 'user-1',
+          type: 'TEXT',
+          content: 'Chào bạn! Đúng rồi, mình đang cần tìm nhóm ôn thi.',
+          createdAt: new Date(baseTime - 55 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 55 * 60 * 1000).toISOString(),
+          sender: {
+            id: currentUserId,
+            firstName: 'Bạn',
+            lastName: '',
+          }
+        },
+        {
+          id: 'msg-3',
+          senderId: 'user-1',
+          receiverId: currentUserId,
+          type: 'TEXT',
+          content: 'Tuyệt! Nhóm mình đang học chương Đạo hàm và Tích phân. Bạn có muốn tham gia không?',
+          createdAt: new Date(baseTime - 50 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 50 * 60 * 1000).toISOString(),
+          sender: {
+            id: 'user-1',
+            firstName: 'Nguyễn Văn',
+            lastName: 'Minh',
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
+          }
+        },
+        {
+          id: 'msg-4',
+          senderId: 'user-1',
+          receiverId: currentUserId,
+          type: 'TEXT',
+          content: 'Mình có thể tham gia nhóm học Toán Cao Cấp không?',
+          createdAt: new Date(baseTime - 10 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 10 * 60 * 1000).toISOString(),
+          sender: {
+            id: 'user-1',
+            firstName: 'Nguyễn Văn',
+            lastName: 'Minh',
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
+          }
+        }
+      ]
+    } else if (chatId === 'user-2') {
+      return [
+        {
+          id: 'msg-5',
+          senderId: currentUserId,
+          receiverId: 'user-2',
+          type: 'TEXT',
+          content: 'Bạn có tài liệu ôn thi Toán không?',
+          createdAt: new Date(baseTime - 4 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 4 * 60 * 60 * 1000).toISOString(),
+          sender: {
+            id: currentUserId,
+            firstName: 'Bạn',
+            lastName: ''
+          }
+        },
+        {
+          id: 'msg-6',
+          senderId: 'user-2',
+          receiverId: currentUserId,
+          type: 'TEXT',
+          content: 'Có đó! Mình có file PDF các dạng bài tập từ cơ bản đến nâng cao.',
+          createdAt: new Date(baseTime - 3.5 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 3.5 * 60 * 60 * 1000).toISOString(),
+          sender: {
+            id: 'user-2',
+            firstName: 'Trần Thị',
+            lastName: 'Hoa',
+            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face'
+          }
+        },
+        {
+          id: 'msg-7',
+          senderId: 'user-2',
+          receiverId: currentUserId,
+          type: 'TEXT',
+          content: 'Cảm ơn bạn đã chia sẻ tài liệu! Rất hữu ích 😊',
+          createdAt: new Date(baseTime - 3 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 3 * 60 * 60 * 1000).toISOString(),
+          sender: {
+            id: 'user-2',
+            firstName: 'Trần Thị',
+            lastName: 'Hoa',
+            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face'
+          }
+        }
+      ]
+    } else if (chatId === 'user-3') {
+      return [
+        {
+          id: 'msg-8',
+          senderId: currentUserId,
+          receiverId: 'user-3',
+          type: 'TEXT',
+          content: 'Bạn có thể gọi video call để cùng làm bài tập không?',
+          createdAt: new Date(baseTime - 30 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 30 * 60 * 1000).toISOString(),
+          sender: {
+            id: currentUserId,
+            firstName: 'Bạn',
+            lastName: ''
+          }
+        },
+        {
+          id: 'msg-9',
+          senderId: 'user-3',
+          receiverId: currentUserId,
+          type: 'TEXT',
+          content: 'Được đó! Tối nay lúc 8h mình có rảnh. Bạn có OK không?',
+          createdAt: new Date(baseTime - 25 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 25 * 60 * 1000).toISOString(),
+          sender: {
+            id: 'user-3',
+            firstName: 'Lê Văn',
+            lastName: 'Đức',
+            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'
+          }
+        }
+      ]
+    } else {
+      // Default messages for room or other users
+      return [
+        {
+          id: 'msg-default',
+          senderId: chatId,
+          receiverId: currentUserId,
+          type: 'TEXT',
+          content: 'Chào bạn! Hãy bắt đầu cuộc trò chuyện.',
+          createdAt: new Date(baseTime - 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(baseTime - 60 * 60 * 1000).toISOString(),
+          sender: {
+            id: chatId,
+            firstName: 'Bạn học',
+            lastName: 'StudyMate'
+          }
+        }
+      ]
+    }
+  }
+
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -46,26 +213,10 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
   )
 
   useEffect(() => {
-    // Initial fetch of messages
-    const fetchMessages = async () => {
-      try {
-        const endpoint = chatType === 'private' 
-          ? `/api/messages/private?chatId=${chatId}`
-          : `/api/messages/room?roomId=${chatId}`
-        
-        const response = await fetch(endpoint)
-        if (!response.ok) throw new Error('Failed to fetch messages')
-        
-        const data = await response.json()
-        setMessages(data.messages || [])
-        setLoading(false)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load messages')
-        setLoading(false)
-      }
-    }
-
-    fetchMessages()
+    // Using mock data instead of API fetch
+    const mockMessages = generateMockMessages(chatId, userId)
+    setMessages(mockMessages)
+    setLoading(false)
 
     // Set up real-time subscription
     const tableName = chatType === 'private' ? 'messages' : 'room_messages'
@@ -178,27 +329,28 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
 
   const sendMessage = async (content: string, type: 'TEXT' | 'FILE' = 'TEXT', fileData?: any) => {
     try {
-      const endpoint = chatType === 'private' 
-        ? '/api/messages/private'
-        : '/api/messages/room'
-      
-      const payload: any = {
-        content,
+      // Create mock message for demo
+      const newMessage: Message = {
+        id: `msg-${Date.now()}`,
+        senderId: userId,
+        receiverId: chatType === 'private' ? chatId : undefined,
+        roomId: chatType === 'room' ? chatId : undefined,
         type,
-        ...(chatType === 'private' ? { receiverId: chatId } : { roomId: chatId }),
+        content,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        sender: {
+          id: userId,
+          firstName: 'Bạn',
+          lastName: ''
+        },
         ...fileData
       }
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-
-      if (!response.ok) throw new Error('Failed to send message')
+      // Add to messages list
+      setMessages(prev => [...prev, newMessage])
       
-      const data = await response.json()
-      return data.message
+      return newMessage
     } catch (err) {
       throw err
     }
