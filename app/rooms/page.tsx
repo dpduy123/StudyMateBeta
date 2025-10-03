@@ -74,17 +74,18 @@ export default function RoomsPage() {
       />
 
       {/* Create Button */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 mobile-safe-area flex justify-end">
+      <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8 py-2 mobile-safe-area flex justify-end">
           <button 
             onClick={() => setIsCreateDialogOpen(true)}
-            className="btn-primary flex items-center space-x-2"
+            className="btn-primary flex items-center space-x-2 text-sm sm:text-base px-3 sm:px-4 py-2"
           >
-            <PlusIcon className="h-5 w-5" />
-            <span>Tạo phòng mới</span>
+            <PlusIcon className="h-4 sm:h-5 w-4 sm:w-5" />
+            <span className="hidden sm:inline">Tạo phòng mới</span>
+            <span className="sm:hidden">Tạo</span>
           </button> 
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 mobile-safe-area">
+      <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8 py-2 mobile-safe-area">
         <RoomList 
           rooms={filteredRooms}
           isLoading={isLoading}

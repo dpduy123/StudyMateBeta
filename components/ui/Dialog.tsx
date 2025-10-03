@@ -30,7 +30,7 @@ export function Dialog({
     full: 'max-w-7xl'
   }
 
-  // Handle escape key
+  // Handle escape key and hide mobile navigation
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -41,11 +41,15 @@ export function Dialog({
     if (isOpen) {
       document.addEventListener('keydown', handleEscape)
       document.body.style.overflow = 'hidden'
+      // Add class to hide mobile navigation
+      document.body.classList.add('dialog-open')
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = 'unset'
+      // Remove class to show mobile navigation
+      document.body.classList.remove('dialog-open')
     }
   }, [isOpen, onClose])
 

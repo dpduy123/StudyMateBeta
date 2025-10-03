@@ -309,15 +309,15 @@ export function RoomPage({ roomId }: RoomPageProps) {
       {/* Main Video Interface */}
       <div className="flex-1 flex relative">
         {/* Primary Video Area */}
-        <div className={`flex-1 relative bg-white ${showChat ? 'mr-80' : ''} transition-all duration-300`}>
-          {/* Top Control Bar - Like Meet/Zoom */}
+        <div className={`flex-1 relative bg-white ${showChat ? 'sm:mr-80' : ''} transition-all duration-300`}>
+          {/* Top Control Bar - Mobile Optimized */}
           {inCall && (
-            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-20">
-              <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-3 shadow-2xl border border-gray-200">
+            <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-20 px-2">
+              <div className="flex items-center justify-center space-x-1 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-2 shadow-lg border border-gray-200 max-w-xs">
                 <button
                   onClick={handleMicrophoneToggle}
                   disabled={!localStream}
-                  className={`p-3 rounded-xl transition-all duration-200 ${
+                  className={`p-2 rounded-lg transition-all duration-200 ${
                     !localStream 
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                       : (localStream && isMicOn) 
@@ -326,23 +326,23 @@ export function RoomPage({ roomId }: RoomPageProps) {
                   }`}
                   title={
                     !localStream 
-                      ? 'Microphone không khả dụng' 
+                      ? 'Mic không khả dụng' 
                       : (localStream && isMicOn) 
-                        ? 'Tắt microphone' 
-                        : 'Bật microphone'
+                        ? 'Tắt mic' 
+                        : 'Bật mic'
                   }
                 >
                   {(localStream && isMicOn) ? (
-                    <Mic className="h-5 w-5" />
+                    <Mic className="h-4 w-4" />
                   ) : (
-                    <MicOff className="h-5 w-5" />
+                    <MicOff className="h-4 w-4" />
                   )}
                 </button>
 
                 <button
                   onClick={handleCameraToggle}
                   disabled={!localStream}
-                  className={`p-3 rounded-xl transition-all duration-200 ${
+                  className={`p-2 rounded-lg transition-all duration-200 ${
                     !localStream 
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                       : (localStream && isCameraOn) 
@@ -358,16 +358,17 @@ export function RoomPage({ roomId }: RoomPageProps) {
                   }
                 >
                   {(localStream && isCameraOn) ? (
-                    <Video className="h-5 w-5" />
+                    <Video className="h-4 w-4" />
                   ) : (
-                    <VideoOff className="h-5 w-5" />
+                    <VideoOff className="h-4 w-4" />
                   )}
                 </button>
 
+                {/* Hide screen share on mobile to save space */}
                 <button
                   onClick={handleScreenShareToggle}
                   disabled={!localStream}
-                  className={`p-3 rounded-xl transition-all duration-200 ${
+                  className={`hidden sm:block p-2 rounded-lg transition-all duration-200 ${
                     !localStream 
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                       : isScreenSharing 
@@ -378,27 +379,27 @@ export function RoomPage({ roomId }: RoomPageProps) {
                     !localStream 
                       ? 'Chia sẻ màn hình không khả dụng' 
                       : isScreenSharing 
-                        ? 'Dừng chia sẻ màn hình' 
+                        ? 'Dừng chia sẻ' 
                         : 'Chia sẻ màn hình'
                   }
                 >
-                  <MonitorUp className="h-5 w-5" />
+                  <MonitorUp className="h-4 w-4" />
                 </button>
 
                 <button 
                   onClick={handleLeaveCall}
-                  className="p-3 rounded-xl bg-red-600 hover:bg-red-700 text-white transition-all duration-200"
+                  className="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-all duration-200"
                   title="Rời cuộc gọi"
                 >
-                  <Phone className="h-5 w-5" />
+                  <Phone className="h-4 w-4" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* Top Right Controls */}
+          {/* Top Right Controls - Hide on mobile to avoid overlap */}
           {inCall && (
-            <div className="absolute top-6 right-6 z-20">
+            <div className="hidden md:block absolute top-6 right-6 z-20">
               <div className="flex items-center space-x-2">
                 <button className="p-3 rounded-xl bg-white/90 hover:bg-gray-50/90 text-gray-600 backdrop-blur-sm transition-all duration-200 border border-gray-200">
                   <MessageSquare className="h-5 w-5" />
@@ -478,12 +479,12 @@ export function RoomPage({ roomId }: RoomPageProps) {
                   )}
                 </div>
 
-                {/* Bottom Video Tiles */}
-                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10">
-                  <div className="flex items-center space-x-3">
+                {/* Bottom Video Tiles - Mobile Optimized */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 px-2 w-full">
+                  <div className="flex items-center justify-center space-x-2 overflow-x-auto">
                     {/* Local user tile */}
                     {localStream && (
-                      <div className="relative w-32 h-24 rounded-xl overflow-hidden bg-gray-100 border-2 border-blue-500 shadow-lg">
+                      <div className="relative w-20 h-16 sm:w-32 sm:h-24 rounded-lg overflow-hidden bg-gray-100 border-2 border-blue-500 shadow-lg flex-shrink-0">
                         {isCameraOn ? (
                           <video
                             ref={localVideoRef}
@@ -495,8 +496,8 @@ export function RoomPage({ roomId }: RoomPageProps) {
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
                             <div className="text-center text-gray-700">
-                              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mx-auto">
-                                <span className="text-sm font-bold text-white">
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center mx-auto">
+                                <span className="text-xs sm:text-sm font-bold text-white">
                                   {(user?.email?.split('@')[0] || 'You').charAt(0).toUpperCase()}
                                 </span>
                               </div>
@@ -505,24 +506,24 @@ export function RoomPage({ roomId }: RoomPageProps) {
                         )}
                         
                         {/* Owner label */}
-                        <div className="absolute bottom-1 left-1">
-                          <div className="bg-blue-600 rounded px-2 py-0.5">
-                            <span className="text-white text-xs font-medium">Owner</span>
+                        <div className="absolute bottom-0.5 left-0.5 sm:bottom-1 sm:left-1">
+                          <div className="bg-blue-600 rounded px-1 py-0.5 sm:px-2">
+                            <span className="text-white text-xs font-medium">You</span>
                           </div>
                         </div>
                         
                         {/* Mic status */}
-                        <div className="absolute top-1 right-1">
-                          <div className={`p-1 rounded ${!isMicOn ? 'bg-red-600' : 'bg-transparent'}`}>
-                            {!isMicOn && <MicOff className="h-3 w-3 text-white" />}
+                        <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1">
+                          <div className={`p-0.5 sm:p-1 rounded ${!isMicOn ? 'bg-red-600' : 'bg-transparent'}`}>
+                            {!isMicOn && <MicOff className="h-2 w-2 sm:h-3 sm:w-3 text-white" />}
                           </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Other participants tiles */}
-                    {participants.slice(1, 5).map((participant) => (
-                      <div key={participant.id} className="relative w-32 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-lg">
+                    {/* Other participants tiles - Show only first 2 on mobile, more on desktop */}
+                    {participants.slice(1, 4).map((participant, index) => (
+                      <div key={participant.id} className="relative w-20 h-16 sm:w-32 sm:h-24 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 shadow-lg flex-shrink-0">
                         {participant.stream && participant.isCameraOn ? (
                           <video
                             ref={(video) => {
@@ -537,8 +538,8 @@ export function RoomPage({ roomId }: RoomPageProps) {
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
                             <div className="text-center text-gray-700">
-                              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mx-auto">
-                                <span className="text-sm font-bold text-white">
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-500 rounded-full flex items-center justify-center mx-auto">
+                                <span className="text-xs sm:text-sm font-bold text-white">
                                   {participant.name.charAt(0).toUpperCase()}
                                 </span>
                               </div>
@@ -546,17 +547,10 @@ export function RoomPage({ roomId }: RoomPageProps) {
                           </div>
                         )}
                         
-                        {/* Connection status */}
-                        <div className="absolute top-1 left-1">
-                          <div className="bg-green-600 rounded px-1.5 py-0.5">
-                            <span className="text-white text-xs">connected</span>
-                          </div>
-                        </div>
-                        
                         {/* Mic status */}
-                        <div className="absolute top-1 right-1">
-                          <div className={`p-1 rounded ${!participant.isMicOn ? 'bg-red-600' : 'bg-transparent'}`}>
-                            {!participant.isMicOn && <MicOff className="h-3 w-3 text-white" />}
+                        <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1">
+                          <div className={`p-0.5 sm:p-1 rounded ${!participant.isMicOn ? 'bg-red-600' : 'bg-transparent'}`}>
+                            {!participant.isMicOn && <MicOff className="h-2 w-2 sm:h-3 sm:w-3 text-white" />}
                           </div>
                         </div>
                       </div>
@@ -595,22 +589,22 @@ export function RoomPage({ roomId }: RoomPageProps) {
             )}
           </div>
 
-          {/* Chat Toggle Button */}
+          {/* Chat Toggle Button - Mobile optimized position */}
           {inCall && (
             <button
               onClick={() => setShowChat(!showChat)}
-              className="absolute bottom-6 right-6 z-10 p-3 rounded-xl bg-white/90 hover:bg-gray-50/90 text-gray-600 backdrop-blur-sm transition-all duration-200 shadow-lg border border-gray-200"
+              className="absolute bottom-2 right-2 sm:bottom-6 sm:right-6 z-10 p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/90 hover:bg-gray-50/90 text-gray-600 backdrop-blur-sm transition-all duration-200 shadow-lg border border-gray-200"
               title="Toggle chat"
             >
-              <MessageSquare className="h-5 w-5" />
-              {showChat && <ChevronRight className="h-3 w-3 absolute -top-1 -right-1 text-blue-400" />}
+              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+              {showChat && <ChevronRight className="h-2 w-2 sm:h-3 sm:w-3 absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 text-blue-400" />}
             </button>
           )}
         </div>
 
-        {/* Right Sidebar */}
+        {/* Right Sidebar - Hidden on mobile */}
         {showChat && (
-          <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+          <div className="hidden sm:flex w-80 bg-white border-l border-gray-200 flex-col">
             {/* Sidebar Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-800">Room Info</h3>
@@ -715,6 +709,102 @@ export function RoomPage({ roomId }: RoomPageProps) {
                   title=""
                   className="h-full bg-white"
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Chat Overlay */}
+        {showChat && (
+          <div className="sm:hidden fixed inset-0 z-50 bg-black/50" onClick={() => setShowChat(false)}>
+            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              {/* Mobile Chat Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-800">Room Info</h3>
+                <button
+                  onClick={() => setShowChat(false)}
+                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <XMarkIcon className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Mobile Room Information */}
+              <div className="p-4 border-b border-gray-200">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Subject:</span>
+                    <span className="text-gray-800">{room?.topic}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Participants:</span>
+                    <span className="text-gray-800">{totalMembers}/{maxMembers}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Owner:</span>
+                    <span className="text-gray-800">{room?.owner.name}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Participants List */}
+              <div className="p-4 border-b border-gray-200">
+                <h4 className="text-sm font-medium text-gray-800 mb-3">Participants ({totalMembers})</h4>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {/* Current user */}
+                  <div className="flex items-center space-x-3 p-2 rounded-lg bg-blue-50">
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">
+                        {(user?.email?.split('@')[0] || 'You').charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-gray-800 text-sm font-medium">
+                        {user?.email?.split('@')[0] || 'You'} (You)
+                      </div>
+                      <div className="text-gray-500 text-xs">Host</div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {!isMicOn && <MicOff className="h-3 w-3 text-red-500" />}
+                      {!isCameraOn && <VideoOff className="h-3 w-3 text-red-500" />}
+                    </div>
+                  </div>
+
+                  {/* Other participants */}
+                  {participants.map((participant) => (
+                    <div key={participant.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50">
+                      <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">
+                          {participant.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-gray-800 text-sm font-medium">{participant.name}</div>
+                        <div className="text-gray-500 text-xs">Participant</div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        {!participant.isMicOn && <MicOff className="h-3 w-3 text-red-500" />}
+                        {!participant.isCameraOn && <VideoOff className="h-3 w-3 text-red-500" />}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mobile Chat Section */}
+              <div className="flex-1 min-h-0 flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-800">Chat</h4>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <ChatContainer
+                    chatId={roomId}
+                    chatType="room"
+                    currentUserId={user?.id || ''}
+                    title=""
+                    className="h-full bg-white"
+                  />
+                </div>
               </div>
             </div>
           </div>

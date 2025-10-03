@@ -15,13 +15,13 @@ interface RoomGridProps {
 export function RoomGrid({ rooms, isLoading, onJoinRoom, onRoomDeleted }: RoomGridProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {[...Array(6)].map((_, index) => (
           <div
             key={index}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse"
           >
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
                   <div className="h-6 bg-gray-200 rounded mb-2 w-3/4"></div>
@@ -84,7 +84,7 @@ export function RoomGrid({ rooms, isLoading, onJoinRoom, onRoomDeleted }: RoomGr
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
     >
       {rooms.map((room, index) => (
         <motion.div

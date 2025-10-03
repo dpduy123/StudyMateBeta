@@ -36,6 +36,72 @@ export default function DashboardPage() {
   // Use SWR hook for data fetching with caching
   const { data: dashboardData, isLoading, error, refetch } = useDashboard()
 
+  // Generate mock notifications
+  const generateMockNotifications = () => {
+    return [
+      {
+        id: 'notif-1',
+        title: '🎉 Match thành công!',
+        description: 'Bạn đã match với Nguyễn Văn Minh từ ĐH Bách Khoa. Hãy bắt đầu trò chuyện!',
+        time: '5 phút trước',
+        icon: 'UserGroupIcon',
+        iconBg: 'bg-green-100',
+        iconColor: 'text-green-600',
+        type: 'match'
+      },
+      {
+        id: 'notif-2', 
+        title: '⭐ Badge mới!',
+        description: 'Bạn đã nhận được badge "Study Streak 7 ngày" vì học tập đều đặn!',
+        time: '2 giờ trước',
+        icon: 'TrophyIcon',
+        iconBg: 'bg-yellow-100',
+        iconColor: 'text-yellow-600',
+        type: 'achievement'
+      },
+      {
+        id: 'notif-3',
+        title: '💬 Tin nhắn mới',
+        description: 'Trần Thị Hoa đã gửi tin nhắn cho bạn về nhóm học Toán Cao Cấp.',
+        time: '1 ngày trước',
+        icon: 'ChatBubbleLeftRightIcon',
+        iconBg: 'bg-blue-100',
+        iconColor: 'text-blue-600',
+        type: 'message'
+      },
+      {
+        id: 'notif-4',
+        title: '🔥 Hot streak!',
+        description: 'Bạn đã có 3 matches thành công trong tuần này. Tuyệt vời!',
+        time: '2 ngày trước',
+        icon: 'FireIcon',
+        iconBg: 'bg-red-100', 
+        iconColor: 'text-red-600',
+        type: 'streak'
+      },
+      {
+        id: 'notif-5',
+        title: '📚 Phòng học mới',
+        description: 'Lê Văn Đức đã mời bạn tham gia phòng "Ôn thi Lập trình C++".',
+        time: '3 ngày trước',
+        icon: 'AcademicCapIcon',
+        iconBg: 'bg-purple-100',
+        iconColor: 'text-purple-600',
+        type: 'room_invite'
+      },
+      {
+        id: 'notif-6',
+        title: '🎯 Match thành công!',
+        description: 'Bạn đã match với Phạm Thị Mai từ ĐH Kinh tế Quốc dân.',
+        time: '1 tuần trước',
+        icon: 'UserGroupIcon',
+        iconBg: 'bg-green-100',
+        iconColor: 'text-green-600',
+        type: 'match'
+      }
+    ]
+  }
+
   // Fallback data when loading or error
   const fallbackData = {
     profile: {
@@ -44,14 +110,63 @@ export default function DashboardPage() {
       major: 'Ngành học',
     },
     userStats: {
-      matches: 0,
-      studySessions: 0,
-      hoursStudied: 0,
-      badges: 0
+      matches: 12,
+      studySessions: 28,
+      hoursStudied: 156,
+      badges: 8
     },
-    recentMatches: [],
-    upcomingEvents: [],
-    recentActivity: []
+    recentMatches: [
+      {
+        id: 'match-1',
+        name: 'Nguyễn Văn Minh',
+        university: 'ĐH Bách Khoa Hà Nội',
+        subject: 'Khoa học Máy tính',
+        matchScore: 95,
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+        isOnline: true
+      },
+      {
+        id: 'match-2',
+        name: 'Trần Thị Hoa',
+        university: 'ĐH Quốc gia Hà Nội',
+        subject: 'Toán học',
+        matchScore: 88,
+        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face',
+        isOnline: false
+      },
+      {
+        id: 'match-3',
+        name: 'Lê Văn Đức',
+        university: 'ĐH Công nghệ',
+        subject: 'Software Engineering',
+        matchScore: 92,
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+        isOnline: true
+      }
+    ],
+    upcomingEvents: [
+      {
+        id: 'event-1',
+        title: 'Ôn thi Toán Cao Cấp',
+        time: '19:00 hôm nay',
+        participants: 5,
+        maxMembers: 8,
+        topic: 'Đạo hàm',
+        type: 'study',
+        isOwner: false
+      },
+      {
+        id: 'event-2',
+        title: 'Thảo luận bài tập C++',
+        time: '14:00 mai',
+        participants: 3,
+        maxMembers: 6,
+        topic: 'Pointer',
+        type: 'discussion',
+        isOwner: true
+      }
+    ],
+    recentActivity: generateMockNotifications()
   }
 
   // Get data with fallback
@@ -239,7 +354,7 @@ export default function DashboardPage() {
                           <ClockIcon className="h-4 w-4" />
                           <span>{event.time}</span>
                           <span>•</span>
-                          <span>{event.participants}/{event.maxMembers || 10} người</span>
+                          <span>{event.participants}/{event.maxMembers || 10}</span>
                           {event.topic && (
                             <>
                               <span>•</span>
@@ -370,7 +485,9 @@ export default function DashboardPage() {
                   const IconComponent = {
                     TrophyIcon,
                     UserGroupIcon,
-                    FireIcon
+                    FireIcon,
+                    ChatBubbleLeftRightIcon,
+                    AcademicCapIcon
                   }[activity.icon] || TrophyIcon
 
                   return (

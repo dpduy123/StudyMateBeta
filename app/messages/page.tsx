@@ -10,7 +10,8 @@ import {
   ChatBubbleLeftRightIcon,
   PhoneIcon,
   VideoCameraIcon,
-  EllipsisVerticalIcon
+  EllipsisVerticalIcon,
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline'
 
 interface SelectedConversation {
@@ -46,10 +47,10 @@ export default function MessagesPage() {
         />
       </div>
 
-      <div className="flex-grow mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 mobile-safe-area">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 h-[calc(100vh-200px)] flex">
-          {/* Conversation List */}
-          <div className="w-1/3 border-r border-gray-200 flex flex-col">
+      <div className="flex-grow mx-auto max-w-7xl w-full px-3 sm:px-4 lg:px-8 py-4 sm:py-8 mobile-safe-area">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 h-[calc(100vh-120px)] sm:h-[calc(100vh-200px)] flex flex-col sm:flex-row">
+          {/* Conversation List - Full width on mobile when no conversation selected */}
+          <div className={`${selectedConversation ? 'hidden sm:flex' : 'flex'} sm:w-1/3 border-r border-gray-200 flex-col w-full`}>
             <ConversationsList
               currentUserId={user?.id || ''}
               onSelectConversation={setSelectedConversation}
@@ -57,42 +58,49 @@ export default function MessagesPage() {
             />
           </div>
 
-          {/* Chat Window */}
-          <div className="w-2/3 flex flex-col">
+          {/* Chat Window - Full width on mobile when conversation selected */}
+          <div className={`${selectedConversation ? 'flex' : 'hidden sm:flex'} sm:w-2/3 flex-col w-full`}>
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                <div className="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center">
                   <div className="flex items-center space-x-3">
+                    {/* Back button for mobile */}
+                    <button 
+                      onClick={() => setSelectedConversation(null)}
+                      className="sm:hidden p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <ArrowLeftIcon className="h-5 w-5 text-gray-600" />
+                    </button>
                     <div className="relative">
                       {selectedConversation.otherUser.avatar ? (
                         <img
                           src={selectedConversation.otherUser.avatar}
                           alt={`${selectedConversation.otherUser.firstName} ${selectedConversation.otherUser.lastName}`}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                           {selectedConversation.otherUser.firstName[0]}{selectedConversation.otherUser.lastName[0]}
                         </div>
                       )}
                       {isOnline(selectedConversation.otherUser.lastActive) && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-gray-900 text-sm sm:text-base">
                         {selectedConversation.otherUser.firstName} {selectedConversation.otherUser.lastName}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs sm:text-sm text-gray-500">
                         {isOnline(selectedConversation.otherUser.lastActive) ? 'Đang hoạt động' : 'Offline'}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4 text-gray-500">
-                    <button className="hover:text-primary-600"><PhoneIcon className="h-5 w-5" /></button>
-                    <button className="hover:text-primary-600"><VideoCameraIcon className="h-5 w-5" /></button>
-                    <button className="hover:text-primary-600"><EllipsisVerticalIcon className="h-5 w-5" /></button>
+                  <div className="flex items-center space-x-2 sm:space-x-4 text-gray-500">
+                    <button className="hover:text-primary-600 p-1"><PhoneIcon className="h-4 sm:h-5 w-4 sm:w-5" /></button>
+                    <button className="hover:text-primary-600 p-1"><VideoCameraIcon className="h-4 sm:h-5 w-4 sm:w-5" /></button>
+                    <button className="hover:text-primary-600 p-1"><EllipsisVerticalIcon className="h-4 sm:h-5 w-4 sm:w-5" /></button>
                   </div>
                 </div>
 
@@ -121,7 +129,7 @@ export default function MessagesPage() {
 
       {/* Mobile Navigation */}
       <BottomTabNavigation />
-      <FloatingActionButton />
+      {!selectedConversation && <FloatingActionButton />}
       </div>
 
   )

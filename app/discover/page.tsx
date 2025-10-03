@@ -320,7 +320,7 @@ export default function DiscoverPage() {
           <>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
             >
               <AdjustmentsHorizontalIcon className="h-5 w-5" />
               <span>Bộ lọc</span>
@@ -332,17 +332,17 @@ export default function DiscoverPage() {
         }
       />
 
-      <div className="py-8 mobile-safe-area">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-4 sm:py-8 mobile-safe-area">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8">
           {/* Match Score Banner */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 text-center"
+            className="mb-4 sm:mb-8 text-center"
           >
-            <div className="inline-flex items-center space-x-2 bg-primary-100 text-primary-700 px-6 py-3 rounded-full">
-              <BoltIcon className="h-5 w-5" />
-              <span className="font-bold">{generateRandomMatchScore(currentMatch.id, currentCardIndex)}% Match với bạn</span>
+            <div className="inline-flex items-center space-x-2 bg-primary-100 text-primary-700 px-4 sm:px-6 py-2 sm:py-3 rounded-full">
+              <BoltIcon className="h-4 sm:h-5 w-4 sm:w-5" />
+              <span className="font-bold text-sm sm:text-base">{generateRandomMatchScore(currentMatch.id, currentCardIndex)}% Match với bạn</span>
             </div>
 
             {/* Debug Panel for Development */}
@@ -375,39 +375,39 @@ export default function DiscoverPage() {
               scale: isAnimating ? 0.8 : 1
             }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden mb-4 sm:mb-8"
           >
             {/* Cover Photo */}
-            <div className="h-48 bg-gradient-to-r from-primary-500 to-primary-600 relative">
+            <div className="h-32 sm:h-48 bg-gradient-to-r from-primary-500 to-primary-600 relative">
               <div className="absolute inset-0 bg-black/20"></div>
             </div>
 
             {/* Profile Info */}
-            <div className="relative px-6 pb-6">
+            <div className="relative px-3 sm:px-6 pb-4 sm:pb-6">
               {/* Avatar */}
-              <div className="flex items-end -mt-16 mb-4">
-                <div className="relative">
+              <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-12 sm:-mt-16 mb-4">
+                <div className="relative mb-3 sm:mb-0">
                   {currentMatch.avatar ? (
                     <img
                       src={currentMatch.avatar}
                       alt={`${currentMatch.firstName} ${currentMatch.lastName}`}
-                      className="w-32 h-32 rounded-full border-4 border-white object-cover"
+                      className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 border-white object-cover"
                     />
                   ) : (
-                    <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center">
-                      <UserCircleIcon className="w-20 h-20 text-gray-400" />
+                    <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center">
+                      <UserCircleIcon className="w-12 h-12 sm:w-20 sm:h-20 text-gray-400" />
                     </div>
                   )}
                 </div>
-                <div className="ml-6 flex-1">
-                  <div className="flex items-center justify-between">
+                <div className="sm:ml-6 flex-1 text-center sm:text-left">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <h1 className="text-2xl font-bold text-gray-900">
+                      <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                         {currentMatch.firstName} {currentMatch.lastName}
                       </h1>
-                      <div className="flex items-center text-gray-600 mt-1">
+                      <div className="flex items-center justify-center sm:justify-start text-gray-600 mt-1">
                         <MapPinIcon className="h-4 w-4 mr-1" />
-                        {currentMatch.university}
+                        <span className="text-sm sm:text-base">{currentMatch.university}</span>
                       </div>
                     </div>
                   </div>
@@ -415,71 +415,71 @@ export default function DiscoverPage() {
               </div>
 
               {/* Quick Stats */}
-              <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary-600">{currentMatch.totalMatches}</div>
-                  <div className="text-sm text-gray-600">Kết nối</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                <div className="text-center bg-gray-50 rounded-lg p-2 sm:p-3">
+                  <div className="text-lg sm:text-2xl font-bold text-primary-600">{currentMatch.totalMatches}</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Kết nối</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{currentMatch.successfulMatches}</div>
-                  <div className="text-sm text-gray-600">Thành công</div>
+                <div className="text-center bg-gray-50 rounded-lg p-2 sm:p-3">
+                  <div className="text-lg sm:text-2xl font-bold text-green-600">{currentMatch.successfulMatches}</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Thành công</div>
                 </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center text-2xl font-bold text-yellow-600">
+                <div className="text-center bg-gray-50 rounded-lg p-2 sm:p-3">
+                  <div className="flex items-center justify-center text-lg sm:text-2xl font-bold text-yellow-600">
                     {currentMatch.averageRating ? Number(currentMatch.averageRating).toFixed(1) : 'N/A'}
-                    <StarIcon className="h-5 w-5 ml-1" />
+                    <StarIcon className="h-4 sm:h-5 w-4 sm:w-5 ml-1" />
                   </div>
-                  <div className="text-sm text-gray-600">Đánh giá</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Đánh giá</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{currentMatch.gpa || 'N/A'}</div>
-                  <div className="text-sm text-gray-600">GPA</div>
+                <div className="text-center bg-gray-50 rounded-lg p-2 sm:p-3">
+                  <div className="text-lg sm:text-2xl font-bold text-blue-600">{currentMatch.gpa || 'N/A'}</div>
+                  <div className="text-xs sm:text-sm text-gray-600">GPA</div>
                 </div>
               </div>
 
               {/* Bio */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Giới thiệu</h3>
-                <p className="text-gray-600 leading-relaxed">
+              <div className="mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Giới thiệu</h3>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
                   {currentMatch.bio || 'Chưa có giới thiệu'}
                 </p>
               </div>
 
               {/* Academic Info */}
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Thông tin học tập</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">Thông tin học tập</h3>
                   <div className="space-y-3">
-                    <div className="flex items-center">
-                      <AcademicCapIcon className="h-5 w-5 text-primary-600 mr-3" />
+                    <div className="flex items-start">
+                      <AcademicCapIcon className="h-4 sm:h-5 w-4 sm:w-5 text-primary-600 mr-2 sm:mr-3 mt-0.5" />
                       <div>
-                        <div className="font-medium text-gray-900">{currentMatch.major}</div>
-                        <div className="text-sm text-gray-600">Năm {currentMatch.year}</div>
+                        <div className="font-medium text-gray-900 text-sm sm:text-base">{currentMatch.major}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Năm {currentMatch.year}</div>
                       </div>
                     </div>
-                    <div className="flex items-center">
-                      <ClockIcon className="h-5 w-5 text-primary-600 mr-3" />
+                    <div className="flex items-start">
+                      <ClockIcon className="h-4 sm:h-5 w-4 sm:w-5 text-primary-600 mr-2 sm:mr-3 mt-0.5" />
                       <div>
-                        <div className="font-medium text-gray-900">Thời gian học</div>
-                        <div className="text-sm text-gray-600">{currentMatch.preferredStudyTime?.join(', ') || 'Chưa cập nhật'}</div>
+                        <div className="font-medium text-gray-900 text-sm sm:text-base">Thời gian học</div>
+                        <div className="text-xs sm:text-sm text-gray-600">{currentMatch.preferredStudyTime?.join(', ') || 'Chưa cập nhật'}</div>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Ngôn ngữ</h3>
-                  <div className="flex flex-wrap gap-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">Ngôn ngữ</h3>
+                  <div className="flex flex-wrap gap-1 sm:gap-2">
                     {currentMatch.languages?.length ? (
                       currentMatch.languages.map((language, index) => (
                         <span
                           key={index}
-                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                          className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-medium"
                         >
                           {language}
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm text-gray-500">Chưa cập nhật</span>
+                      <span className="text-xs sm:text-sm text-gray-500">Chưa cập nhật</span>
                     )}
                   </div>
                 </div>
@@ -488,7 +488,7 @@ export default function DiscoverPage() {
           </motion.div>
 
           {/* Skills and Interests Section */}
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
             {/* Interests */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -498,21 +498,21 @@ export default function DiscoverPage() {
                 scale: isAnimating ? 0.8 : 1
               }}
               transition={{ duration: 0.3, ease: "easeInOut", delay: isAnimating ? 0 : 0.1 }}
-              className="bg-white rounded-2xl shadow-xl p-6"
+              className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6"
             >
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Sở thích</h3>
-              <div className="flex flex-wrap gap-2">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Sở thích</h3>
+              <div className="flex flex-wrap gap-1 sm:gap-2">
                 {currentMatch.interests?.length ? (
                   currentMatch.interests.map((interest, index) => (
                     <span
                       key={index}
-                      className="px-3 py-2 bg-primary-100 text-primary-700 rounded-xl text-sm font-medium"
+                      className="px-2 sm:px-3 py-1 sm:py-2 bg-primary-100 text-primary-700 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium"
                     >
                       {interest}
                     </span>
                   ))
                 ) : (
-                  <span className="text-sm text-gray-500">Chưa cập nhật</span>
+                  <span className="text-xs sm:text-sm text-gray-500">Chưa cập nhật</span>
                 )}
               </div>
             </motion.div>
@@ -526,21 +526,21 @@ export default function DiscoverPage() {
                 scale: isAnimating ? 0.8 : 1
               }}
               transition={{ duration: 0.3, ease: "easeInOut", delay: isAnimating ? 0 : 0.2 }}
-              className="bg-white rounded-2xl shadow-xl p-6"
+              className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6"
             >
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Kỹ năng</h3>
-              <div className="flex flex-wrap gap-2">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Kỹ năng</h3>
+              <div className="flex flex-wrap gap-1 sm:gap-2">
                 {currentMatch.skills?.length ? (
                   currentMatch.skills.map((skill, index) => (
                     <span
                       key={index}
-                      className="px-3 py-2 bg-green-100 text-green-700 rounded-xl text-sm font-medium"
+                      className="px-2 sm:px-3 py-1 sm:py-2 bg-green-100 text-green-700 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium"
                     >
                       {skill}
                     </span>
                   ))
                 ) : (
-                  <span className="text-sm text-gray-500">Chưa cập nhật</span>
+                  <span className="text-xs sm:text-sm text-gray-500">Chưa cập nhật</span>
                 )}
               </div>
             </motion.div>
@@ -556,21 +556,21 @@ export default function DiscoverPage() {
               scale: isAnimating ? 0.8 : 1
             }}
             transition={{ duration: 0.3, ease: "easeInOut", delay: isAnimating ? 0 : 0.3 }}
-            className="bg-white rounded-2xl shadow-xl p-6 mb-8"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-8"
           >
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Mục tiêu học tập</h3>
-            <div className="space-y-3">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Mục tiêu học tập</h3>
+            <div className="space-y-2 sm:space-y-3">
               {currentMatch.studyGoals?.length ? (
                 currentMatch.studyGoals.map((goal, index) => (
-                  <div key={index} className="flex items-center">
-                    <TrophyIcon className="h-5 w-5 text-yellow-500 mr-3" />
-                    <span className="text-gray-700">{goal}</span>
+                  <div key={index} className="flex items-start">
+                    <TrophyIcon className="h-4 sm:h-5 w-4 sm:w-5 text-yellow-500 mr-2 sm:mr-3 mt-0.5" />
+                    <span className="text-sm sm:text-base text-gray-700">{goal}</span>
                   </div>
                 ))
               ) : (
-                <div className="flex items-center">
-                  <TrophyIcon className="h-5 w-5 text-gray-400 mr-3" />
-                  <span className="text-gray-500">Chưa thiết lập mục tiêu</span>
+                <div className="flex items-start">
+                  <TrophyIcon className="h-4 sm:h-5 w-4 sm:w-5 text-gray-400 mr-2 sm:mr-3 mt-0.5" />
+                  <span className="text-sm sm:text-base text-gray-500">Chưa thiết lập mục tiêu</span>
                 </div>
               )}
             </div>
@@ -585,35 +585,35 @@ export default function DiscoverPage() {
               scale: isAnimating ? 0.95 : 1
             }}
             transition={{ duration: 0.3, ease: "easeInOut", delay: isAnimating ? 0 : 0.3 }}
-            className="bg-white rounded-2xl shadow-xl p-6"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6"
           >
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Hành động</h2>
-            <div className="flex space-x-3">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Hành động</h2>
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={handlePass}
-                className="flex-1 flex items-center justify-center space-x-2 py-4 px-6 border-2 border-red-300 text-red-600 hover:border-red-400 hover:bg-red-50 rounded-xl transition-colors"
+                className="flex-1 flex items-center justify-center space-x-2 py-3 sm:py-4 px-4 sm:px-6 border-2 border-red-300 text-red-600 hover:border-red-400 hover:bg-red-50 rounded-xl transition-colors"
               >
-                <XMarkIcon className="h-5 w-5" />
-                <span className="font-medium">Pass</span>
+                <XMarkIcon className="h-4 sm:h-5 w-4 sm:w-5" />
+                <span className="font-medium text-sm sm:text-base">Pass</span>
               </button>
               <button
                 onClick={handleLike}
-                className="flex-1 flex items-center justify-center space-x-2 py-4 px-6 border-2 border-green-300 text-green-600 hover:border-green-400 hover:bg-green-50 rounded-xl transition-colors"
+                className="flex-1 flex items-center justify-center space-x-2 py-3 sm:py-4 px-4 sm:px-6 border-2 border-green-300 text-green-600 hover:border-green-400 hover:bg-green-50 rounded-xl transition-colors"
               >
-                <HeartIcon className="h-5 w-5" />
-                <span className="font-medium">Like</span>
+                <HeartIcon className="h-4 sm:h-5 w-4 sm:w-5" />
+                <span className="font-medium text-sm sm:text-base">Like</span>
               </button>
               <button
                 onClick={handleDirectMessage}
-                className="flex-1 flex items-center justify-center space-x-2 py-4 px-6 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-colors"
+                className="flex-1 flex items-center justify-center space-x-2 py-3 sm:py-4 px-4 sm:px-6 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-colors"
               >
-                <PaperAirplaneIcon className="h-5 w-5" />
-                <span className="font-medium">Nhắn tin trực tiếp</span>
+                <PaperAirplaneIcon className="h-4 sm:h-5 w-4 sm:w-5" />
+                <span className="font-medium text-sm sm:text-base">Nhắn tin</span>
               </button>
             </div>
 
             {/* Keyboard Shortcuts */}
-            <div className="mt-4 text-center text-sm text-gray-500">
+            <div className="mt-3 sm:mt-4 text-center text-xs sm:text-sm text-gray-500 hidden sm:block">
               Phím tắt: ← (Pass) • → (Like) • ↑ (Nhắn tin)
             </div>
           </motion.div>

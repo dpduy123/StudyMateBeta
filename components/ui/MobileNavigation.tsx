@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -65,6 +65,30 @@ const navItems = [
 // Bottom Tab Navigation for Mobile
 export function BottomTabNavigation() {
   const pathname = usePathname()
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  useEffect(() => {
+    const checkDialogState = () => {
+      setIsDialogOpen(document.body.classList.contains('dialog-open'))
+    }
+
+    // Check initial state
+    checkDialogState()
+
+    // Create observer for body class changes
+    const observer = new MutationObserver(checkDialogState)
+    observer.observe(document.body, { 
+      attributes: true, 
+      attributeFilter: ['class'] 
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  // Hide navigation when dialog is open
+  if (isDialogOpen) {
+    return null
+  }
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden">
@@ -181,12 +205,39 @@ export function MobileMenu() {
 // Floating Action Button for Quick Actions
 export function FloatingActionButton() {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const pathname = usePathname()
 
   const actions = [
     { name: 'Tạo phòng', href: '/rooms/create', icon: VideoCameraIcon, color: 'bg-blue-500' },
     { name: 'Tìm bạn học', href: '/discover', icon: MagnifyingGlassIcon, color: 'bg-green-500' },
     { name: 'Tin nhắn mới', href: '/messages', icon: ChatBubbleLeftRightIcon, color: 'bg-purple-500' }
   ]
+
+  useEffect(() => {
+    const checkDialogState = () => {
+      setIsDialogOpen(document.body.classList.contains('dialog-open'))
+    }
+
+    // Check initial state
+    checkDialogState()
+
+    // Create observer for body class changes
+    const observer = new MutationObserver(checkDialogState)
+    observer.observe(document.body, { 
+      attributes: true, 
+      attributeFilter: ['class'] 
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  // Hide FloatingActionButton when user is in room pages or dialog is open
+  const shouldHide = pathname?.startsWith('/rooms/') || isDialogOpen
+
+  if (shouldHide) {
+    return null
+  }
 
   return (
     <div className="fixed bottom-20 right-4 z-40 md:hidden">
