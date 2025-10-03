@@ -202,6 +202,18 @@ export const MAJORS: Major[] = [
     category: 'Công nghệ thông tin',
     description: 'Cybersecurity'
   },
+  {
+    id: 'is',
+    name: 'Hệ thống Thông tin',
+    category: 'Công nghệ thông tin',
+    description: 'Information Systems'
+  },
+  {
+    id: 'ce',
+    name: 'Kỹ thuật Máy tính',
+    category: 'Công nghệ thông tin',
+    description: 'Computer Engineering'
+  },
 
   // Kinh tế - Kinh doanh
   {
