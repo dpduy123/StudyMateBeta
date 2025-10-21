@@ -254,12 +254,6 @@ export default function DashboardPage() {
         description={`Chào mừng trở lại, ${currentData.profile.name || user?.email?.split('@')[0] || 'Student'}!`}
         icon={AcademicCapIcon}
         currentPage="/dashboard"
-        rightContent={
-          <button className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors">
-            <BellIcon className="h-6 w-6" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-        }
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 mobile-safe-area">

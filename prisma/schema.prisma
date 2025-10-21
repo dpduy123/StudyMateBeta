@@ -117,6 +117,7 @@ model User {
   achievements      UserAchievement[]
   ratings           Rating[]     @relation("RatingGiver")
   receivedRatings   Rating[]     @relation("RatingReceiver")
+  notifications     Notification[]
 
   @@map("users")
 }
@@ -325,6 +326,44 @@ model Rating {
 
   @@unique([giverId, receiverId, context])
   @@map("ratings")
+}
+
+// Notifications System
+enum NotificationType {
+  MATCH_REQUEST      // Someone sent you a match request
+  MATCH_ACCEPTED     // Your match request was accepted
+  NEW_MESSAGE        // New message from connection
+  ROOM_INVITE        // Invited to a study room
+  BADGE_EARNED       // Earned a new badge
+  ACHIEVEMENT_UNLOCKED // Unlocked an achievement
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String           // Recipient of notification
+  type        NotificationType
+  title       String
+  message     String
+  isRead      Boolean          @default(false)
+
+  // Related entities
+  relatedUserId String?        // e.g., user who sent match request
+  relatedMatchId String?        // e.g., match request ID
+  relatedMessageId String?      // e.g., message ID
+  relatedRoomId String?         // e.g., room ID
+
+  metadata    Json?            // Additional data
+
+  // Timestamps
+  createdAt   DateTime         @default(now())
+  readAt      DateTime?
+
+  // Relations
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
 
 // Analytics and Metrics

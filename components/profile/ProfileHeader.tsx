@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { UserProfile } from './types'
 import { getUniversityById, getMajorById } from '@/lib/data/universities'
@@ -12,12 +13,15 @@ import {
   StarIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
+import { SuccessfulMatchesDialog } from './SuccessfulMatchesDialog'
 
 interface ProfileHeaderProps {
   profile: UserProfile
 }
 
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
+  const [isMatchesDialogOpen, setIsMatchesDialogOpen] = useState(false)
+
   // Use university and major info from API if available, otherwise fallback to lookup
   const university = profile.universityInfo || getUniversityById(profile.university)
   const major = profile.majorInfo || getMajorById(profile.major)
@@ -80,10 +84,13 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             <div className="text-2xl font-bold text-primary-600">{profile.totalMatches}</div>
             <div className="text-sm text-gray-600">Kết nối</div>
           </div>
-          <div className="text-center">
+          <button
+            onClick={() => setIsMatchesDialogOpen(true)}
+            className="text-center hover:bg-gray-50 rounded-lg transition-colors p-2"
+          >
             <div className="text-2xl font-bold text-green-600">{profile.successfulMatches}</div>
             <div className="text-sm text-gray-600">Thành công</div>
-          </div>
+          </button>
           <div className="text-center">
             <div className="flex items-center justify-center text-2xl font-bold text-yellow-600">
               {profile.averageRating}
@@ -187,6 +194,12 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           </div>
         </div>
       </div>
+
+      {/* Successful Matches Dialog */}
+      <SuccessfulMatchesDialog
+        isOpen={isMatchesDialogOpen}
+        onClose={() => setIsMatchesDialogOpen(false)}
+      />
     </motion.div>
   )
 }

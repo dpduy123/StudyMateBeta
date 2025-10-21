@@ -45,13 +45,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    // Get users who have already been matched (to exclude them)
+    // Get users who have already been matched (exclude only ACCEPTED, BLOCKED, PENDING)
+    // REJECTED (Pass) users will appear again
     const existingMatches = await prisma.match.findMany({
       where: {
         OR: [
           { senderId: currentUser.id },
           { receiverId: currentUser.id }
-        ]
+        ],
+        status: {
+          in: ['ACCEPTED', 'BLOCKED', 'PENDING']
+        }
       },
       select: {
         senderId: true,
@@ -59,7 +63,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Extract matched user IDs
+    // Extract matched user IDs (excluding REJECTED ones)
     const matchedUserIds = existingMatches.flatMap(match => [
       match.senderId === currentUser.id ? match.receiverId : match.senderId
     ])
@@ -123,13 +127,19 @@ export async function GET(request: NextRequest) {
       createdAt: user.createdAt.toISOString()
     }))
 
-    // Use AI matching engine to get recommended matches
-    const matches = AIMatchingEngine.getRecommendedMatches(
-      currentUserProfileFormatted,
-      candidateUsersFormatted,
-      allExcludedIds,
-      limit
-    )
+    // TEMPORARY: Skip AI matching, just return users in database order
+    const matches = candidateUsersFormatted.slice(0, limit).map(user => {
+      // Generate a consistent random score between 75-99 for display
+      const userSeed = user.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+      const randomScore = 75 + (userSeed % 25)
+
+      return {
+        ...user,
+        matchScore: randomScore,
+        distance: '2.5 km', // Mock data
+        isOnline: Math.random() > 0.5 // Random online status
+      }
+    })
 
     return NextResponse.json({
       matches,

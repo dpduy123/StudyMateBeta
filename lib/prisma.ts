@@ -18,27 +18,60 @@ function createPrismaClient() {
     },
   });
 
-  // Add database monitoring middleware
-  if (process.env.NODE_ENV === 'development' || process.env.ENABLE_DB_MONITORING === 'true') {
+  let prismaClient: PrismaClient = client;
+
+  const shouldMonitor =
+    process.env.NODE_ENV === 'development' ||
+    process.env.ENABLE_DB_MONITORING === 'true';
+
+  if (shouldMonitor) {
+    let monitoringInitialized = false;
     try {
-      // Enable middleware manager
-      middlewareManager.enable()
-      
-      // Add appropriate middleware based on environment
-      if (process.env.NODE_ENV === 'development') {
-        (client as any).$use(middlewareManager.createDevelopmentMiddleware())
-        console.log('🔍 Development database monitoring enabled')
+      const env = process.env.NODE_ENV === 'development' ? 'Development' : 'Production';
+      const middleware =
+        process.env.NODE_ENV === 'development'
+          ? middlewareManager.createDevelopmentMiddleware()
+          : middlewareManager.createProductionMiddleware();
+
+      const hasClassicMiddleware = typeof (client as any).$use === 'function';
+      const hasQueryExtensions = typeof (client as any).$extends === 'function';
+
+      if (hasClassicMiddleware) {
+        middlewareManager.enable();
+        monitoringInitialized = true;
+        (client as any).$use(middleware);
+        console.log(`🔍 ${env} database monitoring enabled`);
+      } else if (hasQueryExtensions) {
+        middlewareManager.enable();
+        monitoringInitialized = true;
+        prismaClient = (client as any).$extends({
+          query: {
+            $allModels: {
+              $allOperations: async ({ model, operation, args, query }: any) => {
+                const params = { model, action: operation, args };
+
+                return middleware(params, async (nextParams?: typeof params) => {
+                  const finalParams = nextParams ?? params;
+                  const nextArgs = finalParams.args ?? args;
+                  return query(nextArgs);
+                });
+              },
+            },
+          },
+        }) as PrismaClient;
+        console.log(`🔍 ${env} database monitoring enabled`);
       } else {
-        (client as any).$use(middlewareManager.createProductionMiddleware())
-        console.log('🔍 Production database monitoring enabled')
+        console.warn('⚠️ Prisma client variant does not support database monitoring middleware');
       }
-      
     } catch (error) {
-      console.warn('⚠️ Failed to add database monitoring middleware:', error)
+      if (monitoringInitialized && middlewareManager.isMonitoringEnabled()) {
+        middlewareManager.disable();
+      }
+      console.warn('⚠️ Failed to add database monitoring middleware:', error);
     }
   }
 
-  return client;
+  return prismaClient;
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

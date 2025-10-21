@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { UserDropdownMenu } from './UserDropdownMenu'
+import NotificationBell from '@/components/notifications/NotificationBell'
 
 interface DashboardHeaderProps {
   title: string
@@ -80,6 +81,7 @@ export function DashboardHeader({
           </div>
           <div className="flex items-center space-x-4">
             {rightContent}
+            <NotificationBell />
             <UserDropdownMenu loadingPage={loadingPage} setLoadingPage={setLoadingPage} />
           </div>
         </div>
