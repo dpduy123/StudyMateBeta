@@ -110,7 +110,7 @@ export default function AchievementsPage() {
       <div className="min-h-screen bg-gray-50">
       <DashboardHeader
         title="Thành tích"
-        description="Badges và điểm thưởng của bạn"
+        description="Huy hiệu và điểm thưởng của bạn"
         icon={TrophyIcon}
         currentPage="/achievements"
         rightContent={
