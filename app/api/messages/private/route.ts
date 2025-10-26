@@ -187,6 +187,80 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Trigger conversation-updated event for SENDER
+    // Update sender's conversation list
+    const senderConversationData = {
+      otherUserId: receiverId,
+      otherUser: {
+        id: receiver.id,
+        firstName: receiver.firstName,
+        lastName: receiver.lastName,
+        avatar: receiver.avatar,
+        lastActive: receiver.lastActive?.toISOString()
+      },
+      lastMessage: {
+        id: message.id,
+        content: message.content,
+        createdAt: message.createdAt.toISOString(),
+        senderId: message.senderId
+      },
+      unreadCount: 0, // Sender has no unread messages from this conversation
+      lastActivity: message.createdAt.toISOString()
+    }
+    
+    await triggerPusherEvent(
+      `private-user-${user.id}-conversations`,
+      'conversation-updated',
+      senderConversationData
+    )
+
+    // Trigger conversation-updated event for RECEIVER
+    // Count unread messages for receiver
+    const unreadCount = await prisma.message.count({
+      where: {
+        senderId: user.id,
+        receiverId: receiverId,
+        isRead: false
+      }
+    })
+
+    // Get sender info for receiver's conversation list
+    const sender = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        lastActive: true
+      }
+    })
+
+    const receiverConversationData = {
+      otherUserId: user.id,
+      otherUser: {
+        id: sender!.id,
+        firstName: sender!.firstName,
+        lastName: sender!.lastName,
+        avatar: sender!.avatar,
+        lastActive: sender!.lastActive?.toISOString()
+      },
+      lastMessage: {
+        id: message.id,
+        content: message.content,
+        createdAt: message.createdAt.toISOString(),
+        senderId: message.senderId
+      },
+      unreadCount,
+      lastActivity: message.createdAt.toISOString()
+    }
+    
+    await triggerPusherEvent(
+      `private-user-${receiverId}-conversations`,
+      'conversation-updated',
+      receiverConversationData
+    )
+
     return NextResponse.json({ message }, { status: 201 })
 
   } catch (error) {

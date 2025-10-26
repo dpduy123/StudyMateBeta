@@ -259,21 +259,46 @@ This implementation plan breaks down the Pusher integration into discrete, manag
     - Create migration guide for other developers
     - _Requirements: 10.4, 10.5_
 
-- [ ] 12. Deployment Preparation
-  - [ ] 12.1 Configure environment variables
+- [ ] 12. Fix Presence and Real-time Updates Issues
+  - [ ] 12.1 Fix offline status display issue
+    - Debug why users always show as offline despite Pusher presence implementation
+    - Verify presence channel subscription is working correctly
+    - Check if user presence is being properly tracked in database
+    - Ensure presence events are being triggered when users connect/disconnect
+    - Test presence status updates in real-time
+    - _Requirements: 7.1, 7.2, 7.3, 7.4_
+
+  - [ ] 12.2 Fix conversation list not updating with new messages
+    - Implement real-time updates for conversation list when new messages arrive
+    - Subscribe to message events in ConversationsList component
+    - Update last message and unread count when new messages are received
+    - Ensure conversation list re-orders based on latest activity
+    - Test that conversation preview updates immediately
+    - _Requirements: 3.3, 4.2, 4.3, 8.1_
+
+  - [ ] 12.3 Verify and test all real-time features
+    - Test presence status updates across multiple browser tabs
+    - Verify conversation list updates when messages are sent/received
+    - Check that unread counts update correctly
+    - Test with multiple users simultaneously
+    - Monitor Pusher dashboard for connection and event issues
+    - _Requirements: 11.1, 11.2, 11.5_
+
+- [ ] 13. Deployment Preparation
+  - [ ] 13.1 Configure environment variables
     - Add Pusher credentials to .env.example
     - Document required environment variables
     - Add variables to deployment platform (Vercel/Railway)
     - _Requirements: 12.2_
 
-  - [ ] 12.2 Test deployment
+  - [ ] 13.2 Test deployment
     - Deploy to staging environment
     - Test all messaging features in staging
     - Monitor Pusher dashboard for errors
     - Verify performance metrics
     - _Requirements: 12.1, 12.4_
 
-  - [ ] 12.3 Production deployment
+  - [ ] 13.3 Production deployment
     - Deploy to production
     - Monitor error rates and performance
     - Have rollback plan ready

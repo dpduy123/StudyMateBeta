@@ -31,9 +31,9 @@ interface UseUserStatusReturn {
  * Hook to track another user's online/offline status
  * Subscribes to their presence channel and listens for status changes
  */
-export function useUserStatus({ 
-  userId, 
-  enabled = true 
+export function useUserStatus({
+  userId,
+  enabled = true
 }: UseUserStatusOptions): UseUserStatusReturn {
   const [status, setStatus] = useState<UserStatus | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -115,7 +115,7 @@ export function useMultipleUserStatus(
         if (response.ok) {
           const data = await response.json()
           const statusMap: Record<string, UserStatus> = {}
-          
+
           data.statuses.forEach((s: any) => {
             statusMap[s.userId] = {
               userId: s.userId,
@@ -124,7 +124,7 @@ export function useMultipleUserStatus(
               user: s.user
             }
           })
-          
+
           setStatuses(statusMap)
         }
       } catch (err) {

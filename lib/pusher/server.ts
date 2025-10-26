@@ -79,15 +79,35 @@ export function authenticatePresenceChannel(
   channel: string,
   userId: string,
   userInfo: { name: string; avatar?: string }
-): { auth: string; channel_data: string } {
-  // Verify user has access to this presence channel
+) {
+  // For presence-user-{userId} channels:
+  // - If subscribing to own channel, join as a member (with user data)
+  // - If subscribing to someone else's channel, join as observer (no user data)
   if (channel.startsWith('presence-user-')) {
     const channelUserId = channel.replace('presence-user-', '')
-    if (channelUserId !== userId) {
-      throw new Error('User not authorized for this presence channel')
+
+    // If user is subscribing to their own presence channel, include their data
+    if (channelUserId === userId) {
+      const presenceData = {
+        user_id: userId,
+        user_info: userInfo
+      }
+      const auth = pusherServer.authorizeChannel(socketId, channel, presenceData)
+      return auth
     }
+
+    // If user is subscribing to someone else's presence channel (to watch their status),
+    // allow it but don't add them as a visible member
+    // Use a different user_id to avoid showing up in the member list
+    const observerData = {
+      user_id: `observer-${userId}`,
+      user_info: { name: 'Observer', avatar: undefined }
+    }
+    const auth = pusherServer.authorizeChannel(socketId, channel, observerData)
+    return auth
   }
 
+  // For other presence channels, use standard presence data
   const presenceData = {
     user_id: userId,
     user_info: userInfo

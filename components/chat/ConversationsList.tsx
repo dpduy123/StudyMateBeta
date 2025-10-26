@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import { LoadingSpinner } from '../ui/LoadingSpinner'
+import { useMultipleUsersPresence } from '@/hooks/useMultipleUsersPresence'
+import { usePusher } from '@/hooks/usePusher'
 
 interface Conversation {
   id: string
@@ -43,24 +45,86 @@ export function ConversationsList({
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
 
+  // Get all user IDs from conversations for presence tracking
+  const userIds = useMemo(() => 
+    conversations.map(c => c.otherUser.id),
+    [conversations]
+  )
+
+  // Track presence of all users in conversations
+  const { onlineUsers } = useMultipleUsersPresence(userIds)
+
+  // Subscribe to conversation updates via Pusher
+  usePusher({
+    channelName: `private-user-${currentUserId}-conversations`,
+    enabled: !!currentUserId,
+    events: {
+      'conversation-updated': (data: any) => {
+        console.log('📬 Conversation updated:', data)
+        
+        setConversations(prev => {
+          // Check if conversation already exists
+          const existingIndex = prev.findIndex(c => c.id === data.otherUserId)
+          
+          if (existingIndex >= 0) {
+            // Update existing conversation
+            const updated = [...prev]
+            updated[existingIndex] = {
+              id: data.otherUserId,
+              otherUser: data.otherUser,
+              lastMessage: data.lastMessage,
+              unreadCount: data.unreadCount,
+              lastActivity: data.lastActivity
+            }
+            
+            // Re-sort by last activity (most recent first)
+            updated.sort((a, b) => 
+              new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime()
+            )
+            
+            return updated
+          } else {
+            // Add new conversation at the top
+            const newConversation = {
+              id: data.otherUserId,
+              otherUser: data.otherUser,
+              lastMessage: data.lastMessage,
+              unreadCount: data.unreadCount,
+              lastActivity: data.lastActivity
+            }
+            
+            return [newConversation, ...prev]
+          }
+        })
+      }
+    }
+  })
+
   // Fetch real conversations from API
   useEffect(() => {
     const fetchConversations = async () => {
       try {
         setLoading(true)
+        setError(null)
+        
         const response = await fetch('/api/conversations')
         
         if (!response.ok) {
-          throw new Error('Failed to fetch conversations')
+          const errorData = await response.json().catch(() => ({}))
+          console.error('API error:', response.status, errorData)
+          throw new Error(errorData.details || errorData.error || 'Failed to fetch conversations')
         }
 
         const data = await response.json()
+        console.log('✅ Fetched conversations:', data.count)
         setConversations(data.conversations || [])
       } catch (err) {
         console.error('Error fetching conversations:', err)
-        setError(err instanceof Error ? err.message : 'Something went wrong')
+        const errorMessage = err instanceof Error ? err.message : 'Something went wrong'
+        setError(errorMessage)
         
         // Fallback to mock data if API fails
+        console.log('⚠️ Using mock data as fallback')
         setConversations(getMockConversations())
       } finally {
         setLoading(false)
@@ -184,11 +248,42 @@ export function ConversationsList({
     }
   ]
 
-  const handleConversationClick = (conversation: Conversation) => {
-    if (onSelectConversation) {
-      onSelectConversation(conversation)
-    } else {
-      router.push(`/messages/${conversation.otherUser.id}`)
+  const handleConversationClick = async (conversation: Conversation) => {
+    // Fetch latest user status before selecting
+    try {
+      const response = await fetch(`/api/user/${conversation.otherUser.id}/status`)
+      if (response.ok) {
+        const data = await response.json()
+        // Update conversation with latest lastActive
+        const updatedConversation = {
+          ...conversation,
+          otherUser: {
+            ...conversation.otherUser,
+            lastActive: data.lastActive
+          }
+        }
+        
+        if (onSelectConversation) {
+          onSelectConversation(updatedConversation)
+        } else {
+          router.push(`/messages/${conversation.otherUser.id}`)
+        }
+      } else {
+        // Fallback to original conversation if API fails
+        if (onSelectConversation) {
+          onSelectConversation(conversation)
+        } else {
+          router.push(`/messages/${conversation.otherUser.id}`)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch user status:', err)
+      // Fallback to original conversation
+      if (onSelectConversation) {
+        onSelectConversation(conversation)
+      } else {
+        router.push(`/messages/${conversation.otherUser.id}`)
+      }
     }
   }
 
@@ -198,9 +293,9 @@ export function ConversationsList({
       .includes(searchQuery.toLowerCase())
   )
 
-  const isOnline = (lastActive?: string) => {
-    if (!lastActive) return false
-    return new Date(lastActive) > new Date(Date.now() - 15 * 60 * 1000)
+  // Check if user is online using Pusher presence
+  const isOnline = (userId: string) => {
+    return onlineUsers.has(userId)
   }
 
   if (loading) {
@@ -279,7 +374,7 @@ export function ConversationsList({
                     {conversation.otherUser.firstName[0]}{conversation.otherUser.lastName[0]}
                   </div>
                 )}
-                {isOnline(conversation.otherUser.lastActive) && (
+                {isOnline(conversation.otherUser.id) && (
                   <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
                 )}
               </div>

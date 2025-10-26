@@ -9,6 +9,7 @@ import { MatchedUsersList } from '@/components/chat/MatchedUsersList'
 import { ChatContainer } from '@/components/chat/ChatContainer'
 import { NotificationBanner } from '@/components/notifications/NotificationBanner'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useOtherUserPresence } from '@/hooks/useOtherUserPresence'
 import {
   ChatBubbleLeftRightIcon,
   PhoneIcon,
@@ -36,14 +37,40 @@ export default function MessagesPage() {
   const [activeTab, setActiveTab] = useState<'conversations' | 'matches'>('conversations')
 
   // Enable notifications for this user
-  useNotifications({ 
+  useNotifications({
     userId: user?.id || '',
     enabled: !!user?.id
   })
 
-  const isOnline = (lastActive?: string) => {
-    if (!lastActive) return false
-    return new Date(lastActive) > new Date(Date.now() - 15 * 60 * 1000)
+  // Track presence of selected user using Pusher
+  const { isOnline: isOtherUserOnline } = useOtherUserPresence(selectedConversation?.otherUser.id)
+
+  // Get status text based on online status and last active
+  const getStatusText = () => {
+    if (!selectedConversation) return ''
+
+    if (isOtherUserOnline) {
+      return 'Đang hoạt động'
+    }
+
+    // Show last active time if available
+    if (selectedConversation.otherUser.lastActive) {
+      const lastActive = new Date(selectedConversation.otherUser.lastActive)
+      const now = new Date()
+      const diffMs = now.getTime() - lastActive.getTime()
+      const diffMins = Math.floor(diffMs / 60000)
+
+      if (diffMins < 1) return 'Vừa xong'
+      if (diffMins < 60) return `${diffMins} phút trước`
+
+      const diffHours = Math.floor(diffMins / 60)
+      if (diffHours < 24) return `${diffHours} giờ trước`
+
+      const diffDays = Math.floor(diffHours / 24)
+      return `${diffDays} ngày trước`
+    }
+
+    return 'Offline'
   }
 
   const handleMatchedUserSelect = (userId: string) => {
@@ -60,10 +87,10 @@ export default function MessagesPage() {
 
   return (
 
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Notification Banner */}
       {user?.id && <NotificationBanner userId={user.id} />}
-      
+
       {/* Header */}
       <div className="flex-shrink-0">
         <DashboardHeader
@@ -82,11 +109,10 @@ export default function MessagesPage() {
             <div className="flex border-b border-gray-200">
               <button
                 onClick={() => setActiveTab('conversations')}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                  activeTab === 'conversations'
-                    ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'conversations'
+                  ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-2">
                   <ChatBubbleOvalLeftEllipsisIcon className="h-4 w-4" />
@@ -95,11 +121,10 @@ export default function MessagesPage() {
               </button>
               <button
                 onClick={() => setActiveTab('matches')}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                  activeTab === 'matches'
-                    ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'matches'
+                  ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-2">
                   <UsersIcon className="h-4 w-4" />
@@ -132,7 +157,7 @@ export default function MessagesPage() {
                 <div className="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center">
                   <div className="flex items-center space-x-3">
                     {/* Back button for mobile */}
-                    <button 
+                    <button
                       onClick={() => setSelectedConversation(null)}
                       className="sm:hidden p-1 hover:bg-gray-100 rounded-lg transition-colors"
                     >
@@ -150,7 +175,7 @@ export default function MessagesPage() {
                           {selectedConversation.otherUser.firstName[0]}{selectedConversation.otherUser.lastName[0]}
                         </div>
                       )}
-                      {isOnline(selectedConversation.otherUser.lastActive) && (
+                      {isOtherUserOnline && (
                         <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>
@@ -158,8 +183,8 @@ export default function MessagesPage() {
                       <p className="font-semibold text-gray-900 text-sm sm:text-base">
                         {selectedConversation.otherUser.firstName} {selectedConversation.otherUser.lastName}
                       </p>
-                      <p className="text-xs sm:text-sm text-gray-500">
-                        {isOnline(selectedConversation.otherUser.lastActive) ? 'Đang hoạt động' : 'Offline'}
+                      <p className={`text-xs sm:text-sm ${isOtherUserOnline ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                        {getStatusText()}
                       </p>
                     </div>
                   </div>
@@ -196,7 +221,7 @@ export default function MessagesPage() {
       {/* Mobile Navigation */}
       <BottomTabNavigation />
       {!selectedConversation && <FloatingActionButton />}
-      </div>
+    </div>
 
   )
 }

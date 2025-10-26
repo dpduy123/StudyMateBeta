@@ -2,86 +2,69 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/prisma'
 
-export async function GET(request: NextRequest) {
+/**
+ * GET /api/conversations
+ * Get all conversations for the current user
+ * Returns list of conversations with last message, unread count, and other user info
+ */
+export async function GET(req: NextRequest) {
   try {
-    // Create Supabase client to get the current user
+    // Verify user authentication with Supabase using cookies
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
       {
         cookies: {
           getAll() {
-            return request.cookies.getAll()
+            return req.cookies.getAll()
           },
           setAll() {
             // Not needed for GET request
-          },
-        },
-      }
-    )
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Get all accepted matches for the user
-    const matches = await prisma.match.findMany({
-      where: {
-        OR: [
-          { senderId: user.id, status: 'ACCEPTED' },
-          { receiverId: user.id, status: 'ACCEPTED' }
-        ]
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            lastActive: true
-          }
-        },
-        receiver: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            lastActive: true
           }
         }
       }
+    )
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Invalid token' },
+        { status: 401 }
+      )
+    }
+
+    // Get all messages where user is sender or receiver
+    const messages = await prisma.message.findMany({
+      where: {
+        OR: [
+          { senderId: user.id },
+          { receiverId: user.id }
+        ]
+      },
+      include: {
+        sender: true,
+        receiver: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
     })
 
-    // Get conversations with last message and unread count
-    const conversations = await Promise.all(
-      matches.map(async (match) => {
-        const otherUser = match.senderId === user.id ? match.receiver : match.sender
+    // Group messages by conversation (other user)
+    const conversationsMap = new Map()
 
-        // Get last message between users
-        const lastMessage = await prisma.message.findFirst({
-          where: {
-            OR: [
-              { senderId: user.id, receiverId: otherUser.id },
-              { senderId: otherUser.id, receiverId: user.id }
-            ]
-          },
-          orderBy: { createdAt: 'desc' },
-          select: {
-            id: true,
-            content: true,
-            createdAt: true,
-            senderId: true
-          }
-        })
+    for (const message of messages) {
+      // Determine the other user (not current user)
+      const otherUser = message.senderId === user.id ? message.receiver : message.sender
+      
+      if (!otherUser) continue
 
-        // Get unread count (messages sent to current user that are unread)
+      const conversationId = otherUser.id
+
+      // If this conversation doesn't exist yet, create it
+      if (!conversationsMap.has(conversationId)) {
+        // Count unread messages from this user
         const unreadCount = await prisma.message.count({
           where: {
             senderId: otherUser.id,
@@ -90,25 +73,54 @@ export async function GET(request: NextRequest) {
           }
         })
 
-        return {
-          id: match.id,
-          otherUser,
-          lastMessage,
+        conversationsMap.set(conversationId, {
+          id: conversationId,
+          otherUser: {
+            id: otherUser.id,
+            firstName: otherUser.firstName,
+            lastName: otherUser.lastName,
+            avatar: otherUser.avatar,
+            lastActive: otherUser.lastActive?.toISOString()
+          },
+          lastMessage: {
+            id: message.id,
+            content: message.content,
+            createdAt: message.createdAt.toISOString(),
+            senderId: message.senderId
+          },
           unreadCount,
-          lastActivity: lastMessage?.createdAt || match.createdAt
-        }
-      })
-    )
+          lastActivity: message.createdAt.toISOString()
+        })
+      }
+    }
 
-    // Sort by last activity (most recent first)
-    conversations.sort((a, b) => 
-      new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime()
-    )
+    // Convert map to array and sort by last activity
+    const conversations = Array.from(conversationsMap.values()).sort((a, b) => {
+      return new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime()
+    })
 
-    return NextResponse.json({ conversations })
+    return NextResponse.json({
+      conversations,
+      count: conversations.length
+    })
 
   } catch (error) {
-    console.error('Error fetching conversations:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Get conversations error:', error)
+    
+    // Log detailed error for debugging
+    if (error instanceof Error) {
+      console.error('Error details:', error.message)
+      console.error('Stack trace:', error.stack)
+    }
+    
+    return NextResponse.json(
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
+
+export const dynamic = 'force-dynamic'
