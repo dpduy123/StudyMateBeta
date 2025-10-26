@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   PaperAirplaneIcon,
@@ -11,6 +11,8 @@ import { Message } from '@/hooks/useRealtimeMessages'
 
 interface MessageInputProps {
   onSendMessage: (content: string, type?: 'TEXT' | 'FILE') => Promise<void>
+  onTypingStart?: () => void
+  onTypingStop?: () => void
   placeholder?: string
   disabled?: boolean
   replyTo?: Message
@@ -18,7 +20,9 @@ interface MessageInputProps {
 }
 
 export function MessageInput({ 
-  onSendMessage, 
+  onSendMessage,
+  onTypingStart,
+  onTypingStop,
   placeholder = 'Nhập tin nhắn...', 
   disabled = false,
   replyTo,
@@ -26,7 +30,10 @@ export function MessageInput({
 }: MessageInputProps) {
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const lastTypingEventRef = useRef<number>(0)
 
   // Auto-resize textarea
   useEffect(() => {
@@ -36,11 +43,75 @@ export function MessageInput({
     }
   }, [message])
 
+  // Handle typing events with debouncing
+  const handleTypingStart = useCallback(() => {
+    const now = Date.now()
+    
+    // Only send typing-start if not already typing and at least 1 second has passed
+    if (!isTyping && now - lastTypingEventRef.current >= 1000) {
+      setIsTyping(true)
+      lastTypingEventRef.current = now
+      onTypingStart?.()
+    }
+  }, [isTyping, onTypingStart])
+
+  const handleTypingStop = useCallback(() => {
+    if (isTyping) {
+      setIsTyping(false)
+      onTypingStop?.()
+    }
+  }, [isTyping, onTypingStop])
+
+  // Handle message change with typing indicators
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newMessage = e.target.value
+    setMessage(newMessage)
+
+    // If user is typing, trigger typing-start
+    if (newMessage.trim() && !isTyping) {
+      handleTypingStart()
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+
+    // Set new timeout for typing-stop (3 seconds of inactivity)
+    if (newMessage.trim()) {
+      typingTimeoutRef.current = setTimeout(() => {
+        handleTypingStop()
+      }, 3000)
+    } else {
+      // If message is empty, stop typing immediately
+      handleTypingStop()
+    }
+  }
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+      // Send typing-stop when component unmounts if user was typing
+      if (isTyping) {
+        onTypingStop?.()
+      }
+    }
+  }, [isTyping, onTypingStop])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     const trimmedMessage = message.trim()
     if (!trimmedMessage || isSubmitting || disabled) return
+
+    // Stop typing indicator before sending
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+    handleTypingStop()
 
     setIsSubmitting(true)
     try {
@@ -101,7 +172,7 @@ export function MessageInput({
             <textarea
               ref={textareaRef}
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={handleMessageChange}
               onKeyDown={handleKeyPress}
               placeholder={placeholder}
               disabled={disabled || isSubmitting}

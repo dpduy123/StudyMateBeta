@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/prisma'
+import { triggerPusherEvent, getChatChannelName } from '@/lib/pusher/server'
 
 export async function GET(request: NextRequest) {
   try {
@@ -74,6 +75,16 @@ export async function GET(request: NextRequest) {
         where: { id: { in: unreadMessageIds } },
         data: { isRead: true, readAt: new Date() }
       })
+
+      // Trigger Pusher events for read receipts
+      const channelName = getChatChannelName(user.id, chatId)
+      for (const messageId of unreadMessageIds) {
+        await triggerPusherEvent(channelName, 'message-read', {
+          messageId,
+          readBy: user.id,
+          readAt: new Date().toISOString()
+        })
+      }
     }
 
     return NextResponse.json({
@@ -92,7 +103,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { receiverId, content, type = 'TEXT', fileUrl, fileName, fileSize } = body
+    const { receiverId, content, type = 'TEXT', fileUrl, fileName, fileSize, isReceiverViewing = false } = body
 
     if (!receiverId || !content) {
       return NextResponse.json({ error: 'Receiver ID and content are required' }, { status: 400 })
@@ -154,6 +165,27 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+
+    // Trigger Pusher event for real-time delivery
+    const channelName = getChatChannelName(user.id, receiverId)
+    await triggerPusherEvent(channelName, 'new-message', message)
+
+    // Only trigger notification event if receiver is not viewing the chat
+    if (!isReceiverViewing) {
+      await triggerPusherEvent(
+        `private-notifications-${receiverId}`,
+        'message-notification',
+        {
+          senderId: user.id,
+          senderName: `${message.sender.firstName} ${message.sender.lastName}`,
+          senderAvatar: message.sender.avatar,
+          content: content.substring(0, 100), // Preview
+          messageId: message.id,
+          chatId: user.id,
+          timestamp: message.createdAt
+        }
+      )
+    }
 
     return NextResponse.json({ message }, { status: 201 })
 

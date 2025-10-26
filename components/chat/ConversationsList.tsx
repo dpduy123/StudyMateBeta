@@ -37,8 +37,43 @@ export function ConversationsList({
   onSelectConversation, 
   selectedConversationId 
 }: ConversationsListProps) {
-  // Hardcoded mock conversations
-  const mockConversations: Conversation[] = [
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const router = useRouter()
+
+  // Fetch real conversations from API
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/conversations')
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch conversations')
+        }
+
+        const data = await response.json()
+        setConversations(data.conversations || [])
+      } catch (err) {
+        console.error('Error fetching conversations:', err)
+        setError(err instanceof Error ? err.message : 'Something went wrong')
+        
+        // Fallback to mock data if API fails
+        setConversations(getMockConversations())
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (currentUserId) {
+      fetchConversations()
+    }
+  }, [currentUserId])
+
+  // Fallback mock conversations
+  const getMockConversations = (): Conversation[] => [
     {
       id: "conv-1",
       otherUser: {
@@ -148,17 +183,6 @@ export function ConversationsList({
       lastActivity: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
     }
   ]
-
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const router = useRouter()
-
-  useEffect(() => {
-    // Using mock data, no need to fetch from API
-    setLoading(false)
-  }, [])
 
   const handleConversationClick = (conversation: Conversation) => {
     if (onSelectConversation) {

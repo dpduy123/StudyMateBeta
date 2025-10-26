@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
-import { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import { usePusher } from './usePusher'
 
 export interface Message {
   id: string
@@ -36,8 +35,140 @@ interface UseRealtimeMessagesProps {
   userId: string
 }
 
+interface TypingUser {
+  userId: string
+  userName: string
+}
+
 export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMessagesProps) {
-  // Mock messages data
+  const [messages, setMessages] = useState<Message[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([])
+
+  // Get channel name for Pusher (for private chats)
+  const getChannelName = () => {
+    if (chatType === 'private') {
+      const sortedIds = [userId, chatId].sort()
+      return `private-chat-${sortedIds[0]}-${sortedIds[1]}`
+    }
+    return `private-room-${chatId}`
+  }
+
+  // Listen for new messages, typing events and read receipts via Pusher
+  usePusher({
+    channelName: getChannelName(),
+    enabled: chatType === 'private',
+    events: {
+      'new-message': (message: Message) => {
+        setMessages(prev => {
+          // Avoid duplicates
+          if (prev.find(m => m.id === message.id)) return prev
+          return [...prev, message].sort((a, b) => 
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          )
+        })
+      },
+      'typing-start': (data: TypingUser) => {
+        // Don't show typing indicator for current user
+        if (data.userId === userId) return
+        
+        setTypingUsers(prev => {
+          // Add user if not already in list
+          if (!prev.find(u => u.userId === data.userId)) {
+            return [...prev, data]
+          }
+          return prev
+        })
+      },
+      'typing-stop': (data: TypingUser) => {
+        setTypingUsers(prev => prev.filter(u => u.userId !== data.userId))
+      },
+      'message-read': (data: { messageId: string; readBy: string; readAt: string }) => {
+        // Update message read status in local state
+        setMessages(prev => prev.map(msg => 
+          msg.id === data.messageId 
+            ? { ...msg, isRead: true, readAt: data.readAt }
+            : msg
+        ))
+      }
+    }
+  })
+
+  // Send typing start event
+  const sendTypingStart = async () => {
+    if (chatType !== 'private') return
+
+    try {
+      // Trigger typing-start event via client event (for Pusher)
+      await fetch('/api/messages/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          receiverId: chatId,
+          event: 'typing-start'
+        })
+      })
+    } catch (err) {
+      console.error('Failed to send typing-start event:', err)
+    }
+  }
+
+  // Send typing stop event
+  const sendTypingStop = async () => {
+    if (chatType !== 'private') return
+
+    try {
+      // Trigger typing-stop event via client event (for Pusher)
+      await fetch('/api/messages/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          receiverId: chatId,
+          event: 'typing-stop'
+        })
+      })
+    } catch (err) {
+      console.error('Failed to send typing-stop event:', err)
+    }
+  }
+
+  // Fetch initial messages
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        setLoading(true)
+        const endpoint = chatType === 'private' 
+          ? `/api/messages/private?chatId=${chatId}`
+          : `/api/messages/room?roomId=${chatId}`
+        
+        const response = await fetch(endpoint)
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch messages')
+        }
+
+        const data = await response.json()
+        setMessages(data.messages || [])
+      } catch (err) {
+        console.error('Error fetching messages:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load messages')
+        
+        // Fallback to mock data
+        setMessages(generateMockMessages(chatId, userId))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (chatId && userId) {
+      fetchMessages()
+    }
+  }, [chatId, chatType, userId])
+
+
+
+  // Mock messages data (fallback)
   const generateMockMessages = (chatId: string, currentUserId: string): Message[] => {
     const baseTime = Date.now()
     
@@ -204,167 +335,63 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
     }
   }
 
-  const [messages, setMessages] = useState<Message[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
 
-  useEffect(() => {
-    // Using mock data instead of API fetch
-    const mockMessages = generateMockMessages(chatId, userId)
-    setMessages(mockMessages)
-    setLoading(false)
 
-    // Set up real-time subscription
-    const tableName = chatType === 'private' ? 'messages' : 'room_messages'
-    const filterColumn = chatType === 'private' ? 'receiverId' : 'roomId'
-    
-    const channel = supabase
-      .channel(`${tableName}_${chatId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: tableName,
-          filter: `${filterColumn}=eq.${chatId}`
-        },
-        (payload: RealtimePostgresChangesPayload<any>) => {
-          // Fetch the complete message with sender info
-          if (payload.new && 'id' in payload.new) {
-            fetchNewMessage((payload.new as any).id)
-          }
+  const sendMessage = async (content: string, type: 'TEXT' | 'FILE' = 'TEXT', fileData?: any, isReceiverViewing = false) => {
+    try {
+      // Send message via API (Pusher will handle real-time delivery)
+      if (chatType === 'private') {
+        const response = await fetch('/api/messages/private', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            receiverId: chatId,
+            content,
+            type,
+            isReceiverViewing,
+            ...fileData
+          })
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to send message via API')
         }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: tableName,
-          filter: `${filterColumn}=eq.${chatId}`
-        },
-        (payload: RealtimePostgresChangesPayload<any>) => {
-          // Update existing message
-          if (payload.new && 'id' in payload.new) {
-            setMessages(prev => prev.map(msg => 
-              msg.id === (payload.new as any).id ? { ...msg, ...payload.new } : msg
-            ))
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: tableName,
-          filter: `${filterColumn}=eq.${chatId}`
-        },
-        (payload: RealtimePostgresChangesPayload<any>) => {
-          // Remove deleted message
-          if (payload.old && 'id' in payload.old) {
-            setMessages(prev => prev.filter(msg => msg.id !== (payload.old as any).id))
-          }
-        }
-      )
-      .subscribe()
 
-    // For private chats, also subscribe to messages where user is sender
-    let senderChannel: any
-    if (chatType === 'private') {
-      senderChannel = supabase
-        .channel(`${tableName}_sender_${chatId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: tableName,
-            filter: `senderId=eq.${userId}`
-          },
-          (payload: RealtimePostgresChangesPayload<any>) => {
-            // Only add if it's for this chat
-            if (payload.new && 'id' in payload.new) {
-              const newPayload = payload.new as any
-              if (newPayload.receiverId === chatId || newPayload.senderId === chatId) {
-                fetchNewMessage(newPayload.id)
-              }
-            }
-          }
-        )
-        .subscribe()
-    }
-
-    const fetchNewMessage = async (messageId: string) => {
-      try {
-        const endpoint = chatType === 'private' 
-          ? `/api/messages/private/${messageId}`
-          : `/api/messages/room/${messageId}`
-        
-        const response = await fetch(endpoint)
-        if (!response.ok) return
-        
         const data = await response.json()
+        
+        // Add message to local state for immediate display (optimistic update)
+        // The duplicate check in Pusher listener will prevent duplicates
         setMessages(prev => {
-          // Avoid duplicates
+          // Check if message already exists
           if (prev.find(m => m.id === data.message.id)) return prev
           return [...prev, data.message].sort((a, b) => 
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           )
         })
-      } catch (err) {
-        console.error('Failed to fetch new message:', err)
+        
+        return data.message
+      } else {
+        // For room messages, use API
+        const response = await fetch('/api/messages/room', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId: chatId,
+            content,
+            type,
+            ...fileData
+          })
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to send message')
+        }
+
+        const data = await response.json()
+        return data.message
       }
-    }
-
-    return () => {
-      channel.unsubscribe()
-      if (senderChannel) senderChannel.unsubscribe()
-    }
-  }, [chatId, chatType, userId, supabase])
-
-  const sendMessage = async (content: string, type: 'TEXT' | 'FILE' = 'TEXT', fileData?: any) => {
-    try {
-      // Create mock message for demo
-      const newMessage: Message = {
-        id: `msg-${Date.now()}`,
-        senderId: userId,
-        receiverId: chatType === 'private' ? chatId : undefined,
-        roomId: chatType === 'room' ? chatId : undefined,
-        type,
-        content,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        sender: {
-          id: userId,
-          firstName: 'Bạn',
-          lastName: ''
-        },
-        ...fileData
-      }
-
-      // Add to messages list
-      setMessages(prev => [...prev, newMessage])
-      
-      return newMessage
     } catch (err) {
       throw err
-    }
-  }
-
-  const markAsRead = async (messageId: string) => {
-    if (chatType !== 'private') return // Only for private messages
-    
-    try {
-      await fetch(`/api/messages/private/${messageId}/read`, {
-        method: 'PATCH'
-      })
-    } catch (err) {
-      console.error('Failed to mark message as read:', err)
     }
   }
 
@@ -402,13 +429,39 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
     }
   }
 
+  const markMessageAsRead = async (messageId: string) => {
+    try {
+      if (chatType !== 'private') return
+
+      const response = await fetch(`/api/messages/private/${messageId}/read`, {
+        method: 'PATCH'
+      })
+
+      if (!response.ok) throw new Error('Failed to mark message as read')
+
+      const data = await response.json()
+      
+      // Update local state
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, isRead: true, readAt: data.message.readAt }
+          : msg
+      ))
+    } catch (err) {
+      console.error('Failed to mark message as read:', err)
+    }
+  }
+
   return {
     messages,
     loading,
     error,
     sendMessage,
-    markAsRead,
+    markMessageAsRead,
     editMessage,
-    deleteMessage
+    deleteMessage,
+    sendTypingStart,
+    sendTypingStop,
+    typingUsers
   }
 }

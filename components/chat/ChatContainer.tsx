@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
+import { TypingIndicator } from './TypingIndicator'
 import { useRealtimeMessages, Message } from '@/hooks/useRealtimeMessages'
 
 interface ChatContainerProps {
@@ -11,6 +12,8 @@ interface ChatContainerProps {
   currentUserId: string
   title?: string
   className?: string
+  onTypingStart?: () => void
+  onTypingStop?: () => void
 }
 
 export function ChatContainer({ 
@@ -18,7 +21,9 @@ export function ChatContainer({
   chatType, 
   currentUserId, 
   title,
-  className = '' 
+  className = '',
+  onTypingStart,
+  onTypingStop
 }: ChatContainerProps) {
   const [replyTo, setReplyTo] = useState<Message | undefined>()
   
@@ -28,7 +33,10 @@ export function ChatContainer({
     error,
     sendMessage,
     editMessage,
-    deleteMessage
+    deleteMessage,
+    sendTypingStart,
+    sendTypingStop,
+    typingUsers
   } = useRealtimeMessages({
     chatId,
     chatType,
@@ -54,6 +62,16 @@ export function ChatContainer({
   const handleCancelReply = () => {
     setReplyTo(undefined)
   }
+
+  const handleTypingStart = useCallback(() => {
+    sendTypingStart?.()
+    onTypingStart?.()
+  }, [sendTypingStart, onTypingStart])
+
+  const handleTypingStop = useCallback(() => {
+    sendTypingStop?.()
+    onTypingStop?.()
+  }, [sendTypingStop, onTypingStop])
 
   if (error) {
     return (
@@ -86,9 +104,19 @@ export function ChatContainer({
         onReply={handleReply}
       />
 
+      {/* Typing indicator */}
+      {typingUsers && typingUsers.length > 0 && (
+        <TypingIndicator
+          userName={typingUsers[0].userName}
+          isVisible={true}
+        />
+      )}
+
       {/* Message input */}
       <MessageInput
         onSendMessage={handleSendMessage}
+        onTypingStart={handleTypingStart}
+        onTypingStop={handleTypingStop}
         replyTo={replyTo}
         onCancelReply={handleCancelReply}
         disabled={loading}

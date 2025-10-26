@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/prisma'
+import { triggerPusherEvent, getChatChannelName } from '@/lib/pusher/server'
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ messageId: string }> }) {
   try {
@@ -51,6 +52,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         isRead: true,
         readAt: new Date()
       }
+    })
+
+    // Trigger Pusher event for real-time read receipt
+    const channelName = getChatChannelName(message.senderId, user.id)
+    await triggerPusherEvent(channelName, 'message-read', {
+      messageId: updatedMessage.id,
+      readBy: user.id,
+      readAt: updatedMessage.readAt?.toISOString()
     })
 
     return NextResponse.json({ message: updatedMessage })

@@ -11,7 +11,11 @@
     "precompute:dev": "NODE_ENV=development tsx scripts/precompute-matches.ts",
     "redis:check": "tsx -e \"import { SimpleRedis } from './lib/cache/redis-simple'; SimpleRedis.isHealthy().then(h => console.log('Redis healthy:', h))\"",
     "redis:check:full": "tsx -e \"import { RedisCache } from './lib/cache/redis-client'; RedisCache.getInstance().isHealthy().then(h => console.log('Redis healthy:', h))\"",
-    "matching:debug": "tsx -e \"import { SmartMatchingEngine } from './lib/matching/smart-engine'; console.log('Performance metrics:', SmartMatchingEngine.getPerformanceMetrics())\""
+    "matching:debug": "tsx -e \"import { SmartMatchingEngine } from './lib/matching/smart-engine'; console.log('Performance metrics:', SmartMatchingEngine.getPerformanceMetrics())\"",
+    "test:pusher": "npx tsx scripts/test-pusher-messaging.ts && npx tsx scripts/test-pusher-errors.ts && npx tsx scripts/test-pusher-performance.ts",
+    "test:pusher:core": "npx tsx scripts/test-pusher-messaging.ts",
+    "test:pusher:errors": "npx tsx scripts/test-pusher-errors.ts",
+    "test:pusher:perf": "npx tsx scripts/test-pusher-performance.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -27,12 +31,13 @@
     "lucide-react": "^0.468.0",
     "next": "15.5.3",
     "next-auth": "^4.24.11",
+    "pusher": "^5.2.0",
+    "pusher-js": "^8.4.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.54.3",
     "react-hot-toast": "^2.4.1",
     "simple-peer": "^9.11.1",
-    "socket.io-client": "^4.8.1",
     "swr": "^2.3.6",
     "zod": "^3.24.1"
   },

@@ -10,8 +10,9 @@ StudyMate là một nền tảng kết nối sinh viên thông minh sử dụng 
 - Độ chính xác cao với tỷ lệ match thành công >85%
 
 ### 2. **Hệ thống tin nhắn**
-- Chat real-time với bạn đã match
+- Chat real-time với Pusher (WebSocket + HTTP fallback)
 - Chia sẻ file tài liệu, ghi chú
+- Typing indicators và read receipts
 - Voice/Video calls tích hợp
 
 ### 3. **Voice/Video Chat Rooms**
@@ -48,7 +49,8 @@ StudyMate là một nền tảng kết nối sinh viên thông minh sử dụng 
 - **Supabase** cho authentication và database
 - **PostgreSQL** database
 - **Prisma ORM** cho database management
-- **Real-time subscriptions** với Supabase
+- **Pusher** cho real-time messaging (WebSocket + HTTP fallback)
+- **Redis** (optional) cho caching và performance optimization
 
 ### UI/UX
 - **Responsive design** cho mobile, HD, 2K, 4K, 21:9 screens
@@ -100,7 +102,18 @@ cp .env.example .env.local
 Điền thông tin cần thiết trong `.env.local`:
 - Supabase URL và keys
 - Database connection strings
+- Pusher credentials (app ID, key, secret, cluster)
+- Redis connection (optional)
 - Các API keys khác
+
+**Pusher Setup:**
+1. Đăng ký tài khoản miễn phí tại [https://dashboard.pusher.com/](https://dashboard.pusher.com/)
+2. Tạo một Channels app mới
+3. Copy credentials vào `.env.local`:
+   - `PUSHER_APP_ID`
+   - `PUSHER_SECRET`
+   - `NEXT_PUBLIC_PUSHER_KEY`
+   - `NEXT_PUBLIC_PUSHER_CLUSTER`
 
 ### 4. Setup database
 ```bash

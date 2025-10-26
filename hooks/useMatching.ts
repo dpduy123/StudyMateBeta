@@ -38,13 +38,13 @@ class SmartMatchBuffer {
   private cursor: number = 0
   private isLoading: boolean = false
   private hasMore: boolean = true
-  private batchQueue: Array<{userId: string, action: 'LIKE' | 'PASS'}> = []
+  private batchQueue: Array<{ userId: string, action: 'LIKE' | 'PASS' }> = []
   private batchTimeout: NodeJS.Timeout | null = null
-  public onBatchProcess?: (actions: Array<{targetUserId: string, action: 'LIKE' | 'PASS'}>) => Promise<void>
+  public onBatchProcess?: (actions: Array<{ targetUserId: string, action: 'LIKE' | 'PASS' }>) => Promise<void>
 
   constructor(
     private excludeIds: string[] = []
-  ) {}
+  ) { }
 
   addMatches(matches: MatchingUser[]) {
     // Avoid duplicates
@@ -235,7 +235,7 @@ export function useMatches(limit: number = 10, excludeIds: string[] = []) {
 
 export function useMatchActions() {
   const [isProcessing, setIsProcessing] = useState(false)
-  const [batchQueue, setBatchQueue] = useState<Array<{targetUserId: string, action: 'LIKE' | 'PASS'}>>([])
+  const [batchQueue, setBatchQueue] = useState<Array<{ targetUserId: string, action: 'LIKE' | 'PASS' }>>([])
   const batchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const performAction = async (action: 'LIKE' | 'PASS', targetUserId: string): Promise<MatchActionResponse> => {
@@ -266,7 +266,7 @@ export function useMatchActions() {
     }
   }
 
-  const performBatchActions = async (actions: Array<{targetUserId: string, action: 'LIKE' | 'PASS'}>): Promise<BatchActionResponse> => {
+  const performBatchActions = async (actions: Array<{ targetUserId: string, action: 'LIKE' | 'PASS' }>): Promise<BatchActionResponse> => {
     setIsProcessing(true)
     try {
       const response = await fetch('/api/discover/smart-matches', {
