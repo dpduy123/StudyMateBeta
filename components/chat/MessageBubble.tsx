@@ -1,9 +1,6 @@
 'use client'
 
 import { useState, memo } from 'react'
-import { motion } from 'framer-motion'
-import { formatDistanceToNow } from 'date-fns'
-import { vi } from 'date-fns/locale'
 import {
   EllipsisVerticalIcon,
   PencilIcon,
@@ -18,6 +15,8 @@ import {
 import { Message } from '@/hooks/useRealtimeMessages'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ReactionPicker } from './ReactionPicker'
+import { Avatar } from '@/components/ui/Avatar'
+import { Timestamp } from '@/components/ui/Timestamp'
 
 interface MessageBubbleProps {
   message: Message
@@ -69,8 +68,7 @@ function MessageBubbleComponent({
   const [showReactionPicker, setShowReactionPicker] = useState(false)
   const [hoveredReaction, setHoveredReaction] = useState<string | null>(null)
   
-  // Check if message is optimistic
-  const isOptimistic = message._optimistic || false
+  // Check message status
   const messageStatus = message._status || 'confirmed'
   const isPending = messageStatus === 'pending'
   const isFailed = messageStatus === 'failed'
@@ -132,27 +130,23 @@ function MessageBubbleComponent({
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`flex gap-3 group ${isOwn ? 'flex-row-reverse' : ''}`}
+    <div
+      className={`flex gap-3 group message-fade-in hardware-accelerated ${isOwn ? 'flex-row-reverse' : ''} ${
+        isPending ? 'optimistic-pending' : ''
+      } ${
+        isFailed ? 'optimistic-error' : ''
+      }`}
     >
       {/* Avatar */}
       {showAvatar && (
         <div className="flex-shrink-0">
-          {message.sender.avatar ? (
-            <img
-              src={message.sender.avatar}
-              alt={`${message.sender.firstName} ${message.sender.lastName}`}
-              className="w-8 h-8 rounded-full object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-medium">
-              {message.sender.firstName[0]}{message.sender.lastName[0]}
-            </div>
-          )}
+          <Avatar
+            src={message.sender.avatar}
+            alt={`${message.sender.firstName} ${message.sender.lastName}`}
+            firstName={message.sender.firstName}
+            lastName={message.sender.lastName}
+            size="sm"
+          />
         </div>
       )}
 
@@ -207,14 +201,14 @@ function MessageBubbleComponent({
                   <button
                     onClick={handleCancelEdit}
                     disabled={isSubmitting}
-                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50 button-press hardware-accelerated"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleEdit}
                     disabled={isSubmitting || editContent.trim() === ''}
-                    className="p-1 text-green-600 hover:text-green-700 disabled:opacity-50"
+                    className="p-1 text-green-600 hover:text-green-700 disabled:opacity-50 button-press hardware-accelerated"
                   >
                     <CheckIcon className="w-4 h-4" />
                   </button>
@@ -276,8 +270,9 @@ function MessageBubbleComponent({
                 {onReply && (
                   <button
                     onClick={() => onReply(message)}
-                    className="p-1 rounded-full bg-white shadow-sm border text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    className="p-1 rounded-full bg-white shadow-sm border text-gray-500 hover:text-gray-700 hover:bg-gray-50 button-press hardware-accelerated smooth-color"
                     title="Trả lời"
+                    aria-label="Trả lời tin nhắn"
                   >
                     <ArrowUturnLeftIcon className="w-4 h-4" />
                   </button>
@@ -288,8 +283,9 @@ function MessageBubbleComponent({
                   <div className="relative">
                     <button
                       onClick={() => setShowReactionPicker(!showReactionPicker)}
-                      className="p-1 rounded-full bg-white shadow-sm border text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                      className="p-1 rounded-full bg-white shadow-sm border text-gray-500 hover:text-gray-700 hover:bg-gray-50 button-press hardware-accelerated smooth-color"
                       title="Thả cảm xúc"
+                      aria-label="Thả cảm xúc"
                     >
                       <FaceSmileIcon className="w-4 h-4" />
                     </button>
@@ -307,21 +303,22 @@ function MessageBubbleComponent({
                 <div className="relative">
                   <button
                     onClick={() => setShowMenu(!showMenu)}
-                    className="p-1 rounded-full bg-white shadow-sm border text-gray-500 hover:text-gray-700"
+                    className="p-1 rounded-full bg-white shadow-sm border text-gray-500 hover:text-gray-700 button-press hardware-accelerated smooth-color"
                     title="Thêm hành động"
+                    aria-label="Thêm hành động"
                   >
                     <EllipsisVerticalIcon className="w-4 h-4" />
                   </button>
 
                   {showMenu && (
-                    <div className={`absolute ${isOwn ? 'left-0' : 'right-0'} top-6 mt-1 py-1 bg-white rounded-lg shadow-lg border z-10 min-w-32`}>
+                    <div className={`absolute ${isOwn ? 'left-0' : 'right-0'} top-6 mt-1 py-1 bg-white rounded-lg shadow-lg border z-10 min-w-32 message-fade-in hardware-accelerated`}>
                       {isOwn && onEdit && (
                         <button
                           onClick={() => {
                             setIsEditing(true)
                             setShowMenu(false)
                           }}
-                          className="w-full px-3 py-1 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          className="w-full px-3 py-1 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 instant-feedback hardware-accelerated smooth-color"
                         >
                           <PencilIcon className="w-4 h-4" />
                           Chỉnh sửa
@@ -333,7 +330,7 @@ function MessageBubbleComponent({
                             setShowDeleteDialog(true)
                             setShowMenu(false)
                           }}
-                          className="w-full px-3 py-1 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                          className="w-full px-3 py-1 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 instant-feedback hardware-accelerated smooth-color"
                         >
                           <TrashIcon className="w-4 h-4" />
                           Xóa
@@ -360,12 +357,13 @@ function MessageBubbleComponent({
                     onClick={() => handleReactionClick(reaction.emoji)}
                     onMouseEnter={() => setHoveredReaction(reaction.emoji)}
                     onMouseLeave={() => setHoveredReaction(null)}
-                    className={`relative px-2 py-1 rounded-full text-sm flex items-center gap-1 transition-all ${
+                    className={`relative px-2 py-1 rounded-full text-sm flex items-center gap-1 instant-feedback hardware-accelerated smooth-color ${
                       hasReacted
                         ? 'bg-primary-100 border border-primary-300 hover:bg-primary-200'
                         : 'bg-gray-100 border border-gray-200 hover:bg-gray-200'
                     }`}
                     title={userNames}
+                    aria-label={`Phản ứng ${reaction.emoji} - ${reaction.count} người`}
                   >
                     <span>{reaction.emoji}</span>
                     <span className={`text-xs ${hasReacted ? 'text-primary-700 font-medium' : 'text-gray-600'}`}>
@@ -387,7 +385,7 @@ function MessageBubbleComponent({
 
           {/* Message time and read status */}
           <div className={`text-xs text-gray-500 mt-1 px-1 flex items-center gap-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-            <span>{formatDistanceToNow(new Date(message.createdAt), { addSuffix: true, locale: vi })}</span>
+            <Timestamp date={message.createdAt} />
             
             {/* Status indicators for own messages */}
             {isOwn && (
@@ -447,7 +445,7 @@ function MessageBubbleComponent({
         cancelText="Hủy"
         variant="danger"
       />
-    </motion.div>
+    </div>
   )
 }
 

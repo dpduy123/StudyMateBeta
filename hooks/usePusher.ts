@@ -97,8 +97,24 @@ export function usePusher({
 
         pusher.connection.bind('error', (err: any) => {
           if (!mounted) return
-          console.error('Pusher connection error:', err)
-          setError(err.message || 'Connection error')
+
+          // Ignore transient errors during channel switching
+          if (!err || Object.keys(err).length === 0) {
+            return
+          }
+
+          // Ignore PusherError with code 4009 (connection closed) - happens during rapid channel switches
+          if (err.type === 'PusherError' && err.data?.code === 4009) {
+            return
+          }
+
+          // Log other errors but don't set error state for transient issues
+          console.warn('Pusher connection issue:', err)
+
+          // Only set error state for critical errors
+          if (err.data?.code && err.data.code >= 4100) {
+            setError(err.data.message || err.message || 'Connection error')
+          }
         })
 
         // Subscribe to channel
@@ -131,17 +147,9 @@ export function usePusher({
         // Bind custom events
         Object.entries(eventsRef.current).forEach(([eventName, handler]) => {
           channelInstance.bind(eventName, (data: any) => {
-            console.log(`📨 Pusher event received on ${channelName}:`, eventName, data)
             if (!mounted) return
             handler(data)
           })
-        })
-
-        // Bind to ALL events for debugging
-        channelInstance.bind_global((eventName: string, data: any) => {
-          if (!eventName.startsWith('pusher:')) {
-            console.log(`🔔 Global event on ${channelName}:`, eventName, data)
-          }
         })
 
       } catch (err) {

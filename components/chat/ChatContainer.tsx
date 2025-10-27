@@ -6,16 +6,13 @@ import { MessageInput } from './MessageInput'
 import { TypingIndicator } from './TypingIndicator'
 import { useRealtimeMessages, Message } from '@/hooks/useRealtimeMessages'
 import { useAuth } from '@/components/providers/Providers'
+import { MessageListSkeleton } from '@/components/ui/SkeletonLoader'
 
 // Lazy load MessageList component (heavy due to virtual scrolling)
 const MessageList = dynamic(
   () => import('./MessageList').then(mod => ({ default: mod.MessageList })),
   {
-    loading: () => (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-pulse text-gray-400">Đang tải tin nhắn...</div>
-      </div>
-    ),
+    loading: () => <MessageListSkeleton />,
     ssr: false
   }
 )

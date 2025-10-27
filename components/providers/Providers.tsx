@@ -6,7 +6,7 @@ import { User, Session } from '@supabase/supabase-js'
 import { Toaster } from 'react-hot-toast'
 import { SWRConfig } from 'swr'
 import { swrConfig } from '@/lib/swrConfig'
-import { useMyPresence } from '@/hooks/useMyPresence'
+import { usePresence } from '@/hooks/usePresence'
 
 interface AuthContextType {
   user: User | null;
@@ -40,7 +40,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   // Subscribe to own presence channel to broadcast online status
-  useMyPresence(user?.id)
+  usePresence(user?.id)
 
   useEffect(() => {
     // Get initial session

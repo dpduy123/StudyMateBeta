@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   PaperAirplaneIcon,
   PhotoIcon,
@@ -138,16 +137,11 @@ export function MessageInput({
   }
 
   return (
-    <div className="border-t bg-white p-4">
+    <div className="border-t bg-white p-4 no-layout-shift">
       {/* Reply preview */}
-      <AnimatePresence>
-        {replyTo && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-3 p-3 bg-gray-50 rounded-lg border-l-4 border-primary-500"
-          >
+      {replyTo && (
+        <div className="mb-3 p-3 bg-gray-50 rounded-lg border-l-4 border-primary-500 message-fade-in">
+
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="text-sm font-medium text-gray-900">
@@ -160,15 +154,14 @@ export function MessageInput({
               {onCancelReply && (
                 <button
                   onClick={onCancelReply}
-                  className="ml-2 p-1 text-gray-400 hover:text-gray-600"
+                  className="ml-2 p-1 text-gray-400 hover:text-gray-600 button-press hardware-accelerated"
                 >
                   <XMarkIcon className="w-4 h-4" />
                 </button>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Message input form */}
       <form onSubmit={handleSubmit} className="flex items-end gap-3">
@@ -182,7 +175,7 @@ export function MessageInput({
               placeholder={placeholder}
               disabled={disabled || isSubmitting}
               rows={1}
-              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed max-h-32"
+              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed max-h-32 smooth-color hardware-accelerated"
               style={{ minHeight: '48px' }}
             />
             
@@ -190,7 +183,7 @@ export function MessageInput({
             <button
               type="button"
               disabled={disabled || isSubmitting}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50 button-press hardware-accelerated"
             >
               <PhotoIcon className="w-5 h-5" />
             </button>
@@ -201,12 +194,13 @@ export function MessageInput({
         <button
           type="submit"
           disabled={!message.trim() || isSubmitting || disabled}
-          className="p-3 bg-primary-600 text-white rounded-2xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-3 bg-primary-600 text-white rounded-2xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed button-press hardware-accelerated ripple-effect smooth-color transition-all"
+          aria-label="Gửi tin nhắn"
         >
           {isSubmitting ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin hardware-accelerated" />
           ) : (
-            <PaperAirplaneIcon className="w-5 h-5" />
+            <PaperAirplaneIcon className="w-5 h-5 hardware-accelerated" />
           )}
         </button>
       </form>

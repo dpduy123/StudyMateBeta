@@ -189,12 +189,6 @@ export async function POST(
 
     // Trigger Pusher event for real-time update
     const channelName = getChatChannelName(message.senderId, message.receiverId)
-    console.log('🔔 Triggering reaction-added:', { 
-      channelName, 
-      messageId, 
-      senderId: message.senderId, 
-      receiverId: message.receiverId 
-    })
     await triggerPusherEvent(channelName, 'reaction-added', {
       messageId,
       userId: user.id,

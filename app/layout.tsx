@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers/Providers'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import '@/lib/cache/clearCache' // Expose clearCache to window for testing
 
 const inter = Inter({ subsets: ['latin', 'vietnamese'] })
 

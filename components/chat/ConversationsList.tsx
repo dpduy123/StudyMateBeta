@@ -6,11 +6,16 @@ import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
-import { useMultipleUsersPresence } from '@/hooks/useMultipleUsersPresence'
+import { usePresence } from '@/hooks/usePresence'
 import { useConversations } from '@/hooks/useConversations'
+import { useAuth } from '@/components/providers/Providers'
 import { cacheManager } from '@/lib/cache/CacheManager'
 import { getPrefetchManager } from '@/lib/prefetch/PrefetchManager'
 import { getBehaviorTracker } from '@/lib/prefetch/BehaviorTracker'
+import { ConversationListSkeleton } from '@/components/ui/SkeletonLoader'
+import { Avatar } from '@/components/ui/Avatar'
+import { OnlineIndicator } from '@/components/ui/OnlineIndicator'
+import { Timestamp } from '@/components/ui/Timestamp'
 
 interface Conversation {
   id: string
@@ -57,36 +62,30 @@ const ConversationCard = memo(({
       onClick={() => onClick(conversation)}
       onMouseEnter={() => onHoverStart(conversation.id)}
       onMouseLeave={() => onHoverEnd(conversation.id)}
-      className={`p-4 flex items-center space-x-3 cursor-pointer transition-all duration-150 ease-out border-l-4 ${
+      className={`p-4 flex items-center space-x-3 cursor-pointer hardware-accelerated card-press border-l-4 ${
         isSelected 
-          ? 'bg-primary-50 border-l-primary-500 scale-[0.98]' 
-          : 'border-l-transparent hover:border-l-gray-200 hover:bg-gray-50 hover:scale-[0.99]'
+          ? 'bg-primary-50 border-l-primary-500' 
+          : 'border-l-transparent hover:border-l-gray-200 hover:bg-gray-50'
       }`}
       style={{
-        willChange: isSelected ? 'transform' : 'auto',
-        transform: 'translateZ(0)', // Force hardware acceleration
         contentVisibility: 'auto', // Optimize off-screen rendering
         containIntrinsicSize: '80px', // Hint for content-visibility
       }}
     >
       {/* Avatar */}
       <div className="relative flex-shrink-0">
-        {conversation.otherUser.avatar ? (
-          <img
-            src={conversation.otherUser.avatar}
-            alt={`${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`}
-            className="w-12 h-12 rounded-full object-cover"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
-            {conversation.otherUser.firstName[0]}{conversation.otherUser.lastName[0]}
-          </div>
-        )}
-        {isOnline && (
-          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
-        )}
+        <Avatar
+          src={conversation.otherUser.avatar}
+          alt={`${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`}
+          firstName={conversation.otherUser.firstName}
+          lastName={conversation.otherUser.lastName}
+          size="md"
+        />
+        <OnlineIndicator 
+          isOnline={isOnline} 
+          size="md"
+          className="absolute -bottom-0.5 -right-0.5"
+        />
       </div>
 
       {/* Content */}
@@ -95,18 +94,10 @@ const ConversationCard = memo(({
           <p className="font-semibold text-gray-900 truncate">
             {conversation.otherUser.firstName} {conversation.otherUser.lastName}
           </p>
-          <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
-            {conversation.lastMessage 
-              ? formatDistanceToNow(new Date(conversation.lastMessage.createdAt), { 
-                  addSuffix: true, 
-                  locale: vi 
-                })
-              : formatDistanceToNow(new Date(conversation.lastActivity), { 
-                  addSuffix: true, 
-                  locale: vi 
-                })
-            }
-          </p>
+          <Timestamp
+            date={conversation.lastMessage?.createdAt || conversation.lastActivity}
+            className="text-xs text-gray-500 flex-shrink-0 ml-2"
+          />
         </div>
         <div className="flex justify-between items-center mt-1">
           <p className="text-sm text-gray-600 truncate">
@@ -160,6 +151,7 @@ export function ConversationsList({
 }: ConversationsListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
+  const { user } = useAuth()
   const prefetchManagerRef = useRef<ReturnType<typeof getPrefetchManager> | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -178,8 +170,8 @@ export function ConversationsList({
     [conversations]
   )
 
-  // Track presence of all users in conversations
-  const { onlineUsers } = useMultipleUsersPresence(userIds)
+  // Track presence of all users in conversations (also broadcasts own presence)
+  const { onlineUsers } = usePresence(currentUserId, userIds)
 
   // Memoize filtered and sorted conversations to prevent unnecessary recalculations
   const filteredConversations = useMemo(() => {
@@ -323,6 +315,13 @@ export function ConversationsList({
   // Check if user is online using Pusher presence
   const isOnline = (userId: string) => {
     return onlineUsers.has(userId)
+  }
+
+  // Show skeleton only when loading AND no data available (not even from cache)
+  // Note: Due to cache-first strategy, this will rarely show
+  // The skeleton is primarily for first-time users with no cached data
+  if (isLoading && conversations.length === 0) {
+    return <ConversationListSkeleton />
   }
 
   // Show error only if we have no cached data

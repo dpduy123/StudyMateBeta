@@ -78,7 +78,7 @@ export function ReactionPicker({
             <button
               key={emoji}
               onClick={() => handleReactionClick(emoji)}
-              className="w-10 h-10 flex items-center justify-center text-2xl hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-10 h-10 flex items-center justify-center text-2xl hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 instant-feedback hardware-accelerated"
               title={`Thả cảm xúc ${emoji}`}
               aria-label={`Thả cảm xúc ${emoji}`}
             >

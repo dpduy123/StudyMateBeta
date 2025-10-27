@@ -60,7 +60,8 @@ interface TypingUser {
 
 export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMessagesProps) {
   const [messages, setMessages] = useState<Message[]>([])
-  const [loading, setLoading] = useState(true)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
+  const [isFetching, setIsFetching] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([])
 
@@ -160,19 +161,12 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         }
       },
       'reaction-added': async (data: { messageId: string; userId: string; emoji: string; reactions: MessageReaction[] }) => {
-        console.log('✅ Handling reaction-added event:', data)
         // Update message reactions in local state
-        setMessages(prev => {
-          console.log('📝 Updating messages, current count:', prev.length)
-          const updated = prev.map(msg => {
-            if (msg.id === data.messageId) {
-              console.log('🎯 Found message to update:', msg.id, 'New reactions:', data.reactions)
-              return { ...msg, reactions: data.reactions }
-            }
-            return msg
-          })
-          return updated
-        })
+        setMessages(prev => prev.map(msg =>
+          msg.id === data.messageId
+            ? { ...msg, reactions: data.reactions }
+            : msg
+        ))
 
         // Update IndexedDB cache
         try {
@@ -249,15 +243,14 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         const cachedMessages = await cacheManager.getMessages(chatId, 100)
 
         if (cachedMessages.length > 0) {
-          // Display cached messages immediately (no loading state)
+          // Display cached messages immediately
           setMessages(cachedMessages)
-          setLoading(false)
-        } else {
-          // Only show loading if no cached data
-          setLoading(true)
+          // Keep isInitialLoading true until API call completes
         }
+        // If no cache, isInitialLoading stays true and skeleton will show
 
         // Step 2: Fetch fresh messages from API in background
+        setIsFetching(true)
         const endpoint = chatType === 'private'
           ? `/api/messages/private?chatId=${chatId}`
           : `/api/messages/room?roomId=${chatId}`
@@ -271,7 +264,7 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         const data = await response.json()
         const freshMessages = data.messages || []
 
-        // Step 3: Update UI with fresh data (without showing loader)
+        // Step 3: Update UI with fresh data
         setMessages(freshMessages)
 
         // Step 4: Update IndexedDB cache with fresh data
@@ -293,14 +286,15 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         console.error('Error fetching messages:', err)
         setError(err instanceof Error ? err.message : 'Failed to load messages')
 
-        // If we have cached messages, keep showing them
+        // Keep cached messages if available, don't fallback to mock data
         const cachedMessages = await cacheManager.getMessages(chatId, 100)
-        if (cachedMessages.length === 0) {
-          // Only fallback to mock data if no cache exists
-          setMessages(generateMockMessages(chatId, userId))
+        if (cachedMessages.length > 0) {
+          setMessages(cachedMessages)
         }
+        // If no cache and error, show error state (no mock data)
       } finally {
-        setLoading(false)
+        setIsInitialLoading(false)
+        setIsFetching(false)
       }
     }
 
@@ -308,175 +302,6 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
       fetchMessages()
     }
   }, [chatId, chatType, userId])
-
-
-
-  // Mock messages data (fallback)
-  const generateMockMessages = (chatId: string, currentUserId: string): Message[] => {
-    const baseTime = Date.now()
-
-    // Different mock conversations based on chatId
-    if (chatId === 'user-1') {
-      return [
-        {
-          id: 'msg-1',
-          senderId: 'user-1',
-          receiverId: currentUserId,
-          type: 'TEXT',
-          content: 'Chào bạn! Mình thấy bạn đang tìm nhóm học Toán Cao Cấp.',
-          createdAt: new Date(baseTime - 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 60 * 60 * 1000).toISOString(),
-          sender: {
-            id: 'user-1',
-            firstName: 'Nguyễn Văn',
-            lastName: 'Minh',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
-          }
-        },
-        {
-          id: 'msg-2',
-          senderId: currentUserId,
-          receiverId: 'user-1',
-          type: 'TEXT',
-          content: 'Chào bạn! Đúng rồi, mình đang cần tìm nhóm ôn thi.',
-          createdAt: new Date(baseTime - 55 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 55 * 60 * 1000).toISOString(),
-          sender: {
-            id: currentUserId,
-            firstName: 'Bạn',
-            lastName: '',
-          }
-        },
-        {
-          id: 'msg-3',
-          senderId: 'user-1',
-          receiverId: currentUserId,
-          type: 'TEXT',
-          content: 'Tuyệt! Nhóm mình đang học chương Đạo hàm và Tích phân. Bạn có muốn tham gia không?',
-          createdAt: new Date(baseTime - 50 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 50 * 60 * 1000).toISOString(),
-          sender: {
-            id: 'user-1',
-            firstName: 'Nguyễn Văn',
-            lastName: 'Minh',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
-          }
-        },
-        {
-          id: 'msg-4',
-          senderId: 'user-1',
-          receiverId: currentUserId,
-          type: 'TEXT',
-          content: 'Mình có thể tham gia nhóm học Toán Cao Cấp không?',
-          createdAt: new Date(baseTime - 10 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 10 * 60 * 1000).toISOString(),
-          sender: {
-            id: 'user-1',
-            firstName: 'Nguyễn Văn',
-            lastName: 'Minh',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
-          }
-        }
-      ]
-    } else if (chatId === 'user-2') {
-      return [
-        {
-          id: 'msg-5',
-          senderId: currentUserId,
-          receiverId: 'user-2',
-          type: 'TEXT',
-          content: 'Bạn có tài liệu ôn thi Toán không?',
-          createdAt: new Date(baseTime - 4 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 4 * 60 * 60 * 1000).toISOString(),
-          sender: {
-            id: currentUserId,
-            firstName: 'Bạn',
-            lastName: ''
-          }
-        },
-        {
-          id: 'msg-6',
-          senderId: 'user-2',
-          receiverId: currentUserId,
-          type: 'TEXT',
-          content: 'Có đó! Mình có file PDF các dạng bài tập từ cơ bản đến nâng cao.',
-          createdAt: new Date(baseTime - 3.5 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 3.5 * 60 * 60 * 1000).toISOString(),
-          sender: {
-            id: 'user-2',
-            firstName: 'Trần Thị',
-            lastName: 'Hoa',
-            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face'
-          }
-        },
-        {
-          id: 'msg-7',
-          senderId: 'user-2',
-          receiverId: currentUserId,
-          type: 'TEXT',
-          content: 'Cảm ơn bạn đã chia sẻ tài liệu! Rất hữu ích 😊',
-          createdAt: new Date(baseTime - 3 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 3 * 60 * 60 * 1000).toISOString(),
-          sender: {
-            id: 'user-2',
-            firstName: 'Trần Thị',
-            lastName: 'Hoa',
-            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face'
-          }
-        }
-      ]
-    } else if (chatId === 'user-3') {
-      return [
-        {
-          id: 'msg-8',
-          senderId: currentUserId,
-          receiverId: 'user-3',
-          type: 'TEXT',
-          content: 'Bạn có thể gọi video call để cùng làm bài tập không?',
-          createdAt: new Date(baseTime - 30 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 30 * 60 * 1000).toISOString(),
-          sender: {
-            id: currentUserId,
-            firstName: 'Bạn',
-            lastName: ''
-          }
-        },
-        {
-          id: 'msg-9',
-          senderId: 'user-3',
-          receiverId: currentUserId,
-          type: 'TEXT',
-          content: 'Được đó! Tối nay lúc 8h mình có rảnh. Bạn có OK không?',
-          createdAt: new Date(baseTime - 25 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 25 * 60 * 1000).toISOString(),
-          sender: {
-            id: 'user-3',
-            firstName: 'Lê Văn',
-            lastName: 'Đức',
-            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'
-          }
-        }
-      ]
-    } else {
-      // Default messages for room or other users
-      return [
-        {
-          id: 'msg-default',
-          senderId: chatId,
-          receiverId: currentUserId,
-          type: 'TEXT',
-          content: 'Chào bạn! Hãy bắt đầu cuộc trò chuyện.',
-          createdAt: new Date(baseTime - 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(baseTime - 60 * 60 * 1000).toISOString(),
-          sender: {
-            id: chatId,
-            firstName: 'Bạn học',
-            lastName: 'StudyMate'
-          }
-        }
-      ]
-    }
-  }
 
 
 
@@ -865,12 +690,8 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('❌ Failed to add reaction:', response.status, errorData)
         throw new Error(errorData.error || 'Failed to add reaction')
       }
-
-      const data = await response.json()
-      console.log('✅ Reaction added successfully:', data)
 
       // Pusher event will sync reactions across all users
       // Optimistic update already provided instant feedback for current user
@@ -897,7 +718,9 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
 
   return {
     messages,
-    loading,
+    loading: isInitialLoading, // For backward compatibility
+    isInitialLoading,
+    isFetching,
     error,
     sendMessage,
     retryMessage,
