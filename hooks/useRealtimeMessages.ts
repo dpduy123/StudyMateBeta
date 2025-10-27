@@ -5,6 +5,16 @@ import { usePusher } from './usePusher'
 import { cacheManager } from '@/lib/cache/CacheManager'
 import { getOptimisticUpdateManager } from '@/lib/optimistic/OptimisticUpdateManager'
 
+export interface MessageReaction {
+  emoji: string
+  users: {
+    id: string
+    firstName: string
+    lastName: string
+  }[]
+  count: number
+}
+
 export interface Message {
   id: string
   senderId: string
@@ -29,6 +39,7 @@ export interface Message {
     avatar?: string
   }
   replyTo?: Message
+  reactions?: MessageReaction[]
 
   // Optimistic update metadata
   _optimistic?: boolean
@@ -118,6 +129,69 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
             ? { ...msg, isRead: true, readAt: data.readAt }
             : msg
         ))
+      },
+      'message-edited': async (updatedMessage: Message) => {
+        // Update message in local state
+        setMessages(prev => prev.map(msg =>
+          msg.id === updatedMessage.id ? updatedMessage : msg
+        ))
+
+        // Update IndexedDB cache
+        try {
+          await cacheManager.updateMessage(updatedMessage.id, {
+            content: updatedMessage.content,
+            isEdited: updatedMessage.isEdited,
+            editedAt: updatedMessage.editedAt,
+            updatedAt: updatedMessage.updatedAt
+          })
+        } catch (error) {
+          console.error('Failed to update cached message:', error)
+        }
+      },
+      'message-deleted': async (data: { messageId: string }) => {
+        // Remove message from local state
+        setMessages(prev => prev.filter(msg => msg.id !== data.messageId))
+
+        // Remove from IndexedDB cache
+        try {
+          await cacheManager.deleteMessage(data.messageId)
+        } catch (error) {
+          console.error('Failed to delete cached message:', error)
+        }
+      },
+      'reaction-added': async (data: { messageId: string; userId: string; emoji: string; reactions: MessageReaction[] }) => {
+        // Update message reactions in local state
+        setMessages(prev => prev.map(msg =>
+          msg.id === data.messageId
+            ? { ...msg, reactions: data.reactions }
+            : msg
+        ))
+
+        // Update IndexedDB cache
+        try {
+          await cacheManager.updateMessage(data.messageId, {
+            reactions: data.reactions
+          })
+        } catch (error) {
+          console.error('Failed to update cached message reactions:', error)
+        }
+      },
+      'reaction-removed': async (data: { messageId: string; userId: string; emoji: string; reactions: MessageReaction[] }) => {
+        // Update message reactions in local state
+        setMessages(prev => prev.map(msg =>
+          msg.id === data.messageId
+            ? { ...msg, reactions: data.reactions }
+            : msg
+        ))
+
+        // Update IndexedDB cache
+        try {
+          await cacheManager.updateMessage(data.messageId, {
+            reactions: data.reactions
+          })
+        } catch (error) {
+          console.error('Failed to update cached message reactions:', error)
+        }
       }
     }
   })
@@ -402,6 +476,7 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
   const sendMessage = async (
     content: string,
     type: 'TEXT' | 'FILE' = 'TEXT',
+    replyToId?: string,
     fileData?: any,
     isReceiverViewing = false,
     currentUserInfo?: { id: string; firstName: string; lastName: string; avatar?: string }
@@ -451,6 +526,7 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
             receiverId: chatId,
             content,
             type,
+            replyToId,
             isReceiverViewing,
             ...fileData
           })
@@ -526,6 +602,24 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
 
   const editMessage = async (messageId: string, newContent: string) => {
     try {
+      // Optimistically update the message in local state
+      setMessages(prev => prev.map(msg =>
+        msg.id === messageId
+          ? { ...msg, content: newContent, isEdited: true, editedAt: new Date().toISOString() }
+          : msg
+      ))
+
+      // Update cache optimistically
+      try {
+        await cacheManager.updateMessage(messageId, {
+          content: newContent,
+          isEdited: true,
+          editedAt: new Date().toISOString()
+        })
+      } catch (cacheError) {
+        console.error('Failed to update cache:', cacheError)
+      }
+
       const endpoint = chatType === 'private'
         ? `/api/messages/private/${messageId}`
         : `/api/messages/room/${messageId}`
@@ -536,14 +630,60 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         body: JSON.stringify({ content: newContent })
       })
 
-      if (!response.ok) throw new Error('Failed to edit message')
+      if (!response.ok) {
+        // Rollback on failure - fetch the original message
+        const originalMsg = messages.find(m => m.id === messageId)
+        if (originalMsg) {
+          setMessages(prev => prev.map(msg =>
+            msg.id === messageId ? originalMsg : msg
+          ))
+          await cacheManager.updateMessage(messageId, {
+            content: originalMsg.content,
+            isEdited: originalMsg.isEdited,
+            editedAt: originalMsg.editedAt
+          })
+        }
+        throw new Error('Failed to edit message')
+      }
+
+      const data = await response.json()
+      
+      // Update with server response
+      setMessages(prev => prev.map(msg =>
+        msg.id === messageId ? data.message : msg
+      ))
+
+      // Update cache with server data
+      await cacheManager.updateMessage(messageId, {
+        content: data.message.content,
+        isEdited: data.message.isEdited,
+        editedAt: data.message.editedAt,
+        updatedAt: data.message.updatedAt
+      })
     } catch (err) {
       throw err
     }
   }
 
   const deleteMessage = async (messageId: string) => {
+    // Store the original message for rollback
+    const originalMessage = messages.find(m => m.id === messageId)
+    
+    if (!originalMessage) {
+      throw new Error('Message not found')
+    }
+
     try {
+      // Optimistically remove the message from local state
+      setMessages(prev => prev.filter(msg => msg.id !== messageId))
+
+      // Remove from IndexedDB cache immediately
+      try {
+        await cacheManager.deleteMessage(messageId)
+      } catch (cacheError) {
+        console.error('Failed to delete from cache:', cacheError)
+      }
+
       const endpoint = chatType === 'private'
         ? `/api/messages/private/${messageId}`
         : `/api/messages/room/${messageId}`
@@ -552,7 +692,17 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         method: 'DELETE'
       })
 
-      if (!response.ok) throw new Error('Failed to delete message')
+      if (!response.ok) {
+        // Rollback on API failure
+        setMessages(prev => [...prev, originalMessage].sort((a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        ))
+        
+        // Restore to cache
+        await cacheManager.addMessage(addConversationIdToMessage(originalMessage, chatId))
+        
+        throw new Error('Failed to delete message')
+      }
     } catch (err) {
       throw err
     }
@@ -611,8 +761,9 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
       await sendMessage(
         retriedOperation.content || '',
         'TEXT',
-        undefined,
-        false,
+        undefined, // replyToId
+        undefined, // fileData
+        false, // isReceiverViewing
         currentUserInfo
       )
     } catch (err) {
@@ -632,6 +783,127 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
     ))
   }
 
+  const addReaction = async (messageId: string, emoji: string, currentUserInfo?: { id: string; firstName: string; lastName: string }) => {
+    if (chatType !== 'private') return
+
+    try {
+      // Optimistically update the UI
+      setMessages(prev => prev.map(msg => {
+        if (msg.id !== messageId) return msg
+
+        const reactions = msg.reactions || []
+        const existingReaction = reactions.find(r => r.emoji === emoji)
+
+        if (existingReaction) {
+          // Check if user already reacted
+          const hasUserReacted = existingReaction.users.some(u => u.id === currentUserInfo?.id)
+          
+          if (hasUserReacted) {
+            // Remove user's reaction
+            const updatedUsers = existingReaction.users.filter(u => u.id !== currentUserInfo?.id)
+            if (updatedUsers.length === 0) {
+              // Remove the reaction entirely if no users left
+              return {
+                ...msg,
+                reactions: reactions.filter(r => r.emoji !== emoji)
+              }
+            }
+            return {
+              ...msg,
+              reactions: reactions.map(r =>
+                r.emoji === emoji
+                  ? { ...r, users: updatedUsers, count: updatedUsers.length }
+                  : r
+              )
+            }
+          } else {
+            // Add user to existing reaction
+            return {
+              ...msg,
+              reactions: reactions.map(r =>
+                r.emoji === emoji
+                  ? {
+                      ...r,
+                      users: [...r.users, { id: currentUserInfo!.id, firstName: currentUserInfo!.firstName, lastName: currentUserInfo!.lastName }],
+                      count: r.count + 1
+                    }
+                  : r
+              )
+            }
+          }
+        } else {
+          // Add new reaction
+          return {
+            ...msg,
+            reactions: [
+              ...reactions,
+              {
+                emoji,
+                users: [{ id: currentUserInfo!.id, firstName: currentUserInfo!.firstName, lastName: currentUserInfo!.lastName }],
+                count: 1
+              }
+            ]
+          }
+        }
+      }))
+
+      // Update IndexedDB cache optimistically
+      const message = messages.find(m => m.id === messageId)
+      if (message) {
+        try {
+          await cacheManager.updateMessage(messageId, {
+            reactions: message.reactions
+          })
+        } catch (cacheError) {
+          console.error('Failed to update cache:', cacheError)
+        }
+      }
+
+      // Send API request in background
+      const response = await fetch(`/api/messages/${messageId}/reactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emoji })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to add reaction')
+      }
+
+      const data = await response.json()
+
+      // Update with server response
+      setMessages(prev => prev.map(msg =>
+        msg.id === messageId
+          ? { ...msg, reactions: data.reactions }
+          : msg
+      ))
+
+      // Update cache with server data
+      await cacheManager.updateMessage(messageId, {
+        reactions: data.reactions
+      })
+    } catch (err) {
+      console.error('Failed to add reaction:', err)
+      
+      // Rollback on failure - refetch the message
+      try {
+        const response = await fetch(`/api/messages/private?chatId=${chatId}&limit=1`)
+        if (response.ok) {
+          const data = await response.json()
+          const updatedMessage = data.messages.find((m: Message) => m.id === messageId)
+          if (updatedMessage) {
+            setMessages(prev => prev.map(msg =>
+              msg.id === messageId ? updatedMessage : msg
+            ))
+          }
+        }
+      } catch (rollbackError) {
+        console.error('Failed to rollback reaction:', rollbackError)
+      }
+    }
+  }
+
   return {
     messages,
     loading,
@@ -644,6 +916,7 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
     deleteMessage,
     sendTypingStart,
     sendTypingStop,
-    typingUsers
+    typingUsers,
+    addReaction
   }
 }

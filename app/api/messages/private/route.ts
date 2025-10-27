@@ -105,6 +105,20 @@ export async function GET(request: NextRequest) {
             lastName: true,
             avatar: true
           }
+        },
+        reactions: {
+          select: {
+            id: true,
+            emoji: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -117,6 +131,31 @@ export async function GET(request: NextRequest) {
 
     // Reverse to show oldest first
     const sortedMessages = messagesToReturn.reverse()
+
+    // Format reactions for each message
+    const messagesWithFormattedReactions = sortedMessages.map(msg => {
+      const groupedReactions = msg.reactions.reduce((acc, reaction) => {
+        if (!acc[reaction.emoji]) {
+          acc[reaction.emoji] = {
+            emoji: reaction.emoji,
+            users: [],
+            count: 0
+          }
+        }
+        acc[reaction.emoji].users.push({
+          id: reaction.user.id,
+          firstName: reaction.user.firstName,
+          lastName: reaction.user.lastName
+        })
+        acc[reaction.emoji].count++
+        return acc
+      }, {} as Record<string, any>)
+
+      return {
+        ...msg,
+        reactions: Object.values(groupedReactions)
+      }
+    })
 
     // Get the cursor for next page (oldest message's createdAt)
     const nextCursor = hasMore && messagesToReturn.length > 0
@@ -160,7 +199,7 @@ export async function GET(request: NextRequest) {
 
     // Prepare response data
     const responseData = {
-      messages: sortedMessages,
+      messages: messagesWithFormattedReactions,
       hasMore,
       nextCursor,
       page,
@@ -210,7 +249,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { receiverId, content, type = 'TEXT', fileUrl, fileName, fileSize, isReceiverViewing = false } = body
+    const { receiverId, content, type = 'TEXT', fileUrl, fileName, fileSize, replyToId, isReceiverViewing = false } = body
 
     if (!receiverId || !content) {
       return NextResponse.json({ error: 'Receiver ID and content are required' }, { status: 400 })
@@ -259,7 +298,8 @@ export async function POST(request: NextRequest) {
         type,
         fileUrl,
         fileName,
-        fileSize
+        fileSize,
+        replyToId
       },
       include: {
         sender: {
@@ -268,6 +308,36 @@ export async function POST(request: NextRequest) {
             firstName: true,
             lastName: true,
             avatar: true
+          }
+        },
+        replyTo: replyToId ? {
+          select: {
+            id: true,
+            content: true,
+            senderId: true,
+            createdAt: true,
+            sender: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          }
+        } : undefined,
+        reactions: {
+          select: {
+            id: true,
+            emoji: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true
+              }
+            }
           }
         }
       }

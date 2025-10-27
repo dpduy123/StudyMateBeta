@@ -116,6 +116,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       where: { id: messageId },
       data: { 
         content,
+        isEdited: true,
+        editedAt: new Date(),
         updatedAt: new Date()
       },
       include: {
@@ -126,9 +128,30 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             lastName: true,
             avatar: true
           }
+        },
+        replyTo: {
+          select: {
+            id: true,
+            content: true,
+            senderId: true,
+            createdAt: true,
+            sender: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          }
         }
       }
     })
+
+    // Trigger Pusher event for real-time update
+    const { triggerPusherEvent, getChatChannelName } = await import('@/lib/pusher/server')
+    const channelName = getChatChannelName(user.id, message.receiverId!)
+    await triggerPusherEvent(channelName, 'message-edited', updatedMessage)
 
     return NextResponse.json({ message: updatedMessage })
 
@@ -184,6 +207,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     await prisma.message.delete({
       where: { id: messageId }
     })
+
+    // Trigger Pusher event for real-time update
+    const { triggerPusherEvent, getChatChannelName } = await import('@/lib/pusher/server')
+    const channelName = getChatChannelName(user.id, message.receiverId!)
+    await triggerPusherEvent(channelName, 'message-deleted', { messageId })
 
     return NextResponse.json({ success: true })
 

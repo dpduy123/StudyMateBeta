@@ -12,9 +12,12 @@ import {
   CheckIcon,
   XMarkIcon,
   ArrowPathIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  FaceSmileIcon
 } from '@heroicons/react/24/outline'
 import { Message } from '@/hooks/useRealtimeMessages'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { ReactionPicker } from './ReactionPicker'
 
 interface MessageBubbleProps {
   message: Message
@@ -25,6 +28,7 @@ interface MessageBubbleProps {
   onReply?: (message: Message) => void
   onRetry?: (operationId: string) => void
   onCancel?: (operationId: string) => void
+  onReaction?: (messageId: string, emoji: string) => void
   currentUserId: string
 }
 
@@ -38,6 +42,7 @@ const arePropsEqual = (prevProps: MessageBubbleProps, nextProps: MessageBubblePr
     prevProps.message.isEdited === nextProps.message.isEdited &&
     prevProps.message._status === nextProps.message._status &&
     prevProps.message._optimistic === nextProps.message._optimistic &&
+    JSON.stringify(prevProps.message.reactions) === JSON.stringify(nextProps.message.reactions) &&
     prevProps.isOwn === nextProps.isOwn &&
     prevProps.showAvatar === nextProps.showAvatar &&
     prevProps.currentUserId === nextProps.currentUserId
@@ -53,12 +58,16 @@ function MessageBubbleComponent({
   onReply,
   onRetry,
   onCancel,
+  onReaction,
   currentUserId
 }: MessageBubbleProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showReactionPicker, setShowReactionPicker] = useState(false)
+  const [hoveredReaction, setHoveredReaction] = useState<string | null>(null)
   
   // Check if message is optimistic
   const isOptimistic = message._optimistic || false
@@ -96,6 +105,30 @@ function MessageBubbleComponent({
     if (e.key === 'Escape') {
       handleCancelEdit()
     }
+  }
+
+  const handleReactionSelect = (emoji: string) => {
+    if (onReaction) {
+      onReaction(message.id, emoji)
+    }
+  }
+
+  const handleReactionClick = (emoji: string) => {
+    if (onReaction) {
+      onReaction(message.id, emoji)
+    }
+  }
+
+  // Get users who reacted with a specific emoji
+  const getUsersForReaction = (emoji: string) => {
+    const reaction = message.reactions?.find(r => r.emoji === emoji)
+    return reaction?.users || []
+  }
+
+  // Check if current user reacted with a specific emoji
+  const hasUserReacted = (emoji: string) => {
+    const users = getUsersForReaction(emoji)
+    return users.some(u => u.id === currentUserId)
   }
 
   return (
@@ -236,31 +269,52 @@ function MessageBubbleComponent({
               </>
             )}
 
-            {/* Message actions menu */}
+            {/* Message actions - Quick actions + menu */}
             {!isEditing && (
-              <div className="absolute -top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className={`absolute -top-2 ${isOwn ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1`}>
+                {/* Quick reply button - always visible on hover */}
+                {onReply && (
+                  <button
+                    onClick={() => onReply(message)}
+                    className="p-1 rounded-full bg-white shadow-sm border text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    title="Trả lời"
+                  >
+                    <ArrowUturnLeftIcon className="w-4 h-4" />
+                  </button>
+                )}
+
+                {/* Reaction button */}
+                {onReaction && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowReactionPicker(!showReactionPicker)}
+                      className="p-1 rounded-full bg-white shadow-sm border text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                      title="Thả cảm xúc"
+                    >
+                      <FaceSmileIcon className="w-4 h-4" />
+                    </button>
+                    <ReactionPicker
+                      isOpen={showReactionPicker}
+                      onClose={() => setShowReactionPicker(false)}
+                      onReactionSelect={handleReactionSelect}
+                      position="top"
+                      messageId={message.id}
+                    />
+                  </div>
+                )}
+                
+                {/* More actions menu */}
                 <div className="relative">
                   <button
                     onClick={() => setShowMenu(!showMenu)}
                     className="p-1 rounded-full bg-white shadow-sm border text-gray-500 hover:text-gray-700"
+                    title="Thêm hành động"
                   >
                     <EllipsisVerticalIcon className="w-4 h-4" />
                   </button>
 
                   {showMenu && (
-                    <div className="absolute right-0 top-6 mt-1 py-1 bg-white rounded-lg shadow-lg border z-10 min-w-32">
-                      {onReply && (
-                        <button
-                          onClick={() => {
-                            onReply(message)
-                            setShowMenu(false)
-                          }}
-                          className="w-full px-3 py-1 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <ArrowUturnLeftIcon className="w-4 h-4" />
-                          Trả lời
-                        </button>
-                      )}
+                    <div className={`absolute ${isOwn ? 'left-0' : 'right-0'} top-6 mt-1 py-1 bg-white rounded-lg shadow-lg border z-10 min-w-32`}>
                       {isOwn && onEdit && (
                         <button
                           onClick={() => {
@@ -276,9 +330,7 @@ function MessageBubbleComponent({
                       {(isOwn || message.roomId) && onDelete && (
                         <button
                           onClick={() => {
-                            if (confirm('Bạn có chắc muốn xóa tin nhắn này?')) {
-                              onDelete(message.id)
-                            }
+                            setShowDeleteDialog(true)
                             setShowMenu(false)
                           }}
                           className="w-full px-3 py-1 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
@@ -293,6 +345,45 @@ function MessageBubbleComponent({
               </div>
             )}
           </div>
+
+          {/* Reactions display */}
+          {message.reactions && message.reactions.length > 0 && (
+            <div className={`flex flex-wrap gap-1 mt-2 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+              {message.reactions.map((reaction) => {
+                const users = reaction.users || []
+                const hasReacted = hasUserReacted(reaction.emoji)
+                const userNames = users.map(u => `${u.firstName} ${u.lastName}`).join(', ')
+                
+                return (
+                  <button
+                    key={reaction.emoji}
+                    onClick={() => handleReactionClick(reaction.emoji)}
+                    onMouseEnter={() => setHoveredReaction(reaction.emoji)}
+                    onMouseLeave={() => setHoveredReaction(null)}
+                    className={`relative px-2 py-1 rounded-full text-sm flex items-center gap-1 transition-all ${
+                      hasReacted
+                        ? 'bg-primary-100 border border-primary-300 hover:bg-primary-200'
+                        : 'bg-gray-100 border border-gray-200 hover:bg-gray-200'
+                    }`}
+                    title={userNames}
+                  >
+                    <span>{reaction.emoji}</span>
+                    <span className={`text-xs ${hasReacted ? 'text-primary-700 font-medium' : 'text-gray-600'}`}>
+                      {reaction.count}
+                    </span>
+                    
+                    {/* Tooltip showing who reacted */}
+                    {hoveredReaction === reaction.emoji && users.length > 0 && (
+                      <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-50">
+                        {userNames}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
 
           {/* Message time and read status */}
           <div className={`text-xs text-gray-500 mt-1 px-1 flex items-center gap-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
@@ -344,6 +435,18 @@ function MessageBubbleComponent({
           </div>
         </div>
       </div>
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={() => onDelete && onDelete(message.id)}
+        title="Xóa tin nhắn"
+        message="Bạn có chắc chắn muốn xóa tin nhắn này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        cancelText="Hủy"
+        variant="danger"
+      />
     </motion.div>
   )
 }

@@ -13,6 +13,7 @@ interface MessageListProps {
   onEdit?: (messageId: string, newContent: string) => void
   onDelete?: (messageId: string) => void
   onReply?: (message: Message) => void
+  onReaction?: (messageId: string, emoji: string) => void
   onLoadMore?: () => void
   hasMore?: boolean
 }
@@ -28,13 +29,15 @@ const MessageGroupComponent = ({
   currentUserId,
   onEdit,
   onDelete,
-  onReply
+  onReply,
+  onReaction
 }: {
   group: MessageGroup
   currentUserId: string
   onEdit?: (messageId: string, newContent: string) => void
   onDelete?: (messageId: string) => void
   onReply?: (message: Message) => void
+  onReaction?: (messageId: string, emoji: string) => void
 }) => {
   return (
     <div className="space-y-1">
@@ -47,6 +50,7 @@ const MessageGroupComponent = ({
           onEdit={onEdit}
           onDelete={onDelete}
           onReply={onReply}
+          onReaction={onReaction}
           currentUserId={currentUserId}
         />
       ))}
@@ -87,6 +91,7 @@ export function MessageList({
   onEdit,
   onDelete,
   onReply,
+  onReaction,
   onLoadMore,
   hasMore = false
 }: MessageListProps) {
@@ -208,6 +213,7 @@ export function MessageList({
               onEdit={onEdit}
               onDelete={onDelete}
               onReply={onReply}
+              onReaction={onReaction}
             />
           ))}
           <div ref={messagesEndRef} />

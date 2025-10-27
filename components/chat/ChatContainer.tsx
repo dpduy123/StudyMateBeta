@@ -57,7 +57,12 @@ export function ChatContainer({
   })
 
   const handleSendMessage = async (content: string, type: 'TEXT' | 'FILE' = 'TEXT') => {
-    await sendMessage(content, type)
+    // Pass replyToId as the third parameter
+    await sendMessage(content, type, replyTo?.id)
+    // Clear reply after sending
+    if (replyTo) {
+      setReplyTo(undefined)
+    }
   }
 
   const handleEditMessage = async (messageId: string, newContent: string) => {

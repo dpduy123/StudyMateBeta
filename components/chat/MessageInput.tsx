@@ -130,6 +130,11 @@ export function MessageInput({
       e.preventDefault()
       handleSubmit(e)
     }
+    // Support ESC key to cancel reply
+    if (e.key === 'Escape' && replyTo && onCancelReply) {
+      e.preventDefault()
+      onCancelReply()
+    }
   }
 
   return (

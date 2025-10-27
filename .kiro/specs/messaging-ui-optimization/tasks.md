@@ -412,51 +412,77 @@
 
 ## Phase 4: Enhanced Features & UX
 
-- [ ] 10. Implement enhanced message actions
-  - [ ] 10.1 Improve message reply functionality
+- [x] 10. Implement enhanced message actions
+
+
+
+
+
+  - [x] 10.1 Improve message reply functionality
+
+
     - Update MessageBubble to show reply button on hover
     - Implement reply preview above input
     - Add cancel reply button
     - Support ESC key to cancel reply
     - _Requirements: 4_
   
-  - [ ] 10.2 Improve message edit functionality
+  - [x] 10.2 Improve message edit functionality
+
+
     - Implement inline editing in MessageBubble
     - Add save/cancel buttons
     - Support Enter to save, ESC to cancel
     - Show "edited" indicator after save
     - _Requirements: 4_
   
-  - [ ] 10.3 Improve message delete functionality
+  - [x] 10.3 Improve message delete functionality
+
+
     - Add confirmation dialog for delete
     - Implement optimistic delete
     - Remove from IndexedDB immediately
     - Rollback on API failure
     - _Requirements: 4_
 
-- [ ] 11. Implement message reactions
-  - [ ] 11.1 Create reaction picker component
+- [x] 11. Implement message reactions
+
+
+
+
+
+  - [x] 11.1 Create reaction picker component
+
+
     - Create `components/chat/ReactionPicker.tsx`
     - Add common emoji reactions (👍, ❤️, 😂, 😮, 😢, 🙏)
     - Show picker on long-press or hover
     - Position picker near message
     - _Requirements: 17_
   
-  - [ ] 11.2 Implement reaction API endpoints
+  - [x] 11.2 Implement reaction API endpoints
+
+
     - Create `/api/messages/[id]/reactions` POST endpoint
     - Create `/api/messages/[id]/reactions` DELETE endpoint
     - Update message model to include reactions
     - Trigger Pusher event on reaction change
     - _Requirements: 17_
   
-  - [ ] 11.3 Update MessageBubble to display reactions
+
+
+  - [x] 11.3 Update MessageBubble to display reactions
+
     - Show reactions below message
     - Display reaction count
     - Highlight user's own reactions
     - Show who reacted on hover
+
+
     - _Requirements: 17_
   
-  - [ ] 11.4 Implement optimistic reaction updates
+  - [x] 11.4 Implement optimistic reaction updates
+
     - Add reaction to UI immediately
     - Update IndexedDB cache
     - Send API request in background
