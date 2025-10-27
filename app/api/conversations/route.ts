@@ -42,9 +42,31 @@ export async function GET(req: NextRequest) {
           { receiverId: user.id }
         ]
       },
-      include: {
-        sender: true,
-        receiver: true
+      select: {
+        id: true,
+        senderId: true,
+        receiverId: true,
+        content: true,
+        isRead: true,
+        createdAt: true,
+        sender: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            lastActive: true
+          }
+        },
+        receiver: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            lastActive: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'
@@ -73,6 +95,10 @@ export async function GET(req: NextRequest) {
           }
         })
 
+        // Calculate if user is online (active within last 5 minutes)
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+        const isOnline = otherUser.lastActive ? otherUser.lastActive > fiveMinutesAgo : false
+
         conversationsMap.set(conversationId, {
           id: conversationId,
           otherUser: {
@@ -80,13 +106,15 @@ export async function GET(req: NextRequest) {
             firstName: otherUser.firstName,
             lastName: otherUser.lastName,
             avatar: otherUser.avatar,
+            isOnline,
             lastActive: otherUser.lastActive?.toISOString()
           },
           lastMessage: {
             id: message.id,
             content: message.content,
             createdAt: message.createdAt.toISOString(),
-            senderId: message.senderId
+            senderId: message.senderId,
+            isRead: message.isRead
           },
           unreadCount,
           lastActivity: message.createdAt.toISOString()

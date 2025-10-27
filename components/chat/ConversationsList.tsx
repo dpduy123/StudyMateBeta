@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo, memo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { LoadingSpinner } from '../ui/LoadingSpinner'
+
 import { useMultipleUsersPresence } from '@/hooks/useMultipleUsersPresence'
-import { usePusher } from '@/hooks/usePusher'
+import { useConversations } from '@/hooks/useConversations'
 
 interface Conversation {
   id: string
@@ -28,6 +28,109 @@ interface Conversation {
   lastActivity: string
 }
 
+// Memoized conversation card component to prevent unnecessary re-renders
+interface ConversationCardProps {
+  conversation: Conversation
+  isSelected: boolean
+  isOnline: boolean
+  currentUserId: string
+  onClick: (conversation: Conversation) => void
+}
+
+const ConversationCard = memo(({ 
+  conversation, 
+  isSelected, 
+  isOnline, 
+  currentUserId, 
+  onClick 
+}: ConversationCardProps) => {
+  return (
+    <div
+      onClick={() => onClick(conversation)}
+      className={`p-4 flex items-center space-x-3 cursor-pointer transition-all duration-150 ease-out border-l-4 ${
+        isSelected 
+          ? 'bg-primary-50 border-l-primary-500 scale-[0.98]' 
+          : 'border-l-transparent hover:border-l-gray-200 hover:bg-gray-50 hover:scale-[0.99]'
+      }`}
+      style={{
+        willChange: isSelected ? 'transform' : 'auto',
+        transform: 'translateZ(0)', // Force hardware acceleration
+        contentVisibility: 'auto', // Optimize off-screen rendering
+        containIntrinsicSize: '80px', // Hint for content-visibility
+      }}
+    >
+      {/* Avatar */}
+      <div className="relative flex-shrink-0">
+        {conversation.otherUser.avatar ? (
+          <img
+            src={conversation.otherUser.avatar}
+            alt={`${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`}
+            className="w-12 h-12 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
+            {conversation.otherUser.firstName[0]}{conversation.otherUser.lastName[0]}
+          </div>
+        )}
+        {isOnline && (
+          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-center">
+          <p className="font-semibold text-gray-900 truncate">
+            {conversation.otherUser.firstName} {conversation.otherUser.lastName}
+          </p>
+          <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
+            {conversation.lastMessage 
+              ? formatDistanceToNow(new Date(conversation.lastMessage.createdAt), { 
+                  addSuffix: true, 
+                  locale: vi 
+                })
+              : formatDistanceToNow(new Date(conversation.lastActivity), { 
+                  addSuffix: true, 
+                  locale: vi 
+                })
+            }
+          </p>
+        </div>
+        <div className="flex justify-between items-center mt-1">
+          <p className="text-sm text-gray-600 truncate">
+            {conversation.lastMessage ? (
+              <>
+                {conversation.lastMessage.senderId === currentUserId && (
+                  <span className="text-gray-500">Bạn: </span>
+                )}
+                {conversation.lastMessage.content}
+              </>
+            ) : (
+              <span className="text-gray-400 italic">Chưa có tin nhắn</span>
+            )}
+          </p>
+          {conversation.unreadCount > 0 && (
+            <div className="w-5 h-5 bg-primary-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ml-2">
+              {conversation.unreadCount}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}, (prevProps, nextProps) => {
+  // Custom comparison function for memo
+  return (
+    prevProps.conversation.id === nextProps.conversation.id &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isOnline === nextProps.isOnline &&
+    prevProps.conversation.unreadCount === nextProps.conversation.unreadCount &&
+    prevProps.conversation.lastMessage?.id === nextProps.conversation.lastMessage?.id &&
+    prevProps.conversation.lastMessage?.content === nextProps.conversation.lastMessage?.content &&
+    prevProps.conversation.lastActivity === nextProps.conversation.lastActivity
+  )
+})
+
 interface ConversationsListProps {
   currentUserId: string
   onSelectConversation?: (conversation: Conversation) => void
@@ -39,11 +142,15 @@ export function ConversationsList({
   onSelectConversation, 
   selectedConversationId 
 }: ConversationsListProps) {
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
+
+  // Use cache-first conversations hook with real-time updates
+  const { conversations, isLoading, error } = useConversations({
+    userId: currentUserId,
+    enabled: !!currentUserId,
+    revalidateOnFocus: true,
+  })
 
   // Get all user IDs from conversations for presence tracking
   const userIds = useMemo(() => 
@@ -54,259 +161,58 @@ export function ConversationsList({
   // Track presence of all users in conversations
   const { onlineUsers } = useMultipleUsersPresence(userIds)
 
-  // Subscribe to conversation updates via Pusher
-  usePusher({
-    channelName: `private-user-${currentUserId}-conversations`,
-    enabled: !!currentUserId,
-    events: {
-      'conversation-updated': (data: any) => {
-        console.log('📬 Conversation updated:', data)
-        
-        setConversations(prev => {
-          // Check if conversation already exists
-          const existingIndex = prev.findIndex(c => c.id === data.otherUserId)
-          
-          if (existingIndex >= 0) {
-            // Update existing conversation
-            const updated = [...prev]
-            updated[existingIndex] = {
-              id: data.otherUserId,
-              otherUser: data.otherUser,
-              lastMessage: data.lastMessage,
-              unreadCount: data.unreadCount,
-              lastActivity: data.lastActivity
-            }
-            
-            // Re-sort by last activity (most recent first)
-            updated.sort((a, b) => 
-              new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime()
-            )
-            
-            return updated
-          } else {
-            // Add new conversation at the top
-            const newConversation = {
-              id: data.otherUserId,
-              otherUser: data.otherUser,
-              lastMessage: data.lastMessage,
-              unreadCount: data.unreadCount,
-              lastActivity: data.lastActivity
-            }
-            
-            return [newConversation, ...prev]
-          }
-        })
-      }
+  // Memoize click handler to prevent recreation on every render
+  const handleConversationClick = useCallback((conversation: Conversation) => {
+    // Optimistic selection - update UI immediately
+    if (onSelectConversation) {
+      onSelectConversation(conversation)
+    } else {
+      router.push(`/messages/${conversation.otherUser.id}`)
     }
-  })
-
-  // Fetch real conversations from API
-  useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        
-        const response = await fetch('/api/conversations')
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          console.error('API error:', response.status, errorData)
-          throw new Error(errorData.details || errorData.error || 'Failed to fetch conversations')
+    
+    // Fetch latest user status in background (non-blocking)
+    fetch(`/api/user/${conversation.otherUser.id}/status`)
+      .then(response => {
+        if (response.ok) {
+          return response.json()
         }
-
-        const data = await response.json()
-        console.log('✅ Fetched conversations:', data.count)
-        setConversations(data.conversations || [])
-      } catch (err) {
-        console.error('Error fetching conversations:', err)
-        const errorMessage = err instanceof Error ? err.message : 'Something went wrong'
-        setError(errorMessage)
-        
-        // Fallback to mock data if API fails
-        console.log('⚠️ Using mock data as fallback')
-        setConversations(getMockConversations())
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (currentUserId) {
-      fetchConversations()
-    }
-  }, [currentUserId])
-
-  // Fallback mock conversations
-  const getMockConversations = (): Conversation[] => [
-    {
-      id: "conv-1",
-      otherUser: {
-        id: "user-1",
-        firstName: "Nguyễn Văn",
-        lastName: "Minh",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 5 * 60 * 1000).toISOString() // 5 minutes ago (online)
-      },
-      lastMessage: {
-        id: "msg-1",
-        content: "Chào bạn! Mình có thể tham gia nhóm học Toán Cao Cấp không?",
-        createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 minutes ago
-        senderId: "user-1"
-      },
-      unreadCount: 2,
-      lastActivity: new Date(Date.now() - 10 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-2",
-      otherUser: {
-        id: "user-2",
-        firstName: "Trần Thị",
-        lastName: "Hoa",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago (offline)
-      },
-      lastMessage: {
-        id: "msg-2", 
-        content: "Cảm ơn bạn đã chia sẻ tài liệu! Rất hữu ích 😊",
-        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-        senderId: "user-2"
-      },
-      unreadCount: 0,
-      lastActivity: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-3",
-      otherUser: {
-        id: "user-3", 
-        firstName: "Lê Văn",
-        lastName: "Đức",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 10 * 60 * 1000).toISOString() // 10 minutes ago (online)
-      },
-      lastMessage: {
-        id: "msg-3",
-        content: "Bạn có thể gọi video call để cùng làm bài tập không?",
-        createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-        senderId: currentUserId
-      },
-      unreadCount: 1,
-      lastActivity: new Date(Date.now() - 30 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-4",
-      otherUser: {
-        id: "user-4",
-        firstName: "Phạm Thị",
-        lastName: "Mai",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 8 * 60 * 1000).toISOString() // 8 minutes ago (online)
-      },
-      lastMessage: {
-        id: "msg-4",
-        content: "Phòng học lúc 19h tối nay nhé! Đừng quên mang sách",
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-        senderId: "user-4"
-      },
-      unreadCount: 0,
-      lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-5",
-      otherUser: {
-        id: "user-5",
-        firstName: "Hoàng Văn",
-        lastName: "Nam", 
-        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago (offline)
-      },
-      lastMessage: {
-        id: "msg-5",
-        content: "Tài liệu ôn thi được rồi, cảm ơn bạn nhiều!",
-        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-        senderId: currentUserId
-      },
-      unreadCount: 0,
-      lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-6",
-      otherUser: {
-        id: "user-6",
-        firstName: "Vũ Thị",
-        lastName: "Lan",
-        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 3 * 60 * 1000).toISOString() // 3 minutes ago (online)
-      },
-      lastMessage: {
-        id: "msg-6",
-        content: "Buổi thuyết trình mai rất quan trọng, chúng ta cùng chuẩn bị kỹ nhé!",
-        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-        senderId: "user-6"
-      },
-      unreadCount: 3,
-      lastActivity: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
-    }
-  ]
-
-  const handleConversationClick = async (conversation: Conversation) => {
-    // Fetch latest user status before selecting
-    try {
-      const response = await fetch(`/api/user/${conversation.otherUser.id}/status`)
-      if (response.ok) {
-        const data = await response.json()
-        // Update conversation with latest lastActive
-        const updatedConversation = {
-          ...conversation,
-          otherUser: {
-            ...conversation.otherUser,
-            lastActive: data.lastActive
+        return null
+      })
+      .then(data => {
+        if (data && onSelectConversation) {
+          // Update with latest status if callback is still available
+          const updatedConversation = {
+            ...conversation,
+            otherUser: {
+              ...conversation.otherUser,
+              lastActive: data.lastActive
+            }
           }
-        }
-        
-        if (onSelectConversation) {
           onSelectConversation(updatedConversation)
-        } else {
-          router.push(`/messages/${conversation.otherUser.id}`)
         }
-      } else {
-        // Fallback to original conversation if API fails
-        if (onSelectConversation) {
-          onSelectConversation(conversation)
-        } else {
-          router.push(`/messages/${conversation.otherUser.id}`)
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch user status:', err)
-      // Fallback to original conversation
-      if (onSelectConversation) {
-        onSelectConversation(conversation)
-      } else {
-        router.push(`/messages/${conversation.otherUser.id}`)
-      }
-    }
-  }
+      })
+      .catch(err => {
+        console.error('Failed to fetch user status:', err)
+        // Silently fail - we already showed the conversation
+      })
+  }, [onSelectConversation, router])
 
-  const filteredConversations = conversations.filter(conversation =>
-    `${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  )
+  // Memoize filtered and sorted conversations to prevent unnecessary recalculations
+  const filteredConversations = useMemo(() => {
+    return conversations.filter(conversation =>
+      `${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    )
+  }, [conversations, searchQuery])
 
   // Check if user is online using Pusher presence
   const isOnline = (userId: string) => {
     return onlineUsers.has(userId)
   }
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
-  }
-
-  if (error) {
+  // Show error only if we have no cached data
+  if (error && conversations.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center text-gray-500">
@@ -339,6 +245,7 @@ export function ConversationsList({
       </div>
 
       {/* Conversations List */}
+      {/* Note: Virtual scrolling with react-window can be added for 100+ conversations if needed */}
       <div className="flex-1 overflow-y-auto">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
@@ -351,74 +258,16 @@ export function ConversationsList({
             <p className="text-gray-500">Hãy kết nối với bạn học để bắt đầu trò chuyện!</p>
           </div>
         ) : (
+          // Regular rendering for < 100 conversations
           filteredConversations.map((conversation) => (
-            <div
+            <ConversationCard
               key={conversation.id}
-              onClick={() => handleConversationClick(conversation)}
-              className={`p-4 flex items-center space-x-3 cursor-pointer hover:bg-gray-50 transition-colors border-l-4 ${
-                selectedConversationId === conversation.id 
-                  ? 'bg-primary-50 border-l-primary-500' 
-                  : 'border-l-transparent hover:border-l-gray-200'
-              }`}
-            >
-              {/* Avatar */}
-              <div className="relative flex-shrink-0">
-                {conversation.otherUser.avatar ? (
-                  <img
-                    src={conversation.otherUser.avatar}
-                    alt={`${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {conversation.otherUser.firstName[0]}{conversation.otherUser.lastName[0]}
-                  </div>
-                )}
-                {isOnline(conversation.otherUser.id) && (
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-gray-900 truncate">
-                    {conversation.otherUser.firstName} {conversation.otherUser.lastName}
-                  </p>
-                  <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                    {conversation.lastMessage 
-                      ? formatDistanceToNow(new Date(conversation.lastMessage.createdAt), { 
-                          addSuffix: true, 
-                          locale: vi 
-                        })
-                      : formatDistanceToNow(new Date(conversation.lastActivity), { 
-                          addSuffix: true, 
-                          locale: vi 
-                        })
-                    }
-                  </p>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-sm text-gray-600 truncate">
-                    {conversation.lastMessage ? (
-                      <>
-                        {conversation.lastMessage.senderId === currentUserId && (
-                          <span className="text-gray-500">Bạn: </span>
-                        )}
-                        {conversation.lastMessage.content}
-                      </>
-                    ) : (
-                      <span className="text-gray-400 italic">Chưa có tin nhắn</span>
-                    )}
-                  </p>
-                  {conversation.unreadCount > 0 && (
-                    <div className="w-5 h-5 bg-primary-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ml-2">
-                      {conversation.unreadCount}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+              conversation={conversation}
+              isSelected={selectedConversationId === conversation.id}
+              isOnline={isOnline(conversation.otherUser.id)}
+              currentUserId={currentUserId}
+              onClick={handleConversationClick}
+            />
           ))
         )}
       </div>

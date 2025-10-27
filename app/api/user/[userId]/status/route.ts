@@ -7,10 +7,10 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params
+    const { userId } = await params
 
     if (!userId) {
       return NextResponse.json(

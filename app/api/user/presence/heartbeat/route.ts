@@ -4,8 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 /**
  * POST /api/user/presence/heartbeat
- * Update user's lastActive timestamp to indicate they are online
- * Called periodically by useMyPresence hook
+ * Update user's lastActive timestamp (lightweight heartbeat)
  */
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +12,15 @@ export async function POST(req: NextRequest) {
     const authHeader = req.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
 
-    if (!token) {
+    // Try to get token from cookie if not in header
+    let finalToken = token
+    if (!finalToken) {
+      const cookieStore = req.cookies
+      const supabaseAuthToken = cookieStore.get('sb-access-token')?.value
+      finalToken = supabaseAuthToken
+    }
+
+    if (!finalToken) {
       return NextResponse.json(
         { error: 'Unauthorized: No token provided' },
         { status: 401 }
@@ -32,29 +39,31 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const { data: { user }, error: authError } = await supabase.auth.getUser(finalToken)
 
     if (authError || !user) {
+      console.error('Heartbeat auth error:', authError?.message)
       return NextResponse.json(
         { error: 'Unauthorized: Invalid token' },
         { status: 401 }
       )
     }
 
-    // Update user's lastActive timestamp
+    // Update user's lastActive timestamp in database
     await prisma.user.update({
       where: { id: user.id },
-      data: { lastActive: new Date() }
+      data: {
+        lastActive: new Date()
+      }
     })
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      userId: user.id,
       lastActive: new Date().toISOString()
     })
 
   } catch (error) {
-    console.error('Presence heartbeat error:', error)
+    console.error('Heartbeat endpoint error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

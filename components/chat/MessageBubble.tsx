@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -10,7 +10,9 @@ import {
   TrashIcon,
   ArrowUturnLeftIcon,
   CheckIcon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowPathIcon,
+  ExclamationCircleIcon
 } from '@heroicons/react/24/outline'
 import { Message } from '@/hooks/useRealtimeMessages'
 
@@ -21,22 +23,48 @@ interface MessageBubbleProps {
   onEdit?: (messageId: string, newContent: string) => void
   onDelete?: (messageId: string) => void
   onReply?: (message: Message) => void
+  onRetry?: (operationId: string) => void
+  onCancel?: (operationId: string) => void
   currentUserId: string
 }
 
-export function MessageBubble({ 
-  message, 
-  isOwn, 
-  showAvatar = true, 
-  onEdit, 
-  onDelete, 
+// Custom comparison function for memo to prevent unnecessary re-renders
+const arePropsEqual = (prevProps: MessageBubbleProps, nextProps: MessageBubbleProps) => {
+  // Compare message properties that affect rendering
+  return (
+    prevProps.message.id === nextProps.message.id &&
+    prevProps.message.content === nextProps.message.content &&
+    prevProps.message.isRead === nextProps.message.isRead &&
+    prevProps.message.isEdited === nextProps.message.isEdited &&
+    prevProps.message._status === nextProps.message._status &&
+    prevProps.message._optimistic === nextProps.message._optimistic &&
+    prevProps.isOwn === nextProps.isOwn &&
+    prevProps.showAvatar === nextProps.showAvatar &&
+    prevProps.currentUserId === nextProps.currentUserId
+  )
+}
+
+function MessageBubbleComponent({
+  message,
+  isOwn,
+  showAvatar = true,
+  onEdit,
+  onDelete,
   onReply,
-  currentUserId 
+  onRetry,
+  onCancel,
+  currentUserId
 }: MessageBubbleProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Check if message is optimistic
+  const isOptimistic = message._optimistic || false
+  const messageStatus = message._status || 'confirmed'
+  const isPending = messageStatus === 'pending'
+  const isFailed = messageStatus === 'failed'
 
   const handleEdit = async () => {
     if (!onEdit || editContent === message.content) {
@@ -84,6 +112,8 @@ export function MessageBubble({
               src={message.sender.avatar}
               alt={`${message.sender.firstName} ${message.sender.lastName}`}
               className="w-8 h-8 rounded-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-medium">
@@ -117,7 +147,13 @@ export function MessageBubble({
         <div className="relative group">
           <div
             className={`px-4 py-2 rounded-2xl relative ${
-              isOwn
+              isFailed
+                ? 'bg-red-50 text-red-900 border border-red-200'
+                : isPending
+                ? isOwn
+                  ? 'bg-primary-400 text-white opacity-70'
+                  : 'bg-gray-100 text-gray-900 opacity-70'
+                : isOwn
                 ? 'bg-primary-600 text-white'
                 : 'bg-gray-100 text-gray-900'
             }`}
@@ -223,10 +259,49 @@ export function MessageBubble({
           {/* Message time and read status */}
           <div className={`text-xs text-gray-500 mt-1 px-1 flex items-center gap-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
             <span>{formatDistanceToNow(new Date(message.createdAt), { addSuffix: true, locale: vi })}</span>
-            {isOwn && message.receiverId && (
-              <span className={`ml-1 ${message.isRead ? 'text-primary-600' : 'text-gray-400'}`}>
-                {message.isRead ? '✓✓' : '✓'}
-              </span>
+            
+            {/* Status indicators for own messages */}
+            {isOwn && (
+              <>
+                {/* Pending status - sending spinner */}
+                {isPending && (
+                  <span className="ml-1 text-gray-400 animate-spin">
+                    <ArrowPathIcon className="w-3 h-3" />
+                  </span>
+                )}
+                
+                {/* Failed status - error icon with retry */}
+                {isFailed && (
+                  <div className="ml-1 flex items-center gap-1">
+                    <ExclamationCircleIcon className="w-3 h-3 text-red-500" />
+                    {onRetry && message._operationId && (
+                      <button
+                        onClick={() => onRetry(message._operationId!)}
+                        className="text-red-500 hover:text-red-700 underline text-xs"
+                        title="Thử lại"
+                      >
+                        Thử lại
+                      </button>
+                    )}
+                    {onCancel && message._operationId && (
+                      <button
+                        onClick={() => onCancel(message._operationId!)}
+                        className="text-gray-500 hover:text-gray-700 underline text-xs ml-1"
+                        title="Hủy"
+                      >
+                        Hủy
+                      </button>
+                    )}
+                  </div>
+                )}
+                
+                {/* Confirmed status - read receipts */}
+                {!isPending && !isFailed && message.receiverId && (
+                  <span className={`ml-1 ${message.isRead ? 'text-primary-600' : 'text-gray-400'}`}>
+                    {message.isRead ? '✓✓' : '✓'}
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -234,3 +309,6 @@ export function MessageBubble({
     </motion.div>
   )
 }
+
+// Export memoized component with custom comparison
+export const MessageBubble = memo(MessageBubbleComponent, arePropsEqual)
