@@ -75,7 +75,8 @@ const MessageGroup = memo(MessageGroupComponent, (prevProps, nextProps) => {
       prevMsg.content !== nextMsg.content ||
       prevMsg.isRead !== nextMsg.isRead ||
       prevMsg.isEdited !== nextMsg.isEdited ||
-      prevMsg._status !== nextMsg._status
+      prevMsg._status !== nextMsg._status ||
+      JSON.stringify(prevMsg.reactions) !== JSON.stringify(nextMsg.reactions)
     ) {
       return false
     }

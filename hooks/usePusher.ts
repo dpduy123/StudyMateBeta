@@ -38,17 +38,17 @@ interface UsePusherReturn {
  * })
  * ```
  */
-export function usePusher({ 
-  channelName, 
+export function usePusher({
+  channelName,
   events,
-  enabled = true 
+  enabled = true
 }: UsePusherOptions): UsePusherReturn {
   const { user } = useAuth()
   const [channel, setChannel] = useState<Channel | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   const channelRef = useRef<Channel | null>(null)
   const eventsRef = useRef(events)
 
@@ -74,9 +74,9 @@ export function usePusher({
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
         )
-        
+
         const { data: { session } } = await supabase.auth.getSession()
-        
+
         if (!session?.access_token) {
           throw new Error('No access token available')
         }
@@ -104,7 +104,7 @@ export function usePusher({
         // Subscribe to channel
         console.log(`📡 Subscribing to Pusher channel: ${channelName}`)
         const channelInstance = pusher.subscribe(channelName)
-        
+
         if (!mounted) {
           channelInstance.unsubscribe()
           return
@@ -131,10 +131,17 @@ export function usePusher({
         // Bind custom events
         Object.entries(eventsRef.current).forEach(([eventName, handler]) => {
           channelInstance.bind(eventName, (data: any) => {
+            console.log(`📨 Pusher event received on ${channelName}:`, eventName, data)
             if (!mounted) return
-            console.log(`📨 Event received: ${eventName}`, data)
             handler(data)
           })
+        })
+
+        // Bind to ALL events for debugging
+        channelInstance.bind_global((eventName: string, data: any) => {
+          if (!eventName.startsWith('pusher:')) {
+            console.log(`🔔 Global event on ${channelName}:`, eventName, data)
+          }
         })
 
       } catch (err) {
@@ -149,19 +156,19 @@ export function usePusher({
     // Cleanup function
     return () => {
       mounted = false
-      
+
       if (channelRef.current) {
         console.log(`🔌 Unsubscribing from ${channelName}`)
-        
+
         // Unbind all custom events
         Object.keys(eventsRef.current).forEach(eventName => {
           channelRef.current?.unbind(eventName)
         })
-        
+
         // Unbind Pusher events
         channelRef.current.unbind('pusher:subscription_succeeded')
         channelRef.current.unbind('pusher:subscription_error')
-        
+
         // Unsubscribe from channel
         channelRef.current.unsubscribe()
         channelRef.current = null

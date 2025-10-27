@@ -160,12 +160,19 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         }
       },
       'reaction-added': async (data: { messageId: string; userId: string; emoji: string; reactions: MessageReaction[] }) => {
+        console.log('✅ Handling reaction-added event:', data)
         // Update message reactions in local state
-        setMessages(prev => prev.map(msg =>
-          msg.id === data.messageId
-            ? { ...msg, reactions: data.reactions }
-            : msg
-        ))
+        setMessages(prev => {
+          console.log('📝 Updating messages, current count:', prev.length)
+          const updated = prev.map(msg => {
+            if (msg.id === data.messageId) {
+              console.log('🎯 Found message to update:', msg.id, 'New reactions:', data.reactions)
+              return { ...msg, reactions: data.reactions }
+            }
+            return msg
+          })
+          return updated
+        })
 
         // Update IndexedDB cache
         try {
@@ -647,7 +654,7 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
       }
 
       const data = await response.json()
-      
+
       // Update with server response
       setMessages(prev => prev.map(msg =>
         msg.id === messageId ? data.message : msg
@@ -668,7 +675,7 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
   const deleteMessage = async (messageId: string) => {
     // Store the original message for rollback
     const originalMessage = messages.find(m => m.id === messageId)
-    
+
     if (!originalMessage) {
       throw new Error('Message not found')
     }
@@ -697,10 +704,10 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         setMessages(prev => [...prev, originalMessage].sort((a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         ))
-        
+
         // Restore to cache
         await cacheManager.addMessage(addConversationIdToMessage(originalMessage, chatId))
-        
+
         throw new Error('Failed to delete message')
       }
     } catch (err) {
@@ -787,7 +794,9 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
     if (chatType !== 'private') return
 
     try {
-      // Optimistically update the UI
+
+
+      // Optimistically update the UI for instant feedback
       setMessages(prev => prev.map(msg => {
         if (msg.id !== messageId) return msg
 
@@ -797,7 +806,7 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         if (existingReaction) {
           // Check if user already reacted
           const hasUserReacted = existingReaction.users.some(u => u.id === currentUserInfo?.id)
-          
+
           if (hasUserReacted) {
             // Remove user's reaction
             const updatedUsers = existingReaction.users.filter(u => u.id !== currentUserInfo?.id)
@@ -823,10 +832,10 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
               reactions: reactions.map(r =>
                 r.emoji === emoji
                   ? {
-                      ...r,
-                      users: [...r.users, { id: currentUserInfo!.id, firstName: currentUserInfo!.firstName, lastName: currentUserInfo!.lastName }],
-                      count: r.count + 1
-                    }
+                    ...r,
+                    users: [...r.users, { id: currentUserInfo!.id, firstName: currentUserInfo!.firstName, lastName: currentUserInfo!.lastName }],
+                    count: r.count + 1
+                  }
                   : r
               )
             }
@@ -847,18 +856,6 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
         }
       }))
 
-      // Update IndexedDB cache optimistically
-      const message = messages.find(m => m.id === messageId)
-      if (message) {
-        try {
-          await cacheManager.updateMessage(messageId, {
-            reactions: message.reactions
-          })
-        } catch (cacheError) {
-          console.error('Failed to update cache:', cacheError)
-        }
-      }
-
       // Send API request in background
       const response = await fetch(`/api/messages/${messageId}/reactions`, {
         method: 'POST',
@@ -867,25 +864,19 @@ export function useRealtimeMessages({ chatId, chatType, userId }: UseRealtimeMes
       })
 
       if (!response.ok) {
-        throw new Error('Failed to add reaction')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('❌ Failed to add reaction:', response.status, errorData)
+        throw new Error(errorData.error || 'Failed to add reaction')
       }
 
       const data = await response.json()
+      console.log('✅ Reaction added successfully:', data)
 
-      // Update with server response
-      setMessages(prev => prev.map(msg =>
-        msg.id === messageId
-          ? { ...msg, reactions: data.reactions }
-          : msg
-      ))
-
-      // Update cache with server data
-      await cacheManager.updateMessage(messageId, {
-        reactions: data.reactions
-      })
+      // Pusher event will sync reactions across all users
+      // Optimistic update already provided instant feedback for current user
     } catch (err) {
       console.error('Failed to add reaction:', err)
-      
+
       // Rollback on failure - refetch the message
       try {
         const response = await fetch(`/api/messages/private?chatId=${chatId}&limit=1`)

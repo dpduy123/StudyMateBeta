@@ -189,6 +189,12 @@ export async function POST(
 
     // Trigger Pusher event for real-time update
     const channelName = getChatChannelName(message.senderId, message.receiverId)
+    console.log('🔔 Triggering reaction-added:', { 
+      channelName, 
+      messageId, 
+      senderId: message.senderId, 
+      receiverId: message.receiverId 
+    })
     await triggerPusherEvent(channelName, 'reaction-added', {
       messageId,
       userId: user.id,
@@ -205,8 +211,15 @@ export async function POST(
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Error adding reaction:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('❌ Error adding reaction:', error)
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 
@@ -325,7 +338,14 @@ export async function DELETE(
     return NextResponse.json({ success: true })
 
   } catch (error) {
-    console.error('Error removing reaction:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('❌ Error removing reaction:', error)
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
