@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, memo, useCallback } from 'react'
+import { useState, useMemo, memo, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -8,6 +8,9 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 import { useMultipleUsersPresence } from '@/hooks/useMultipleUsersPresence'
 import { useConversations } from '@/hooks/useConversations'
+import { cacheManager } from '@/lib/cache/CacheManager'
+import { getPrefetchManager } from '@/lib/prefetch/PrefetchManager'
+import { getBehaviorTracker } from '@/lib/prefetch/BehaviorTracker'
 
 interface Conversation {
   id: string
@@ -35,6 +38,8 @@ interface ConversationCardProps {
   isOnline: boolean
   currentUserId: string
   onClick: (conversation: Conversation) => void
+  onHoverStart: (conversationId: string) => void
+  onHoverEnd: (conversationId: string) => void
 }
 
 const ConversationCard = memo(({ 
@@ -42,11 +47,16 @@ const ConversationCard = memo(({
   isSelected, 
   isOnline, 
   currentUserId, 
-  onClick 
+  onClick,
+  onHoverStart,
+  onHoverEnd
 }: ConversationCardProps) => {
   return (
     <div
+      data-conversation-id={conversation.id}
       onClick={() => onClick(conversation)}
+      onMouseEnter={() => onHoverStart(conversation.id)}
+      onMouseLeave={() => onHoverEnd(conversation.id)}
       className={`p-4 flex items-center space-x-3 cursor-pointer transition-all duration-150 ease-out border-l-4 ${
         isSelected 
           ? 'bg-primary-50 border-l-primary-500 scale-[0.98]' 
@@ -66,6 +76,8 @@ const ConversationCard = memo(({
             src={conversation.otherUser.avatar}
             alt={`${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`}
             className="w-12 h-12 rounded-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
@@ -127,9 +139,13 @@ const ConversationCard = memo(({
     prevProps.conversation.unreadCount === nextProps.conversation.unreadCount &&
     prevProps.conversation.lastMessage?.id === nextProps.conversation.lastMessage?.id &&
     prevProps.conversation.lastMessage?.content === nextProps.conversation.lastMessage?.content &&
-    prevProps.conversation.lastActivity === nextProps.conversation.lastActivity
+    prevProps.conversation.lastActivity === nextProps.conversation.lastActivity &&
+    prevProps.onHoverStart === nextProps.onHoverStart &&
+    prevProps.onHoverEnd === nextProps.onHoverEnd
   )
 })
+
+ConversationCard.displayName = 'ConversationCard'
 
 interface ConversationsListProps {
   currentUserId: string
@@ -144,6 +160,10 @@ export function ConversationsList({
 }: ConversationsListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
+  const prefetchManagerRef = useRef<ReturnType<typeof getPrefetchManager> | null>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  const visibleConversationsRef = useRef<Set<string>>(new Set())
 
   // Use cache-first conversations hook with real-time updates
   const { conversations, isLoading, error } = useConversations({
@@ -161,8 +181,111 @@ export function ConversationsList({
   // Track presence of all users in conversations
   const { onlineUsers } = useMultipleUsersPresence(userIds)
 
+  // Memoize filtered and sorted conversations to prevent unnecessary recalculations
+  const filteredConversations = useMemo(() => {
+    return conversations.filter(conversation =>
+      `${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    )
+  }, [conversations, searchQuery])
+
+  // Initialize prefetch manager
+  useEffect(() => {
+    if (!prefetchManagerRef.current) {
+      const behaviorTracker = getBehaviorTracker()
+      prefetchManagerRef.current = getPrefetchManager(cacheManager, behaviorTracker)
+    }
+  }, [])
+
+  // Prefetch top conversations on page load
+  useEffect(() => {
+    if (prefetchManagerRef.current && conversations.length > 0) {
+      // Prefetch top 5 conversations in background
+      prefetchManagerRef.current.prefetchTopConversations()
+      
+      // Also prefetch predicted conversation
+      prefetchManagerRef.current.prefetchPredicted(selectedConversationId)
+    }
+  }, [conversations, selectedConversationId])
+
+  // Set up Intersection Observer for scroll-based prefetching
+  useEffect(() => {
+    if (!scrollContainerRef.current || filteredConversations.length === 0) {
+      return
+    }
+
+    // Clean up existing observer
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+    }
+
+    // Create new observer
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const conversationId = entry.target.getAttribute('data-conversation-id')
+          if (!conversationId) return
+
+          if (entry.isIntersecting) {
+            visibleConversationsRef.current.add(conversationId)
+          } else {
+            visibleConversationsRef.current.delete(conversationId)
+          }
+        })
+
+        // Trigger prefetch when user scrolls near bottom
+        if (prefetchManagerRef.current && visibleConversationsRef.current.size > 0) {
+          const visibleIds = Array.from(visibleConversationsRef.current)
+          const allIds = filteredConversations.map(c => c.id)
+          prefetchManagerRef.current.prefetchOnScroll(visibleIds, allIds)
+        }
+      },
+      {
+        root: scrollContainerRef.current,
+        rootMargin: '0px 0px 200px 0px', // Trigger 200px before reaching bottom
+        threshold: 0.1
+      }
+    )
+
+    // Observe all conversation cards
+    const conversationElements = scrollContainerRef.current.querySelectorAll('[data-conversation-id]')
+    conversationElements.forEach((element) => {
+      observerRef.current?.observe(element)
+    })
+
+    // Cleanup
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+    }
+  }, [filteredConversations])
+
+  // Hover handlers for prefetching
+  const handleHoverStart = useCallback((conversationId: string) => {
+    if (prefetchManagerRef.current) {
+      prefetchManagerRef.current.prefetchOnHover(conversationId)
+      prefetchManagerRef.current.trackBehavior(conversationId, 'hover')
+    }
+  }, [])
+
+  const handleHoverEnd = useCallback((conversationId: string) => {
+    if (prefetchManagerRef.current) {
+      prefetchManagerRef.current.cancelHoverPrefetch(conversationId)
+    }
+  }, [])
+
   // Memoize click handler to prevent recreation on every render
   const handleConversationClick = useCallback((conversation: Conversation) => {
+    // Track behavior for prediction
+    if (prefetchManagerRef.current) {
+      prefetchManagerRef.current.trackBehavior(conversation.id, 'open')
+      
+      // Prefetch predicted next conversation
+      prefetchManagerRef.current.prefetchPredicted(conversation.id)
+    }
+
     // Optimistic selection - update UI immediately
     if (onSelectConversation) {
       onSelectConversation(conversation)
@@ -196,15 +319,6 @@ export function ConversationsList({
         // Silently fail - we already showed the conversation
       })
   }, [onSelectConversation, router])
-
-  // Memoize filtered and sorted conversations to prevent unnecessary recalculations
-  const filteredConversations = useMemo(() => {
-    return conversations.filter(conversation =>
-      `${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
-    )
-  }, [conversations, searchQuery])
 
   // Check if user is online using Pusher presence
   const isOnline = (userId: string) => {
@@ -246,7 +360,7 @@ export function ConversationsList({
 
       {/* Conversations List */}
       {/* Note: Virtual scrolling with react-window can be added for 100+ conversations if needed */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -267,6 +381,8 @@ export function ConversationsList({
               isOnline={isOnline(conversation.otherUser.id)}
               currentUserId={currentUserId}
               onClick={handleConversationClick}
+              onHoverStart={handleHoverStart}
+              onHoverEnd={handleHoverEnd}
             />
           ))
         )}

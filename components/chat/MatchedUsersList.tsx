@@ -122,6 +122,8 @@ export function MatchedUsersList({ onSelectUser }: MatchedUsersListProps) {
                   src={match.otherUser.avatar}
                   alt={`${match.otherUser.firstName} ${match.otherUser.lastName}`}
                   className="w-12 h-12 rounded-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">

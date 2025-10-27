@@ -189,9 +189,47 @@ function MessageBubbleComponent({
               </div>
             ) : (
               <>
-                <p className="text-sm whitespace-pre-wrap break-words">
-                  {message.content}
-                </p>
+                {/* File/Image message */}
+                {message.type === 'FILE' && message.fileUrl && (
+                  <div className="mb-2">
+                    {/* Check if it's an image */}
+                    {message.fileName && /\.(jpg|jpeg|png|gif|webp|avif)$/i.test(message.fileName) ? (
+                      <img
+                        src={message.fileUrl}
+                        alt={message.fileName}
+                        className="max-w-xs rounded-lg"
+                        loading="lazy"
+                        decoding="async"
+                        style={{ maxHeight: '300px', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <a
+                        href={message.fileUrl}
+                        download={message.fileName}
+                        className="flex items-center gap-2 p-2 bg-white bg-opacity-20 rounded hover:bg-opacity-30 transition-colors"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        <div className="text-left">
+                          <div className="text-sm font-medium">{message.fileName}</div>
+                          {message.fileSize && (
+                            <div className="text-xs opacity-70">
+                              {(message.fileSize / 1024).toFixed(1)} KB
+                            </div>
+                          )}
+                        </div>
+                      </a>
+                    )}
+                  </div>
+                )}
+                
+                {/* Text content */}
+                {message.content && (
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {message.content}
+                  </p>
+                )}
                 {message.isEdited && (
                   <span className="text-xs opacity-70 ml-2">(đã chỉnh sửa)</span>
                 )}

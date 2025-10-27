@@ -1,10 +1,23 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { MessageList } from './MessageList'
+import dynamic from 'next/dynamic'
 import { MessageInput } from './MessageInput'
 import { TypingIndicator } from './TypingIndicator'
 import { useRealtimeMessages, Message } from '@/hooks/useRealtimeMessages'
+
+// Lazy load MessageList component (heavy due to virtual scrolling)
+const MessageList = dynamic(
+  () => import('./MessageList').then(mod => ({ default: mod.MessageList })),
+  {
+    loading: () => (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="animate-pulse text-gray-400">Đang tải tin nhắn...</div>
+      </div>
+    ),
+    ssr: false
+  }
+)
 
 interface ChatContainerProps {
   chatId: string

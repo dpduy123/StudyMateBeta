@@ -1,13 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { useAuth } from '@/components/providers/Providers'
 import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
-import { ConversationsList } from '@/components/chat/ConversationsList'
-import { MatchedUsersList } from '@/components/chat/MatchedUsersList'
-import { ChatContainer } from '@/components/chat/ChatContainer'
-import { NotificationBanner } from '@/components/notifications/NotificationBanner'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useOtherUserPresence } from '@/hooks/useOtherUserPresence'
 import {
@@ -19,6 +16,51 @@ import {
   UsersIcon,
   ChatBubbleOvalLeftEllipsisIcon
 } from '@heroicons/react/24/outline'
+
+// Lazy load heavy chat components
+const ConversationsList = dynamic(
+  () => import('@/components/chat/ConversationsList').then(mod => ({ default: mod.ConversationsList })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse text-gray-400">Đang tải...</div>
+      </div>
+    ),
+    ssr: false
+  }
+)
+
+const MatchedUsersList = dynamic(
+  () => import('@/components/chat/MatchedUsersList').then(mod => ({ default: mod.MatchedUsersList })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse text-gray-400">Đang tải...</div>
+      </div>
+    ),
+    ssr: false
+  }
+)
+
+const ChatContainer = dynamic(
+  () => import('@/components/chat/ChatContainer').then(mod => ({ default: mod.ChatContainer })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse text-gray-400">Đang tải tin nhắn...</div>
+      </div>
+    ),
+    ssr: false
+  }
+)
+
+const NotificationBanner = dynamic(
+  () => import('@/components/notifications/NotificationBanner').then(mod => ({ default: mod.NotificationBanner })),
+  {
+    loading: () => null,
+    ssr: false
+  }
+)
 
 interface SelectedConversation {
   id: string
@@ -169,6 +211,8 @@ export default function MessagesPage() {
                           src={selectedConversation.otherUser.avatar}
                           alt={`${selectedConversation.otherUser.firstName} ${selectedConversation.otherUser.lastName}`}
                           className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+                          loading="lazy"
+                          decoding="async"
                         />
                       ) : (
                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">

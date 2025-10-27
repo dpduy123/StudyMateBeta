@@ -284,49 +284,75 @@
 
 ## Phase 3: Smart Prefetching & Performance
 
-- [ ] 7. Implement smart prefetching system
-  - [ ] 7.1 Create PrefetchManager class
+
+- [x] 7. Implement smart prefetching system
+
+
+
+  - [x] 7.1 Create PrefetchManager class
+
     - Create `lib/prefetch/PrefetchManager.ts`
     - Implement priority queue for prefetch requests
     - Add request deduplication
     - Implement concurrent request limiting
+
+
     - _Requirements: 0_
   
-  - [ ] 7.2 Implement hover-based prefetching
+  - [x] 7.2 Implement hover-based prefetching
+
     - Add hover event listeners to conversation cards
     - Prefetch messages after 200ms hover delay
+
+
     - Cancel prefetch if hover ends before delay
     - Store prefetched data in IndexedDB
     - _Requirements: 0, 1.1_
   
-  - [ ] 7.3 Implement top conversations prefetching
+  - [x] 7.3 Implement top conversations prefetching
+
+
     - Prefetch top 5 conversations on page load
     - Use lastActivity to determine priority
     - Prefetch in background without blocking UI
     - Mark conversations as prefetched in cache
+
+
     - _Requirements: 0, 1.1_
   
-  - [ ] 7.4 Implement scroll-based prefetching
+  - [x] 7.4 Implement scroll-based prefetching
+
     - Detect when user scrolls near bottom of conversation list
     - Prefetch next 3 conversations in list
     - Use Intersection Observer for efficient detection
     - _Requirements: 0_
   
-  - [ ] 7.5 Implement predictive prefetching
+  - [x] 7.5 Implement predictive prefetching
+
+
     - Track user behavior patterns
     - Predict likely next conversation
     - Prefetch predicted conversation
     - _Requirements: 0_
 
-- [ ] 8. Optimize API endpoints for performance
-  - [ ] 8.1 Add database indexes for conversations query
+- [x] 8. Optimize API endpoints for performance
+
+
+
+
+
+  - [x] 8.1 Add database indexes for conversations query
+
+
     - Add index on `messages(conversation_id, created_at DESC)`
     - Add index on `messages(receiver_id, is_read)` for unread count
     - Add index on `conversations(last_activity DESC)`
     - Test query performance with EXPLAIN ANALYZE
     - _Requirements: 7.1_
   
-  - [ ] 8.2 Optimize conversations API endpoint
+  - [x] 8.2 Optimize conversations API endpoint
+
+
     - Modify `/api/conversations` to use field selection
     - Limit response to only required fields
     - Implement parallel queries for better performance
@@ -334,35 +360,50 @@
     - Add cache headers (max-age=60, stale-while-revalidate=300)
     - _Requirements: 7.1_
   
-  - [ ] 8.3 Optimize messages API endpoint
+  - [x] 8.3 Optimize messages API endpoint
+
+
     - Modify `/api/messages/private` to use field selection
     - Reduce default page size from 50 to 20 messages
     - Implement cursor-based pagination
     - Add response compression
     - _Requirements: 1.2, 7.1_
   
-  - [ ] 8.4 Implement API response caching
+  - [x] 8.4 Implement API response caching
+
+
     - Add Redis caching layer for frequently accessed data
     - Cache conversation list for 60 seconds
     - Invalidate cache on new message
     - _Requirements: 7.1_
 
-- [ ] 9. Implement bundle optimization
-  - [ ] 9.1 Configure Next.js for optimal bundle splitting
+- [x] 9. Implement bundle optimization
+
+
+
+
+
+  - [x] 9.1 Configure Next.js for optimal bundle splitting
+
+
     - Update `next.config.js` with optimization settings
     - Enable CSS optimization
     - Configure package imports optimization
     - Enable compression
     - _Requirements: 13.2_
   
-  - [ ] 9.2 Implement lazy loading for chat components
+  - [x] 9.2 Implement lazy loading for chat components
+
+
     - Use dynamic imports for ChatContainer
     - Use dynamic imports for MessageList
     - Use dynamic imports for heavy dependencies
     - Add loading fallbacks
     - _Requirements: 13.2_
   
-  - [ ] 9.3 Optimize image loading
+  - [x] 9.3 Optimize image loading
+
+
     - Configure Next.js Image component
     - Use AVIF and WebP formats
     - Implement lazy loading for message images

@@ -2,13 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/prisma'
 import { triggerPusherEvent, getChatChannelName } from '@/lib/pusher/server'
+import { apiCache } from '@/lib/cache/ApiCache'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('📨 Messages API called')
+    
     const { searchParams } = new URL(request.url)
     const chatId = searchParams.get('chatId') // Other user's ID
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '50')
+    const limit = parseInt(searchParams.get('limit') || '20') // Reduced from 50 to 20
+    const cursor = searchParams.get('cursor') // For cursor-based pagination
+
+    console.log('📨 Params:', { chatId, page, limit, cursor })
 
     if (!chatId) {
       return NextResponse.json({ error: 'Chat ID is required' }, { status: 400 })
@@ -36,18 +42,62 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
+      console.error('📨 Auth error:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get messages between the two users
+    console.log('📨 User authenticated:', user.id)
+
+    // Check cache first (only for first page without cursor)
+    if (!cursor && page === 1) {
+      try {
+        const cachedData = await apiCache.getCachedMessages(user.id, chatId, page)
+        if (cachedData) {
+          console.log('📨 Cache HIT')
+          const response = NextResponse.json(cachedData)
+          response.headers.set(
+            'Cache-Control',
+            'private, max-age=30, stale-while-revalidate=120'
+          )
+          response.headers.set('X-Cache', 'HIT')
+          return response
+        }
+      } catch (cacheError) {
+        console.warn('Cache read error (continuing without cache):', cacheError)
+      }
+    }
+
+    // Build query with cursor-based pagination for better performance
+    const whereClause: any = {
+      OR: [
+        { senderId: user.id, receiverId: chatId },
+        { senderId: chatId, receiverId: user.id }
+      ]
+    }
+
+    // Add cursor condition for pagination
+    if (cursor) {
+      whereClause.createdAt = {
+        lt: new Date(cursor)
+      }
+    }
+
+    // Get messages with optimized field selection
     const messages = await prisma.message.findMany({
-      where: {
-        OR: [
-          { senderId: user.id, receiverId: chatId },
-          { senderId: chatId, receiverId: user.id }
-        ]
-      },
-      include: {
+      where: whereClause,
+      select: {
+        id: true,
+        senderId: true,
+        receiverId: true,
+        type: true,
+        content: true,
+        fileUrl: true,
+        fileName: true,
+        fileSize: true,
+        isRead: true,
+        createdAt: true,
+        updatedAt: true,
+        readAt: true,
         sender: {
           select: {
             id: true,
@@ -58,45 +108,102 @@ export async function GET(request: NextRequest) {
         }
       },
       orderBy: { createdAt: 'desc' },
-      take: limit,
-      skip: (page - 1) * limit
+      take: limit + 1 // Fetch one extra to determine if there are more
     })
 
+    // Check if there are more messages
+    const hasMore = messages.length > limit
+    const messagesToReturn = hasMore ? messages.slice(0, limit) : messages
+
     // Reverse to show oldest first
-    const sortedMessages = messages.reverse()
+    const sortedMessages = messagesToReturn.reverse()
+
+    // Get the cursor for next page (oldest message's createdAt)
+    const nextCursor = hasMore && messagesToReturn.length > 0
+      ? messagesToReturn[messagesToReturn.length - 1].createdAt.toISOString()
+      : null
 
     // Mark messages as read if they were sent to the current user
-    const unreadMessageIds = messages
+    const unreadMessageIds = messagesToReturn
       .filter(msg => msg.receiverId === user.id && !msg.isRead)
       .map(msg => msg.id)
 
-    if (unreadMessageIds.length > 0) {
-      await prisma.message.updateMany({
-        where: { id: { in: unreadMessageIds } },
-        data: { isRead: true, readAt: new Date() }
-      })
+    // Execute read updates and Pusher events in parallel
+    const readUpdatePromises = []
 
-      // Trigger Pusher events for read receipts
-      const channelName = getChatChannelName(user.id, chatId)
-      for (const messageId of unreadMessageIds) {
-        await triggerPusherEvent(channelName, 'message-read', {
-          messageId,
-          readBy: user.id,
-          readAt: new Date().toISOString()
+    if (unreadMessageIds.length > 0) {
+      // Update read status
+      readUpdatePromises.push(
+        prisma.message.updateMany({
+          where: { id: { in: unreadMessageIds } },
+          data: { isRead: true, readAt: new Date() }
         })
+      )
+
+      // Trigger Pusher events for read receipts (batch them)
+      const channelName = getChatChannelName(user.id, chatId)
+      const readAt = new Date().toISOString()
+      
+      readUpdatePromises.push(
+        triggerPusherEvent(channelName, 'messages-read', {
+          messageIds: unreadMessageIds,
+          readBy: user.id,
+          readAt
+        })
+      )
+    }
+
+    // Wait for all read updates to complete
+    await Promise.all(readUpdatePromises)
+
+    console.log('📨 Returning', sortedMessages.length, 'messages')
+
+    // Prepare response data
+    const responseData = {
+      messages: sortedMessages,
+      hasMore,
+      nextCursor,
+      page,
+      limit
+    }
+
+    // Cache the response (only for first page)
+    if (!cursor && page === 1) {
+      try {
+        await apiCache.cacheMessages(user.id, chatId, page, responseData)
+        console.log('📨 Cached response')
+      } catch (cacheError) {
+        console.warn('Cache write error (continuing without cache):', cacheError)
       }
     }
 
-    return NextResponse.json({
-      messages: sortedMessages,
-      hasMore: messages.length === limit,
-      page,
-      limit
-    })
+    // Create response with cache headers
+    const response = NextResponse.json(responseData)
+
+    // Add cache headers for better performance
+    // Cache for 30 seconds, allow stale content for 2 minutes while revalidating
+    response.headers.set(
+      'Cache-Control',
+      'private, max-age=30, stale-while-revalidate=120'
+    )
+    
+    // Indicate cache miss
+    response.headers.set('X-Cache', 'MISS')
+
+    console.log('📨 Response created successfully')
+
+    return response
 
   } catch (error) {
-    console.error('Error fetching private messages:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('❌ Error fetching private messages:', error)
+    if (error instanceof Error) {
+      console.error('❌ Error details:', error.message)
+      console.error('❌ Stack:', error.stack)
+    }
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 
@@ -260,6 +367,18 @@ export async function POST(request: NextRequest) {
       'conversation-updated',
       receiverConversationData
     )
+
+    // Invalidate cache for both users
+    try {
+      await Promise.all([
+        apiCache.invalidateConversations(user.id),
+        apiCache.invalidateConversations(receiverId),
+        apiCache.invalidateMessages(user.id, receiverId),
+        apiCache.invalidateMessages(receiverId, user.id)
+      ])
+    } catch (cacheError) {
+      console.warn('Cache invalidation error (continuing):', cacheError)
+    }
 
     return NextResponse.json({ message }, { status: 201 })
 

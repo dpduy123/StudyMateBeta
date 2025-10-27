@@ -284,7 +284,8 @@ export class CacheManager {
             // Compress if message is large
             const compressedMessage = await this.compressMessage(messageWithMetadata);
 
-            await db.add('messages', compressedMessage);
+            // Use put instead of add to handle duplicates gracefully
+            await db.put('messages', compressedMessage);
 
             // Implement LRU eviction: check if we exceed max messages per conversation
             await this.evictOldMessagesIfNeeded(message.conversationId);
@@ -294,7 +295,7 @@ export class CacheManager {
                 await this.addMessage(message);
             } else {
                 console.error('Error adding message to cache:', error);
-                throw error;
+                // Don't throw - just log the error to prevent UI disruption
             }
         }
     }

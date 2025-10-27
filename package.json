@@ -45,6 +45,7 @@
     "react-hook-form": "^7.54.3",
     "react-hot-toast": "^2.4.1",
     "react-window": "^2.2.2",
+    "redis": "^5.9.0",
     "simple-peer": "^9.11.1",
     "swr": "^2.3.6",
     "zod": "^3.24.1",
