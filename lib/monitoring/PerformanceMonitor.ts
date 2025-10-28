@@ -76,8 +76,11 @@ class PerformanceMonitor {
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries()
         const lastEntry = entries[entries.length - 1] as any
-        this.webVitals.LCP = lastEntry.renderTime || lastEntry.loadTime
-        this.recordMetric('LCP', this.webVitals.LCP)
+        const lcpValue = lastEntry.renderTime || lastEntry.loadTime
+        if (lcpValue !== undefined) {
+          this.webVitals.LCP = lcpValue
+          this.recordMetric('LCP', lcpValue)
+        }
       })
       lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true })
 
@@ -159,19 +162,19 @@ class PerformanceMonitor {
   trackConversationClick(startTime: number) {
     const latency = performance.now() - startTime
     this.conversationMetrics.clickLatency.push(latency)
-    
+
     // Keep only last 100 measurements
     if (this.conversationMetrics.clickLatency.length > 100) {
       this.conversationMetrics.clickLatency.shift()
     }
 
     // Calculate average
-    this.conversationMetrics.averageClickLatency = 
-      this.conversationMetrics.clickLatency.reduce((a, b) => a + b, 0) / 
+    this.conversationMetrics.averageClickLatency =
+      this.conversationMetrics.clickLatency.reduce((a, b) => a + b, 0) /
       this.conversationMetrics.clickLatency.length
 
     this.recordMetric('conversation_click_latency', latency)
-    
+
     return latency
   }
 
@@ -181,19 +184,19 @@ class PerformanceMonitor {
   trackMessageRender(startTime: number, messageCount: number) {
     const renderTime = performance.now() - startTime
     this.conversationMetrics.messageRenderTime.push(renderTime)
-    
+
     // Keep only last 100 measurements
     if (this.conversationMetrics.messageRenderTime.length > 100) {
       this.conversationMetrics.messageRenderTime.shift()
     }
 
     // Calculate average
-    this.conversationMetrics.averageMessageRenderTime = 
-      this.conversationMetrics.messageRenderTime.reduce((a, b) => a + b, 0) / 
+    this.conversationMetrics.averageMessageRenderTime =
+      this.conversationMetrics.messageRenderTime.reduce((a, b) => a + b, 0) /
       this.conversationMetrics.messageRenderTime.length
 
     this.recordMetric('message_render_time', renderTime, { messageCount })
-    
+
     return renderTime
   }
 
@@ -204,7 +207,7 @@ class PerformanceMonitor {
     this.cacheMetrics.hits++
     this.cacheMetrics.totalRequests++
     this.cacheMetrics.hitRate = this.cacheMetrics.hits / this.cacheMetrics.totalRequests
-    
+
     this.recordMetric('cache_hit', 1, { source, hitRate: this.cacheMetrics.hitRate })
   }
 
@@ -215,7 +218,7 @@ class PerformanceMonitor {
     this.cacheMetrics.misses++
     this.cacheMetrics.totalRequests++
     this.cacheMetrics.hitRate = this.cacheMetrics.hits / this.cacheMetrics.totalRequests
-    
+
     this.recordMetric('cache_miss', 1, { source, hitRate: this.cacheMetrics.hitRate })
   }
 

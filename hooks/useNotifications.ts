@@ -62,7 +62,6 @@ export function useNotifications({ userId, enabled = true }: UseNotificationsOpt
         badge: '/logo.svg',
         tag: `message-${data.messageId}`,
         requireInteraction: false,
-        timestamp: new Date(data.timestamp).getTime(),
         data: {
           chatId: data.chatId,
           messageId: data.messageId,
