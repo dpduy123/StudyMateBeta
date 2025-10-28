@@ -2,7 +2,8 @@
 
 StudyMate là một nền tảng kết nối sinh viên thông minh sử dụng AI để giúp sinh viên tìm được những người bạn học phù hợp, tham gia các phòng thảo luận và xây dựng cộng đồng học tập năng động.
 
-## 🌟 Tính năng chính
+Note for deploy:
+## 🌟 Tính năng chính 
 
 ### 1. **AI-Powered Matching (Khám phá)**
 - Thuật toán AI phân tích hồ sơ học thuật để gợi ý những người bạn học phù hợp
