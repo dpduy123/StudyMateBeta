@@ -6,6 +6,7 @@ import { User, Session } from '@supabase/supabase-js'
 import { Toaster } from 'react-hot-toast'
 import { SWRConfig } from 'swr'
 import { swrConfig } from '@/lib/swrConfig'
+import { usePresence } from '@/hooks/usePresence'
 
 interface AuthContextType {
   user: User | null;
@@ -19,10 +20,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signOut: async () => {},
+  signOut: async () => { },
   signUp: async () => ({ user: null, session: null }),
-  signIn: async () => {},
-  signInWithGoogle: async () => {},
+  signIn: async () => { },
+  signInWithGoogle: async () => { },
 });
 
 export const useAuth = () => {
@@ -37,6 +38,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+
+  // Subscribe to own presence channel to broadcast online status
+  usePresence(user?.id)
 
   useEffect(() => {
     // Get initial session
@@ -169,32 +173,32 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <AuthContext.Provider value={{ user, loading, signOut, signUp, signIn, signInWithGoogle }}>
         {children}
         <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#fff',
-            color: '#374151',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            fontSize: '14px',
-            padding: '12px 16px',
-            boxShadow: '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-          },
-          success: {
-            iconTheme: {
-              primary: '#22c55e',
-              secondary: '#fff',
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#fff',
+              color: '#374151',
+              border: '1px solid #e5e7eb',
+              borderRadius: '12px',
+              fontSize: '14px',
+              padding: '12px 16px',
+              boxShadow: '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
             },
-          },
-          error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
+            success: {
+              iconTheme: {
+                primary: '#22c55e',
+                secondary: '#fff',
+              },
             },
-          },
-        }}
-      />
+            error: {
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
       </AuthContext.Provider>
     </SWRConfig>
   )

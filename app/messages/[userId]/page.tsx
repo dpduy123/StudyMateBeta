@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
 import { ChatContainer } from '@/components/chat/ChatContainer'
+import { UserStatusAvatar, formatLastActive } from '@/components/ui/UserStatusIndicator'
+import { useUserStatus } from '@/hooks/useUserStatus'
 import { 
   ArrowLeftIcon, 
   PhoneIcon, 
@@ -90,6 +92,9 @@ export default function PrivateChatPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Use real-time user status
+  const { status: userStatus } = useUserStatus({ userId: otherUserId })
+
   useEffect(() => {
     // Using mock data
     if (!user || !otherUserId) {
@@ -111,8 +116,7 @@ export default function PrivateChatPage() {
     setLoading(false)
   }, [user, otherUserId])
 
-  const isOnline = otherUser?.lastActive && 
-    new Date(otherUser.lastActive) > new Date(Date.now() - 15 * 60 * 1000)
+  const isOnline = userStatus?.status === 'online'
 
   if (loading) {
     return (
@@ -160,29 +164,19 @@ export default function PrivateChatPage() {
               <ArrowLeftIcon className="h-5 w-5 text-gray-600" />
             </button>
             
-            <div className="relative">
-              {otherUser.avatar ? (
-                <img
-                  src={otherUser.avatar}
-                  alt={`${otherUser.firstName} ${otherUser.lastName}`}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
-                  {otherUser.firstName[0]}{otherUser.lastName[0]}
-                </div>
-              )}
-              {isOnline && (
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-              )}
-            </div>
+            <UserStatusAvatar
+              userId={otherUserId}
+              avatarUrl={otherUser.avatar}
+              name={`${otherUser.firstName} ${otherUser.lastName}`}
+              size="md"
+            />
             
             <div>
               <p className="font-semibold text-gray-900">
                 {otherUser.firstName} {otherUser.lastName}
               </p>
               <p className="text-sm text-gray-500">
-                {isOnline ? 'Đang hoạt động' : 'Offline'} 
+                {isOnline ? 'Đang hoạt động' : userStatus?.lastActive ? formatLastActive(userStatus.lastActive) : 'Offline'} 
                 {otherUser.university && ` • ${otherUser.university}`}
               </p>
             </div>

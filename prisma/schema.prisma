@@ -118,6 +118,8 @@ model User {
   ratings           Rating[]     @relation("RatingGiver")
   receivedRatings   Rating[]     @relation("RatingReceiver")
   notifications     Notification[]
+  messageReactions  MessageReaction[] @relation("MessageReactions")
+  roomMessageReactions RoomMessageReaction[] @relation("RoomMessageReactions")
 
   @@map("users")
 }
@@ -153,6 +155,9 @@ model Message {
   fileUrl     String?     // For file attachments
   fileName    String?     // Original file name
   fileSize    Int?        // File size in bytes
+  replyToId   String?     // For message replies
+  isEdited    Boolean     @default(false)
+  editedAt    DateTime?
   isRead      Boolean     @default(false)
 
   // Timestamps
@@ -163,8 +168,31 @@ model Message {
   // Relations
   sender      User        @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   receiver    User        @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  replyTo     Message?    @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies     Message[]   @relation("MessageReply")
+  reactions   MessageReaction[]
 
   @@map("messages")
+}
+
+// Message Reactions
+model MessageReaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  // Relations
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation("MessageReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reactions")
 }
 
 // Voice/Video Chat Rooms
@@ -238,8 +266,29 @@ model RoomMessage {
   sender      User        @relation("RoomMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   replyTo     RoomMessage? @relation("MessageReply", fields: [replyToId], references: [id])
   replies     RoomMessage[] @relation("MessageReply")
+  reactions   RoomMessageReaction[]
 
   @@map("room_messages")
+}
+
+// Room Message Reactions
+model RoomMessageReaction {
+  id        String      @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+
+  // Timestamps
+  createdAt DateTime    @default(now())
+
+  // Relations
+  message   RoomMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User        @relation("RoomMessageReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+  @@map("room_message_reactions")
 }
 
 // Achievement System

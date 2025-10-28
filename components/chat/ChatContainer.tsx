@@ -1,9 +1,21 @@
 'use client'
 
-import { useState } from 'react'
-import { MessageList } from './MessageList'
+import { useState, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { MessageInput } from './MessageInput'
+import { TypingIndicator } from './TypingIndicator'
 import { useRealtimeMessages, Message } from '@/hooks/useRealtimeMessages'
+import { useAuth } from '@/components/providers/Providers'
+import { MessageListSkeleton } from '@/components/ui/SkeletonLoader'
+
+// Lazy load MessageList component (heavy due to virtual scrolling)
+const MessageList = dynamic(
+  () => import('./MessageList').then(mod => ({ default: mod.MessageList })),
+  {
+    loading: () => <MessageListSkeleton />,
+    ssr: false
+  }
+)
 
 interface ChatContainerProps {
   chatId: string
@@ -11,24 +23,33 @@ interface ChatContainerProps {
   currentUserId: string
   title?: string
   className?: string
+  onTypingStart?: () => void
+  onTypingStop?: () => void
 }
 
-export function ChatContainer({ 
-  chatId, 
-  chatType, 
-  currentUserId, 
+export function ChatContainer({
+  chatId,
+  chatType,
+  currentUserId,
   title,
-  className = '' 
+  className = '',
+  onTypingStart,
+  onTypingStop
 }: ChatContainerProps) {
+  const { user } = useAuth()
   const [replyTo, setReplyTo] = useState<Message | undefined>()
-  
+
   const {
     messages,
     loading,
     error,
     sendMessage,
     editMessage,
-    deleteMessage
+    deleteMessage,
+    sendTypingStart,
+    sendTypingStop,
+    typingUsers,
+    addReaction
   } = useRealtimeMessages({
     chatId,
     chatType,
@@ -36,7 +57,12 @@ export function ChatContainer({
   })
 
   const handleSendMessage = async (content: string, type: 'TEXT' | 'FILE' = 'TEXT') => {
-    await sendMessage(content, type)
+    // Pass replyToId as the third parameter
+    await sendMessage(content, type, replyTo?.id)
+    // Clear reply after sending
+    if (replyTo) {
+      setReplyTo(undefined)
+    }
   }
 
   const handleEditMessage = async (messageId: string, newContent: string) => {
@@ -54,6 +80,30 @@ export function ChatContainer({
   const handleCancelReply = () => {
     setReplyTo(undefined)
   }
+
+  const handleReaction = async (messageId: string, emoji: string) => {
+    if (addReaction && user) {
+      // Get user info from profile or use email as fallback
+      const firstName = user.user_metadata?.firstName || user.email?.split('@')[0] || 'User'
+      const lastName = user.user_metadata?.lastName || ''
+
+      await addReaction(messageId, emoji, {
+        id: currentUserId,
+        firstName,
+        lastName
+      })
+    }
+  }
+
+  const handleTypingStart = useCallback(() => {
+    sendTypingStart?.()
+    onTypingStart?.()
+  }, [sendTypingStart, onTypingStart])
+
+  const handleTypingStop = useCallback(() => {
+    sendTypingStop?.()
+    onTypingStop?.()
+  }, [sendTypingStop, onTypingStop])
 
   if (error) {
     return (
@@ -84,11 +134,22 @@ export function ChatContainer({
         onEdit={handleEditMessage}
         onDelete={handleDeleteMessage}
         onReply={handleReply}
+        onReaction={handleReaction}
       />
+
+      {/* Typing indicator */}
+      {typingUsers && typingUsers.length > 0 && (
+        <TypingIndicator
+          userName={typingUsers[0].userName}
+          isVisible={true}
+        />
+      )}
 
       {/* Message input */}
       <MessageInput
         onSendMessage={handleSendMessage}
+        onTypingStart={handleTypingStart}
+        onTypingStop={handleTypingStop}
         replyTo={replyTo}
         onCancelReply={handleCancelReply}
         disabled={loading}

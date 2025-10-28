@@ -1,11 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo, memo, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { LoadingSpinner } from '../ui/LoadingSpinner'
+
+import { usePresence } from '@/hooks/usePresence'
+import { useConversations } from '@/hooks/useConversations'
+import { useAuth } from '@/components/providers/Providers'
+import { cacheManager } from '@/lib/cache/CacheManager'
+import { getPrefetchManager } from '@/lib/prefetch/PrefetchManager'
+import { getBehaviorTracker } from '@/lib/prefetch/BehaviorTracker'
+import { ConversationListSkeleton } from '@/components/ui/SkeletonLoader'
+import { Avatar } from '@/components/ui/Avatar'
+import { OnlineIndicator } from '@/components/ui/OnlineIndicator'
+import { Timestamp } from '@/components/ui/Timestamp'
 
 interface Conversation {
   id: string
@@ -26,6 +36,108 @@ interface Conversation {
   lastActivity: string
 }
 
+// Memoized conversation card component to prevent unnecessary re-renders
+interface ConversationCardProps {
+  conversation: Conversation
+  isSelected: boolean
+  isOnline: boolean
+  currentUserId: string
+  onClick: (conversation: Conversation) => void
+  onHoverStart: (conversationId: string) => void
+  onHoverEnd: (conversationId: string) => void
+}
+
+const ConversationCard = memo(({ 
+  conversation, 
+  isSelected, 
+  isOnline, 
+  currentUserId, 
+  onClick,
+  onHoverStart,
+  onHoverEnd
+}: ConversationCardProps) => {
+  return (
+    <div
+      data-conversation-id={conversation.id}
+      onClick={() => onClick(conversation)}
+      onMouseEnter={() => onHoverStart(conversation.id)}
+      onMouseLeave={() => onHoverEnd(conversation.id)}
+      className={`p-4 flex items-center space-x-3 cursor-pointer hardware-accelerated card-press border-l-4 ${
+        isSelected 
+          ? 'bg-primary-50 border-l-primary-500' 
+          : 'border-l-transparent hover:border-l-gray-200 hover:bg-gray-50'
+      }`}
+      style={{
+        contentVisibility: 'auto', // Optimize off-screen rendering
+        containIntrinsicSize: '80px', // Hint for content-visibility
+      }}
+    >
+      {/* Avatar */}
+      <div className="relative flex-shrink-0">
+        <Avatar
+          src={conversation.otherUser.avatar}
+          alt={`${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`}
+          firstName={conversation.otherUser.firstName}
+          lastName={conversation.otherUser.lastName}
+          size="md"
+        />
+        <OnlineIndicator 
+          isOnline={isOnline} 
+          size="md"
+          className="absolute -bottom-0.5 -right-0.5"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-center">
+          <p className="font-semibold text-gray-900 truncate">
+            {conversation.otherUser.firstName} {conversation.otherUser.lastName}
+          </p>
+          <Timestamp
+            date={conversation.lastMessage?.createdAt || conversation.lastActivity}
+            className="text-xs text-gray-500 flex-shrink-0 ml-2"
+          />
+        </div>
+        <div className="flex justify-between items-center mt-1">
+          <p className="text-sm text-gray-600 truncate">
+            {conversation.lastMessage ? (
+              <>
+                {conversation.lastMessage.senderId === currentUserId && (
+                  <span className="text-gray-500">Bạn: </span>
+                )}
+                {conversation.lastMessage.content}
+              </>
+            ) : (
+              <span className="text-gray-400 italic">Chưa có tin nhắn</span>
+            )}
+          </p>
+          {conversation.unreadCount > 0 && (
+            <div className="w-5 h-5 bg-primary-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ml-2">
+              {conversation.unreadCount}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}, (prevProps, nextProps) => {
+  // Custom comparison function for memo
+  return (
+    prevProps.conversation.id === nextProps.conversation.id &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isOnline === nextProps.isOnline &&
+    prevProps.conversation.unreadCount === nextProps.conversation.unreadCount &&
+    prevProps.conversation.lastMessage?.id === nextProps.conversation.lastMessage?.id &&
+    prevProps.conversation.lastMessage?.content === nextProps.conversation.lastMessage?.content &&
+    prevProps.conversation.lastActivity === nextProps.conversation.lastActivity &&
+    prevProps.onHoverStart === nextProps.onHoverStart &&
+    prevProps.onHoverEnd === nextProps.onHoverEnd
+  )
+})
+
+ConversationCard.displayName = 'ConversationCard'
+
 interface ConversationsListProps {
   currentUserId: string
   onSelectConversation?: (conversation: Conversation) => void
@@ -37,157 +149,183 @@ export function ConversationsList({
   onSelectConversation, 
   selectedConversationId 
 }: ConversationsListProps) {
-  // Hardcoded mock conversations
-  const mockConversations: Conversation[] = [
-    {
-      id: "conv-1",
-      otherUser: {
-        id: "user-1",
-        firstName: "Nguyễn Văn",
-        lastName: "Minh",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 5 * 60 * 1000).toISOString() // 5 minutes ago (online)
-      },
-      lastMessage: {
-        id: "msg-1",
-        content: "Chào bạn! Mình có thể tham gia nhóm học Toán Cao Cấp không?",
-        createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 minutes ago
-        senderId: "user-1"
-      },
-      unreadCount: 2,
-      lastActivity: new Date(Date.now() - 10 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-2",
-      otherUser: {
-        id: "user-2",
-        firstName: "Trần Thị",
-        lastName: "Hoa",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b589?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago (offline)
-      },
-      lastMessage: {
-        id: "msg-2", 
-        content: "Cảm ơn bạn đã chia sẻ tài liệu! Rất hữu ích 😊",
-        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-        senderId: "user-2"
-      },
-      unreadCount: 0,
-      lastActivity: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-3",
-      otherUser: {
-        id: "user-3", 
-        firstName: "Lê Văn",
-        lastName: "Đức",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 10 * 60 * 1000).toISOString() // 10 minutes ago (online)
-      },
-      lastMessage: {
-        id: "msg-3",
-        content: "Bạn có thể gọi video call để cùng làm bài tập không?",
-        createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-        senderId: currentUserId
-      },
-      unreadCount: 1,
-      lastActivity: new Date(Date.now() - 30 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-4",
-      otherUser: {
-        id: "user-4",
-        firstName: "Phạm Thị",
-        lastName: "Mai",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 8 * 60 * 1000).toISOString() // 8 minutes ago (online)
-      },
-      lastMessage: {
-        id: "msg-4",
-        content: "Phòng học lúc 19h tối nay nhé! Đừng quên mang sách",
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-        senderId: "user-4"
-      },
-      unreadCount: 0,
-      lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-5",
-      otherUser: {
-        id: "user-5",
-        firstName: "Hoàng Văn",
-        lastName: "Nam", 
-        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago (offline)
-      },
-      lastMessage: {
-        id: "msg-5",
-        content: "Tài liệu ôn thi được rồi, cảm ơn bạn nhiều!",
-        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-        senderId: currentUserId
-      },
-      unreadCount: 0,
-      lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "conv-6",
-      otherUser: {
-        id: "user-6",
-        firstName: "Vũ Thị",
-        lastName: "Lan",
-        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
-        lastActive: new Date(Date.now() - 3 * 60 * 1000).toISOString() // 3 minutes ago (online)
-      },
-      lastMessage: {
-        id: "msg-6",
-        content: "Buổi thuyết trình mai rất quan trọng, chúng ta cùng chuẩn bị kỹ nhé!",
-        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-        senderId: "user-6"
-      },
-      unreadCount: 3,
-      lastActivity: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
-    }
-  ]
-
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
+  const { user } = useAuth()
+  const prefetchManagerRef = useRef<ReturnType<typeof getPrefetchManager> | null>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  const visibleConversationsRef = useRef<Set<string>>(new Set())
 
+  // Use cache-first conversations hook with real-time updates
+  const { conversations, isLoading, error } = useConversations({
+    userId: currentUserId,
+    enabled: !!currentUserId,
+    revalidateOnFocus: true,
+  })
+
+  // Get all user IDs from conversations for presence tracking
+  const userIds = useMemo(() => 
+    conversations.map(c => c.otherUser.id),
+    [conversations]
+  )
+
+  // Track presence of all users in conversations (also broadcasts own presence)
+  const { onlineUsers } = usePresence(currentUserId, userIds)
+
+  // Memoize filtered and sorted conversations to prevent unnecessary recalculations
+  const filteredConversations = useMemo(() => {
+    return conversations.filter(conversation =>
+      `${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    )
+  }, [conversations, searchQuery])
+
+  // Initialize prefetch manager
   useEffect(() => {
-    // Using mock data, no need to fetch from API
-    setLoading(false)
+    if (!prefetchManagerRef.current) {
+      const behaviorTracker = getBehaviorTracker()
+      prefetchManagerRef.current = getPrefetchManager(cacheManager, behaviorTracker)
+    }
   }, [])
 
-  const handleConversationClick = (conversation: Conversation) => {
+  // Prefetch top conversations on page load
+  useEffect(() => {
+    if (prefetchManagerRef.current && conversations.length > 0) {
+      // Prefetch top 5 conversations in background
+      prefetchManagerRef.current.prefetchTopConversations()
+      
+      // Also prefetch predicted conversation
+      prefetchManagerRef.current.prefetchPredicted(selectedConversationId)
+    }
+  }, [conversations, selectedConversationId])
+
+  // Set up Intersection Observer for scroll-based prefetching
+  useEffect(() => {
+    if (!scrollContainerRef.current || filteredConversations.length === 0) {
+      return
+    }
+
+    // Clean up existing observer
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+    }
+
+    // Create new observer
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const conversationId = entry.target.getAttribute('data-conversation-id')
+          if (!conversationId) return
+
+          if (entry.isIntersecting) {
+            visibleConversationsRef.current.add(conversationId)
+          } else {
+            visibleConversationsRef.current.delete(conversationId)
+          }
+        })
+
+        // Trigger prefetch when user scrolls near bottom
+        if (prefetchManagerRef.current && visibleConversationsRef.current.size > 0) {
+          const visibleIds = Array.from(visibleConversationsRef.current)
+          const allIds = filteredConversations.map(c => c.id)
+          prefetchManagerRef.current.prefetchOnScroll(visibleIds, allIds)
+        }
+      },
+      {
+        root: scrollContainerRef.current,
+        rootMargin: '0px 0px 200px 0px', // Trigger 200px before reaching bottom
+        threshold: 0.1
+      }
+    )
+
+    // Observe all conversation cards
+    const conversationElements = scrollContainerRef.current.querySelectorAll('[data-conversation-id]')
+    conversationElements.forEach((element) => {
+      observerRef.current?.observe(element)
+    })
+
+    // Cleanup
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+    }
+  }, [filteredConversations])
+
+  // Hover handlers for prefetching
+  const handleHoverStart = useCallback((conversationId: string) => {
+    if (prefetchManagerRef.current) {
+      prefetchManagerRef.current.prefetchOnHover(conversationId)
+      prefetchManagerRef.current.trackBehavior(conversationId, 'hover')
+    }
+  }, [])
+
+  const handleHoverEnd = useCallback((conversationId: string) => {
+    if (prefetchManagerRef.current) {
+      prefetchManagerRef.current.cancelHoverPrefetch(conversationId)
+    }
+  }, [])
+
+  // Memoize click handler to prevent recreation on every render
+  const handleConversationClick = useCallback((conversation: Conversation) => {
+    // Track behavior for prediction
+    if (prefetchManagerRef.current) {
+      prefetchManagerRef.current.trackBehavior(conversation.id, 'open')
+      
+      // Prefetch predicted next conversation
+      prefetchManagerRef.current.prefetchPredicted(conversation.id)
+    }
+
+    // Optimistic selection - update UI immediately
     if (onSelectConversation) {
       onSelectConversation(conversation)
     } else {
       router.push(`/messages/${conversation.otherUser.id}`)
     }
+    
+    // Fetch latest user status in background (non-blocking)
+    fetch(`/api/user/${conversation.otherUser.id}/status`)
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        }
+        return null
+      })
+      .then(data => {
+        if (data && onSelectConversation) {
+          // Update with latest status if callback is still available
+          const updatedConversation = {
+            ...conversation,
+            otherUser: {
+              ...conversation.otherUser,
+              lastActive: data.lastActive
+            }
+          }
+          onSelectConversation(updatedConversation)
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch user status:', err)
+        // Silently fail - we already showed the conversation
+      })
+  }, [onSelectConversation, router])
+
+  // Check if user is online using Pusher presence
+  const isOnline = (userId: string) => {
+    return onlineUsers.has(userId)
   }
 
-  const filteredConversations = conversations.filter(conversation =>
-    `${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  )
-
-  const isOnline = (lastActive?: string) => {
-    if (!lastActive) return false
-    return new Date(lastActive) > new Date(Date.now() - 15 * 60 * 1000)
+  // Show skeleton only when loading AND no data available (not even from cache)
+  // Note: Due to cache-first strategy, this will rarely show
+  // The skeleton is primarily for first-time users with no cached data
+  if (isLoading && conversations.length === 0) {
+    return <ConversationListSkeleton />
   }
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
-  }
-
-  if (error) {
+  // Show error only if we have no cached data
+  if (error && conversations.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center text-gray-500">
@@ -220,7 +358,8 @@ export function ConversationsList({
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Note: Virtual scrolling with react-window can be added for 100+ conversations if needed */}
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -232,74 +371,18 @@ export function ConversationsList({
             <p className="text-gray-500">Hãy kết nối với bạn học để bắt đầu trò chuyện!</p>
           </div>
         ) : (
+          // Regular rendering for < 100 conversations
           filteredConversations.map((conversation) => (
-            <div
+            <ConversationCard
               key={conversation.id}
-              onClick={() => handleConversationClick(conversation)}
-              className={`p-4 flex items-center space-x-3 cursor-pointer hover:bg-gray-50 transition-colors border-l-4 ${
-                selectedConversationId === conversation.id 
-                  ? 'bg-primary-50 border-l-primary-500' 
-                  : 'border-l-transparent hover:border-l-gray-200'
-              }`}
-            >
-              {/* Avatar */}
-              <div className="relative flex-shrink-0">
-                {conversation.otherUser.avatar ? (
-                  <img
-                    src={conversation.otherUser.avatar}
-                    alt={`${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {conversation.otherUser.firstName[0]}{conversation.otherUser.lastName[0]}
-                  </div>
-                )}
-                {isOnline(conversation.otherUser.lastActive) && (
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-gray-900 truncate">
-                    {conversation.otherUser.firstName} {conversation.otherUser.lastName}
-                  </p>
-                  <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                    {conversation.lastMessage 
-                      ? formatDistanceToNow(new Date(conversation.lastMessage.createdAt), { 
-                          addSuffix: true, 
-                          locale: vi 
-                        })
-                      : formatDistanceToNow(new Date(conversation.lastActivity), { 
-                          addSuffix: true, 
-                          locale: vi 
-                        })
-                    }
-                  </p>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-sm text-gray-600 truncate">
-                    {conversation.lastMessage ? (
-                      <>
-                        {conversation.lastMessage.senderId === currentUserId && (
-                          <span className="text-gray-500">Bạn: </span>
-                        )}
-                        {conversation.lastMessage.content}
-                      </>
-                    ) : (
-                      <span className="text-gray-400 italic">Chưa có tin nhắn</span>
-                    )}
-                  </p>
-                  {conversation.unreadCount > 0 && (
-                    <div className="w-5 h-5 bg-primary-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ml-2">
-                      {conversation.unreadCount}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+              conversation={conversation}
+              isSelected={selectedConversationId === conversation.id}
+              isOnline={isOnline(conversation.otherUser.id)}
+              currentUserId={currentUserId}
+              onClick={handleConversationClick}
+              onHoverStart={handleHoverStart}
+              onHoverEnd={handleHoverEnd}
+            />
           ))
         )}
       </div>

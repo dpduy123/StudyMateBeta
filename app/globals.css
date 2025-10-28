@@ -212,4 +212,232 @@
   .header-nav-link-active {
     @apply text-gray-900 font-semibold;
   }
+
+  /* Smooth transitions for messaging UI - Requirement 13.1 */
+  .message-fade-in {
+    animation: messageFadeIn 0.2s ease-out;
+  }
+
+  .conversation-slide-in {
+    animation: conversationSlideIn 0.15s ease-out;
+  }
+
+  .smooth-transform {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+
+  .hardware-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Optimistic UI feedback - Requirement 13.1 */
+  /* Instant visual feedback for all interactive elements */
+  .instant-feedback {
+    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+
+  .instant-feedback:active {
+    transform: scale(0.97) translateZ(0);
+  }
+
+  .instant-feedback:hover {
+    transform: scale(1.02) translateZ(0);
+  }
+
+  /* Button press effect with hardware acceleration */
+  .button-press {
+    transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+    will-change: transform;
+  }
+
+  .button-press:active {
+    transform: scale(0.95) translateZ(0);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .button-press:hover:not(:disabled) {
+    transform: scale(1.05) translateZ(0);
+  }
+
+  /* Ripple effect for primary actions */
+  .ripple-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ripple-effect::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%) translateZ(0);
+    transition: width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ripple-effect:active::after {
+    width: 200px;
+    height: 200px;
+    opacity: 1;
+  }
+
+  /* Card press effect for conversation cards */
+  .card-press {
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s ease-out;
+    will-change: transform;
+  }
+
+  .card-press:active {
+    transform: scale(0.98) translateZ(0);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  /* Hover lift effect */
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-out;
+    will-change: transform;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Prevent layout shifts */
+  .no-layout-shift {
+    contain: layout;
+  }
+
+  .stable-height {
+    min-height: 0;
+    contain: size layout;
+  }
+
+  .stable-width {
+    min-width: 0;
+    contain: size layout;
+  }
+
+  /* Prevent content jumping during loading */
+  .prevent-shift {
+    contain: layout style paint;
+  }
+
+  /* Optimistic state indicators */
+  .optimistic-pending {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .optimistic-success {
+    animation: successPulse 0.3s ease-out;
+  }
+
+  .optimistic-error {
+    animation: errorShake 0.3s ease-out;
+  }
+
+  /* Focus ring with hardware acceleration */
+  .focus-ring {
+    transition: box-shadow 0.15s ease-out;
+    will-change: box-shadow;
+  }
+
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    outline: none;
+  }
+
+  /* Smooth color transitions */
+  .smooth-color {
+    transition: background-color 0.15s ease-out, color 0.15s ease-out;
+  }
+
+  /* Loading state with hardware acceleration */
+  .loading-pulse {
+    animation: loadingPulse 1.5s ease-in-out infinite;
+  }
+}
+
+/* Keyframe animations for 60 FPS performance - all hardware accelerated */
+@keyframes messageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+@keyframes conversationSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateZ(0);
+  }
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(1) translateZ(0);
+  }
+  50% {
+    transform: scale(1.05) translateZ(0);
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+  }
+}
+
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0) translateZ(0);
+  }
+  25% {
+    transform: translateX(-5px) translateZ(0);
+  }
+  75% {
+    transform: translateX(5px) translateZ(0);
+  }
+}
+
+@keyframes loadingPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.98) translateZ(0);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .message-fade-in,
+  .conversation-slide-in {
+    animation: none;
+  }
 }
