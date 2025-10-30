@@ -34,9 +34,8 @@ export default function DiscoverPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [animationDirection, setAnimationDirection] = useState<'left' | 'right' | null>(null)
-  const [processedUserIds, setProcessedUserIds] = useState<string[]>([])
 
-  // Use Smart AI matching system
+  // Use Smart AI matching system - fetch 30 at a time (Gemini batch size)
   const {
     matches,
     isLoading,
@@ -47,7 +46,7 @@ export default function DiscoverPage() {
     debugInfo,
     getNextMatches,
     getRemainingCount
-  } = useMatches(15, processedUserIds) // Increased buffer size
+  } = useMatches(30) // Match Gemini batch size
 
   const {
     smartLikeUser,
@@ -69,9 +68,10 @@ export default function DiscoverPage() {
     return Math.floor(80 + random * 20) // 80-99 range
   }
 
-  // Smart prefetching - trigger when buffer gets low
+  // Smart prefetching - trigger when buffer gets low (less than 5 remaining)
+  // This ensures we prefetch the next 30 matches before user runs out
   useEffect(() => {
-    if (getRemainingCount() <= 3 && getRemainingCount() > 0) {
+    if (getRemainingCount() <= 5 && getRemainingCount() > 0) {
       prefetch()
     }
   }, [currentCardIndex, getRemainingCount, prefetch])
@@ -177,12 +177,7 @@ export default function DiscoverPage() {
 
     try {
       // Use smart batch processing
-      await smartLikeUser(currentMatch.id)
-
-      // Add to processed list
-      setProcessedUserIds(prev => [...prev, currentMatch.id])
-
-      // Process the action in our local buffer (handled by SmartMatchBuffer)
+      smartLikeUser(currentMatch.id)
 
       // Instant UI feedback - no waiting for API
       setTimeout(() => {
@@ -207,12 +202,7 @@ export default function DiscoverPage() {
 
     try {
       // Use smart batch processing
-      await smartPassUser(currentMatch.id)
-
-      // Add to processed list
-      setProcessedUserIds(prev => [...prev, currentMatch.id])
-
-      // Process the action in our local buffer (handled by SmartMatchBuffer)
+      smartPassUser(currentMatch.id)
 
       // Instant UI feedback - no waiting for API
       setTimeout(() => {
@@ -292,7 +282,6 @@ export default function DiscoverPage() {
           <div className="space-y-3">
             <button
               onClick={() => {
-                setProcessedUserIds([])
                 setCurrentCardIndex(0)
                 refetch()
               }}
