@@ -98,6 +98,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, metaData?: Record<string, unknown>) => {
+    // SECURITY: Backend validation for .edu email
+    // This prevents bypass via API calls, DevTools, or disabled JavaScript
+    // Valid: user@university.edu, user@university.edu.vn
+    // Invalid: user@gmail.com, user@company.com
+    const eduPattern = /@[^@]+\.edu(\.|$)/i;
+    if (!eduPattern.test(email)) {
+      console.error('❌ Non-.edu email rejected:', email);
+      throw new Error('Chỉ chấp nhận email trường đại học (.edu). Email phải chứa .edu trong tên miền (ví dụ: @university.edu hoặc @university.edu.vn)');
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

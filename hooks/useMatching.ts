@@ -142,13 +142,14 @@ class SmartMatchBuffer {
   }
 }
 
-export function useMatches(limit: number = 10, excludeIds: string[] = []) {
+export function useMatches(limit: number = 10) {
   const [buffer] = useState(() => new SmartMatchBuffer())
-  const excludeIdsParam = excludeIds.length > 0 ? `&exclude_ids=${excludeIds.join(',')}` : ''
   const [debugInfo, setDebugInfo] = useState<any>({})
 
+  // IMPORTANT: SWR key only includes limit to prevent refetch on every action
+  // Backend handles exclusion via its own cache and processed IDs tracking
   const { data, error, isLoading, mutate } = useSWR<MatchesResponse>(
-    `/api/discover/smart-matches?limit=${limit}${excludeIdsParam}`,
+    `/api/discover/smart-matches?limit=${limit}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -196,7 +197,8 @@ export function useMatches(limit: number = 10, excludeIds: string[] = []) {
   }, [buffer])
 
   const prefetch = useCallback(async () => {
-    if (buffer.getRemainingCount() <= 3 && !buffer.getIsLoading()) {
+    // Prefetch when buffer gets low (≤5 remaining)
+    if (buffer.getRemainingCount() <= 5 && !buffer.getIsLoading()) {
       buffer.setLoading(true)
       try {
         await mutate()

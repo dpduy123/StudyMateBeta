@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/prisma'
-import { RedisCache } from '@/lib/cache/redis-client'
-import { MatchPrecomputationService } from '@/lib/jobs/match-precomputation'
-import { UserProfile } from '@/components/profile/types'
+import { GeminiMatcher, UserProfile } from '@/lib/ai/gemini-matcher'
+import { matchCache } from '@/lib/ai/match-cache'
+import { matchLogger, MatchingAnalytics } from '@/lib/ai/logger'
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
@@ -36,87 +36,225 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
     const excludeIds = searchParams.get('exclude_ids')?.split(',').filter(Boolean) || []
-    const forceRefresh = searchParams.get('force_refresh') === 'true'
 
-    console.log(`Smart matches API called for user ${currentUser.id}, limit: ${limit}, excludeIds: ${excludeIds.length}`)
+    matchLogger.info('Smart matches API called', {
+      userId: currentUser.id,
+      operation: 'get-matches',
+      metadata: { limit }
+    })
 
-    // Temporarily disable Redis for testing optimized queries
-    const redis = null // RedisCache.getInstance()
-    console.log('Redis disabled for testing - using optimized database queries only')
+    // Check cache first
+    const cachedMatches = matchCache.get(currentUser.id)
 
-    // Skip Redis cache check for now
-    // const cachedMatches = await redis.getUserMatches(currentUser.id, excludeIds)
+    if (cachedMatches && cachedMatches.length > 0) {
+      const remaining = matchCache.getRemainingCount(currentUser.id)
+      matchLogger.cacheHit(currentUser.id, remaining, cachedMatches.length)
+      MatchingAnalytics.recordCacheHit(Date.now() - startTime)
 
-    // Single optimized query to get everything at once
-    console.log(`[MAIN] Starting getSingleOptimizedMatches...`)
+      // Return cached matches with their scores
+      const matches = cachedMatches.slice(0, limit).map(cached => ({
+        id: cached.userId,
+        firstName: cached.profileData?.firstName || '',
+        lastName: cached.profileData?.lastName || '',
+        email: cached.profileData?.email || '',
+        avatar: cached.profileData?.avatar,
+        bio: cached.profileData?.bio,
+        university: cached.profileData?.university || '',
+        major: cached.profileData?.major || '',
+        year: cached.profileData?.year || 1,
+        gpa: cached.profileData?.gpa,
+        interests: cached.profileData?.interests || [],
+        skills: cached.profileData?.skills || [],
+        studyGoals: cached.profileData?.studyGoals || [],
+        preferredStudyTime: cached.profileData?.preferredStudyTime || [],
+        languages: cached.profileData?.languages || [],
+        totalMatches: cached.profileData?.totalMatches || 0,
+        successfulMatches: cached.profileData?.successfulMatches || 0,
+        averageRating: cached.profileData?.averageRating || 0,
+        createdAt: cached.profileData?.createdAt || new Date().toISOString(),
+        matchScore: cached.score,
+        distance: '2.5 km',
+        isOnline: cached.profileData?.lastActive ? isUserOnline(cached.profileData.lastActive) : false
+      }))
+
+      const executionTime = Date.now() - startTime
+      matchLogger.requestSummary(currentUser.id, 'get-matches', {
+        totalDuration: executionTime,
+        source: 'cache',
+        cacheHit: true,
+        matchesReturned: matches.length,
+        remaining: matchCache.getRemainingCount(currentUser.id)
+      })
+
+      return NextResponse.json({
+        matches,
+        totalAvailable: cachedMatches.length,
+        remaining: matchCache.getRemainingCount(currentUser.id),
+        source: 'cache',
+        executionTime
+      })
+    }
+
+    // Cache miss - fetch and sort with Gemini AI
+    matchLogger.cacheMiss(currentUser.id)
+    MatchingAnalytics.recordCacheMiss()
+
+    // Get processed user IDs to exclude
+    const processedIds = matchCache.getProcessedUserIds(currentUser.id)
+    const allExcludeIds = [...new Set([...excludeIds, ...processedIds])]
+
     const dbStartTime = Date.now()
-    const { currentUserProfile, candidateUsers } = await getSingleOptimizedMatches(currentUser.id, excludeIds, limit)
-    console.log(`[MAIN] Database queries completed in ${Date.now() - dbStartTime}ms`)
-    
-    if (!currentUserProfile) {
+    let result = await getSingleOptimizedMatches(
+      currentUser.id,
+      allExcludeIds,
+      30 // Always fetch 30 for Gemini sorting
+    )
+    const dbDuration = Date.now() - dbStartTime
+    matchLogger.dbQuery('fetch-candidates', dbDuration, result.candidateUsers.length)
+
+    if (!result.currentUserProfile) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    // TEMPORARY: Skip AI scoring, just use database order
-    console.log(`[MAIN] Using simple database order (AI matching disabled temporarily)`)
-    const scoringStartTime = Date.now()
+    // If no candidates found, clear cache and retry without PASS exclusions
+    if (result.candidateUsers.length === 0) {
+      console.log(`⚠️ No candidates found with current exclusions`)
+      console.log(`🔄 Clearing cache and retrying without PASS exclusions...`)
+      matchCache.clear(currentUser.id)
 
-    // Just take candidates in order, assign random scores for UI display
-    const sortedMatches = candidateUsers.slice(0, limit).map(candidate => {
-      // Generate a consistent random score between 75-99 for each user
-      const userSeed = candidate.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-      const randomScore = 75 + (userSeed % 25) // 75-99 range
-      return { candidate, score: randomScore }
-    })
+      result = await getSingleOptimizedMatches(
+        currentUser.id,
+        [], // Empty exclude list - only exclude ACCEPTED/BLOCKED/PENDING from DB query
+        30
+      )
 
-    console.log(`[MAIN] Simple ordering completed in ${Date.now() - scoringStartTime}ms`)
+      if (result.candidateUsers.length === 0) {
+        console.log(`⚠️ Still no candidates found - truly no matches available`)
+        return NextResponse.json({
+          matches: [],
+          totalAvailable: 0,
+          remaining: 0,
+          source: 'database',
+          executionTime: Date.now() - startTime,
+          message: 'No more users available. All users have been matched or blocked.'
+        })
+      }
 
-    // Convert to MatchingUser format
-    const matches = sortedMatches.map(({ candidate, score }) => ({
-      id: candidate.id,
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      email: candidate.email,
-      avatar: candidate.avatar || undefined, // Fix: null -> undefined
-      bio: candidate.bio || undefined, // Fix: null -> undefined
-      university: candidate.university,
-      major: candidate.major,
-      year: candidate.year,
-      gpa: candidate.gpa || undefined, // Fix: null -> undefined
-      interests: candidate.interests,
-      skills: candidate.skills,
-      studyGoals: candidate.studyGoals,
-      preferredStudyTime: candidate.preferredStudyTime,
-      languages: candidate.languages,
-      totalMatches: candidate.totalMatches,
-      successfulMatches: candidate.successfulMatches,
-      averageRating: candidate.averageRating,
-      createdAt: candidate.createdAt.toISOString(),
-      matchScore: Math.round(score),
-      distance: '2.5 km', // Mock data - implement geolocation later
-      isOnline: isUserOnline(candidate.lastActive)
+      console.log(`✅ Found ${result.candidateUsers.length} candidates after cache clear`)
+    }
+
+    const { currentUserProfile, candidateUsers } = result
+
+    // Sort using Gemini AI
+    const geminiStartTime = Date.now()
+    matchLogger.geminiStart(currentUser.id, candidateUsers.length)
+
+    const gemini = new GeminiMatcher()
+    const userProfile: UserProfile = {
+      id: currentUserProfile.id,
+      firstName: currentUserProfile.firstName,
+      lastName: currentUserProfile.lastName,
+      university: currentUserProfile.university,
+      major: currentUserProfile.major,
+      year: currentUserProfile.year,
+      interests: currentUserProfile.interests,
+      skills: currentUserProfile.skills,
+      studyGoals: currentUserProfile.studyGoals,
+      preferredStudyTime: currentUserProfile.preferredStudyTime,
+      languages: currentUserProfile.languages,
+      bio: currentUserProfile.bio,
+      gpa: currentUserProfile.gpa
+    }
+
+    const candidateProfiles: UserProfile[] = candidateUsers.map(c => ({
+      id: c.id,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      university: c.university,
+      major: c.major,
+      year: c.year,
+      interests: c.interests,
+      skills: c.skills,
+      studyGoals: c.studyGoals,
+      preferredStudyTime: c.preferredStudyTime,
+      languages: c.languages,
+      bio: c.bio || undefined,
+      gpa: c.gpa || undefined
     }))
 
-    // Try to cache results (disabled for testing)
-    // try {
-    //   if (redis) {
-    //     await redis.cacheUserMatches(currentUser.id, matches, excludeIds)
-    //   }
-    // } catch (error) {
-    //   console.log('Redis cache failed (non-blocking):', error instanceof Error ? error.message : error)
-    // }
+    const sortedResults = await gemini.sortCandidatesByCompatibility(userProfile, candidateProfiles)
+    const geminiDuration = Date.now() - geminiStartTime
+    matchLogger.geminiSuccess(currentUser.id, geminiDuration, sortedResults.length)
+    MatchingAnalytics.recordGeminiCall(geminiDuration, true)
+
+    // Map sorted results to full candidate data
+    const candidateMap = new Map(candidateUsers.map(c => [c.id, c]))
+    const sortedMatches = sortedResults
+      .map(result => {
+        const candidate = candidateMap.get(result.userId)
+        if (!candidate) return null
+        return {
+          userId: result.userId,
+          score: result.score,
+          reasoning: result.reasoning,
+          profileData: candidate
+        }
+      })
+      .filter(Boolean) as any[]
+
+    // Cache the sorted matches
+    matchCache.set(currentUser.id, sortedMatches, false)
+    console.log(`💾 Cached ${sortedMatches.length} sorted matches`)
+
+    // Return first batch to client
+    const matches = sortedMatches.slice(0, limit).map(match => {
+      const candidate = match.profileData
+      return {
+        id: match.userId,
+        firstName: candidate.firstName,
+        lastName: candidate.lastName,
+        email: candidate.email,
+        avatar: candidate.avatar || undefined,
+        bio: candidate.bio || undefined,
+        university: candidate.university,
+        major: candidate.major,
+        year: candidate.year,
+        gpa: candidate.gpa || undefined,
+        interests: candidate.interests,
+        skills: candidate.skills,
+        studyGoals: candidate.studyGoals,
+        preferredStudyTime: candidate.preferredStudyTime,
+        languages: candidate.languages,
+        totalMatches: candidate.totalMatches,
+        successfulMatches: candidate.successfulMatches,
+        averageRating: candidate.averageRating,
+        createdAt: candidate.createdAt.toISOString(),
+        matchScore: Math.round(match.score),
+        distance: '2.5 km',
+        isOnline: isUserOnline(candidate.lastActive)
+      }
+    })
 
     const executionTime = Date.now() - startTime
-    console.log(`Smart matches API completed in ${executionTime}ms, returning ${matches.length} matches`)
+    matchLogger.requestSummary(currentUser.id, 'get-matches', {
+      totalDuration: executionTime,
+      source: 'gemini_ai',
+      cacheHit: false,
+      matchesReturned: matches.length,
+      remaining: sortedMatches.length,
+      geminiDuration,
+      dbDuration
+    })
 
     return NextResponse.json({
       matches,
-      totalAvailable: candidateUsers.length,
-      excludedCount: 0, // Will be calculated in optimized query
-      source: 'simple_database_order', // Updated source
+      totalAvailable: sortedMatches.length,
+      remaining: sortedMatches.length,
+      excludedCount: allExcludeIds.length,
+      source: 'gemini_ai',
       executionTime,
-      precomputedScores: 0,
-      realtimeScores: 0 // No AI scoring
+      geminiTime: geminiDuration,
+      dbTime: dbDuration
     })
 
   } catch (error) {
@@ -215,9 +353,9 @@ async function getSingleOptimizedMatches(currentUserId: string, excludeIds: stri
   console.log(`[DEBUG] Excluded IDs count: ${allExcludedIds.length}`, allExcludedIds.slice(0, 5))
 
   // Get candidate users in single query
-  console.log(`[DB Query 2] Finding candidate users with limit: ${limit * 2}`)
+  console.log(`[DB Query 2] Finding candidate users with limit: ${limit}`)
   const candidatesStartTime = Date.now()
-  
+
   const candidateUsers = await prisma.user.findMany({
     where: {
       id: { notIn: allExcludedIds },
@@ -226,7 +364,7 @@ async function getSingleOptimizedMatches(currentUserId: string, excludeIds: stri
         gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) // Last 60 days
       }
     },
-    take: limit * 2, // Get more to ensure good matches after scoring
+    take: limit, // Use limit directly (30 for Gemini sorting)
     orderBy: { lastActive: 'desc' }
   })
 
@@ -259,217 +397,19 @@ async function getSingleOptimizedMatches(currentUserId: string, excludeIds: stri
   return { currentUserProfile, candidateUsers }
 }
 
-// SIMPLIFIED MATCH SCORING (no external imports needed)
-function computeMatchScore(currentUser: any, candidate: any): number {
-  let score = 0
-  
-  // University match (20%)
-  if (currentUser.university === candidate.university) {
-    score += 20
-  } else {
-    score += 5 // Different university but still some points
-  }
-  
-  // Major match (25%)
-  if (currentUser.major === candidate.major) {
-    score += 25
-  } else {
-    // Check for related majors
-    const relatedMajors: Record<string, string[]> = {
-      'Computer Science': ['Software Engineering', 'Information Technology'],
-      'Business': ['Marketing', 'Economics'],
-      'Engineering': ['Computer Science', 'Software Engineering']
-    }
-    const related = relatedMajors[currentUser.major as string] || []
-    if (related.includes(candidate.major)) {
-      score += 15
-    } else {
-      score += 5
-    }
-  }
-  
-  // Year compatibility (15%)
-  const yearDiff = Math.abs(currentUser.year - candidate.year)
-  if (yearDiff === 0) score += 15
-  else if (yearDiff === 1) score += 12
-  else if (yearDiff === 2) score += 8
-  else score += 3
-  
-  // Interests overlap (20%)
-  const userInterests = (currentUser.interests as string[]) || []
-  const candidateInterests = (candidate.interests as string[]) || []
-  const commonInterests = userInterests.filter(interest => 
-    candidateInterests.includes(interest)
-  ).length
-  const maxInterests = Math.max(userInterests.length || 1, candidateInterests.length || 1)
-  score += (commonInterests / maxInterests) * 20
-  
-  // Skills overlap (10%)
-  const userSkills = (currentUser.skills as string[]) || []
-  const candidateSkills = (candidate.skills as string[]) || []
-  const commonSkills = userSkills.filter(skill => 
-    candidateSkills.includes(skill)
-  ).length
-  const maxSkills = Math.max(userSkills.length || 1, candidateSkills.length || 1)
-  score += (commonSkills / maxSkills) * 10
-  
-  // Study time compatibility (10%)
-  const userTimes = (currentUser.preferredStudyTime as string[]) || []
-  const candidateTimes = (candidate.preferredStudyTime as string[]) || []
-  const commonTimes = userTimes.filter(time => 
-    candidateTimes.includes(time)
-  ).length
-  const maxTimes = Math.max(userTimes.length || 1, candidateTimes.length || 1)
-  score += (commonTimes / maxTimes) * 10
-  
-  return Math.min(100, Math.max(10, score)) // Ensure score is between 10-100
-}
-
-// Helper methods for the API
-async function getCurrentUserProfile(userId: string, redis: RedisCache): Promise<UserProfile | null> {
-  // Try cache first
-  const cachedProfile = await redis.getUserProfile(userId)
-  if (cachedProfile) {
-    return cachedProfile
-  }
-
-  // Get from database
-  const user = await prisma.user.findUnique({
-    where: { id: userId }
-  })
-
-  if (!user) return null
-
-  const profile: UserProfile = {
-    id: user.id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    avatar: user.avatar || undefined,
-    bio: user.bio || undefined,
-    university: user.university,
-    major: user.major,
-    year: user.year,
-    gpa: user.gpa || undefined,
-    interests: user.interests,
-    skills: user.skills,
-    studyGoals: user.studyGoals,
-    preferredStudyTime: user.preferredStudyTime,
-    languages: user.languages,
-    totalMatches: user.totalMatches,
-    successfulMatches: user.successfulMatches,
-    averageRating: user.averageRating,
-    createdAt: user.createdAt.toISOString()
-  }
-
-  // Cache for future use
-  await redis.cacheUserProfile(userId, profile)
-
-  return profile
-}
-
-async function getAllExcludedIds(userId: string, additionalExcludeIds: string[]): Promise<string[]> {
-  const existingMatches = await prisma.match.findMany({
-    where: {
-      OR: [
-        { senderId: userId },
-        { receiverId: userId }
-      ]
-    },
-    select: {
-      senderId: true,
-      receiverId: true
-    }
-  })
-
-  const matchedUserIds = existingMatches.flatMap(match => [
-    match.senderId === userId ? match.receiverId : match.senderId
-  ])
-
-  return [...new Set([...matchedUserIds, ...additionalExcludeIds, userId])]
-}
-
-async function getCandidateUsers(excludedIds: string[], limit: number) {
-  return await prisma.user.findMany({
-    where: {
-      id: {
-        notIn: excludedIds
-      },
-      isProfilePublic: true,
-      lastActive: {
-        gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) // Last 60 days
-      }
-    },
-    take: limit,
-    orderBy: {
-      lastActive: 'desc' // Prioritize recently active users
-    }
-  })
-}
-
-async function computeRealTimeScores(
-  currentUser: UserProfile,
-  candidates: any[]
-): Promise<Array<{candidate: any, score: number}>> {
-  const { AIMatchingEngine } = await import('@/lib/matching/algorithm')
-
-  return candidates.map(candidate => {
-    const candidateProfile: UserProfile = {
-      id: candidate.id,
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      email: candidate.email,
-      avatar: candidate.avatar || undefined,
-      bio: candidate.bio || undefined,
-      university: candidate.university,
-      major: candidate.major,
-      year: candidate.year,
-      gpa: candidate.gpa || undefined,
-      interests: candidate.interests,
-      skills: candidate.skills,
-      studyGoals: candidate.studyGoals,
-      preferredStudyTime: candidate.preferredStudyTime,
-      languages: candidate.languages,
-      totalMatches: candidate.totalMatches,
-      successfulMatches: candidate.successfulMatches,
-      averageRating: candidate.averageRating,
-      createdAt: candidate.createdAt.toISOString()
-    }
-
-    // Calculate match score using existing algorithm
-    const universityMatch = AIMatchingEngine.calculateUniversityMatch(currentUser, candidateProfile)
-    const majorMatch = AIMatchingEngine.calculateMajorMatch(currentUser, candidateProfile)
-    const yearCompatibility = AIMatchingEngine.calculateYearCompatibility(currentUser, candidateProfile)
-    const interestsMatch = AIMatchingEngine.calculateInterestsMatch(currentUser, candidateProfile)
-    const skillsMatch = AIMatchingEngine.calculateSkillsMatch(currentUser, candidateProfile)
-    const studyTimeMatch = AIMatchingEngine.calculateStudyTimeMatch(currentUser, candidateProfile)
-    const languageMatch = AIMatchingEngine.calculateLanguageMatch(currentUser, candidateProfile)
-
-    const score =
-      universityMatch * 0.15 +
-      majorMatch * 0.20 +
-      yearCompatibility * 0.10 +
-      interestsMatch * 0.20 +
-      skillsMatch * 0.15 +
-      studyTimeMatch * 0.15 +
-      languageMatch * 0.05
-
-    return { candidate, score }
-  })
-}
-
 async function handleBatchActions(userId: string, actions: Array<{targetUserId: string, action: 'LIKE' | 'PASS'}>) {
   const results = []
-  const redis = RedisCache.getInstance()
 
-  // Process all actions in a transaction
+  // Process all actions
   for (const { targetUserId, action } of actions) {
     try {
+      // Pop from cache
+      matchCache.pop(userId)
+      const remaining = matchCache.getRemainingCount(userId)
+      matchLogger.userAction(userId, action, targetUserId, remaining)
+
       const result = await processSingleAction(userId, targetUserId, action)
       results.push({ targetUserId, action, ...result })
-
-      // SmartMatchingEngine buffer updates are handled client-side
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       results.push({
@@ -481,18 +421,125 @@ async function handleBatchActions(userId: string, actions: Array<{targetUserId: 
     }
   }
 
+  // Check if prefetch needed (after 10 actions, remaining = 20)
+  const remaining = matchCache.getRemainingCount(userId)
+  const shouldPrefetch = matchCache.shouldPrefetch(userId)
+
+  if (shouldPrefetch) {
+    matchLogger.prefetchStart(userId, remaining)
+    matchCache.markPrefetchTriggered(userId)
+    MatchingAnalytics.recordPrefetch()
+
+    // Prefetch in background (don't await)
+    prefetchMatches(userId).catch(err => {
+      matchLogger.error('Prefetch failed', err, { userId, operation: 'prefetch' })
+    })
+  }
+
   return NextResponse.json({
     success: true,
     results,
-    processed: results.length
+    processed: results.length,
+    remaining,
+    prefetchTriggered: shouldPrefetch
   })
+}
+
+// Background prefetch function
+async function prefetchMatches(userId: string) {
+  const startTime = Date.now()
+
+  try {
+    // Get excluded IDs
+    const processedIds = matchCache.getProcessedUserIds(userId)
+
+    // Fetch 30 new candidates
+    let prefetchResult = await getSingleOptimizedMatches(userId, processedIds, 30)
+
+    if (!prefetchResult.currentUserProfile || prefetchResult.candidateUsers.length === 0) {
+      matchLogger.warn('No more candidates for prefetch with current exclusions', { userId, operation: 'prefetch' })
+
+      // Clear cache and retry without PASS exclusions
+      console.log(`🔄 [Prefetch] Clearing cache and retrying without PASS exclusions...`)
+      matchCache.clear(userId)
+
+      prefetchResult = await getSingleOptimizedMatches(userId, [], 30)
+
+      if (!prefetchResult.currentUserProfile || prefetchResult.candidateUsers.length === 0) {
+        matchLogger.warn('No more candidates even after cache clear', { userId, operation: 'prefetch' })
+        return
+      }
+
+      console.log(`✅ [Prefetch] Found ${prefetchResult.candidateUsers.length} candidates after cache clear`)
+    }
+
+    const { currentUserProfile, candidateUsers } = prefetchResult
+
+    // Sort with Gemini
+    const gemini = new GeminiMatcher()
+    const userProfile: UserProfile = {
+      id: currentUserProfile.id,
+      firstName: currentUserProfile.firstName,
+      lastName: currentUserProfile.lastName,
+      university: currentUserProfile.university,
+      major: currentUserProfile.major,
+      year: currentUserProfile.year,
+      interests: currentUserProfile.interests,
+      skills: currentUserProfile.skills,
+      studyGoals: currentUserProfile.studyGoals,
+      preferredStudyTime: currentUserProfile.preferredStudyTime,
+      languages: currentUserProfile.languages,
+      bio: currentUserProfile.bio,
+      gpa: currentUserProfile.gpa
+    }
+
+    const candidateProfiles: UserProfile[] = candidateUsers.map(c => ({
+      id: c.id,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      university: c.university,
+      major: c.major,
+      year: c.year,
+      interests: c.interests,
+      skills: c.skills,
+      studyGoals: c.studyGoals,
+      preferredStudyTime: c.preferredStudyTime,
+      languages: c.languages,
+      bio: c.bio || undefined,
+      gpa: c.gpa || undefined
+    }))
+
+    const sortedResults = await gemini.sortCandidatesByCompatibility(userProfile, candidateProfiles)
+
+    // Map to cache format
+    const candidateMap = new Map(candidateUsers.map(c => [c.id, c]))
+    const sortedMatches = sortedResults
+      .map(result => {
+        const candidate = candidateMap.get(result.userId)
+        if (!candidate) return null
+        return {
+          userId: result.userId,
+          score: result.score,
+          reasoning: result.reasoning,
+          profileData: candidate
+        }
+      })
+      .filter(Boolean) as any[]
+
+    // Append to existing cache (don't merge)
+    matchCache.set(userId, sortedMatches, true)
+
+    const duration = Date.now() - startTime
+    const totalInCache = matchCache.getRemainingCount(userId) + sortedMatches.length
+    matchLogger.prefetchSuccess(userId, duration, sortedMatches.length, totalInCache)
+  } catch (error) {
+    const duration = Date.now() - startTime
+    matchLogger.prefetchError(userId, error, duration)
+  }
 }
 
 async function handleSingleAction(userId: string, targetUserId: string, action: 'LIKE' | 'PASS') {
   const result = await processSingleAction(userId, targetUserId, action)
-
-  // SmartMatchingEngine buffer updates are handled client-side
-
   return NextResponse.json(result)
 }
 
@@ -641,11 +688,6 @@ async function processSingleAction(userId: string, targetUserId: string, action:
     match: false,
     message: action === 'LIKE' ? 'Like sent successfully' : 'User passed'
   }
-}
-
-function calculateAge(createdAt: Date): number {
-  // This is a placeholder - you'd need actual birthdate
-  return Math.floor(18 + Math.random() * 8) // Random age 18-25
 }
 
 function isUserOnline(lastActive: Date): boolean {

@@ -39,7 +39,10 @@ export default function RegisterPage() {
   }
 
   const validateEmail = (email: string) => {
-    const eduPattern = /\.edu/
+    // Check if email contains .edu after @ symbol
+    // Valid: user@university.edu, user@university.edu.vn
+    // Invalid: user@gmail.com, user@company.com
+    const eduPattern = /@[^@]+\.edu(\.|$)/i
     return eduPattern.test(email)
   }
 
