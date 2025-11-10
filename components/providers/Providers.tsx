@@ -96,6 +96,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    // Redirect to login page after sign out
+    window.location.href = '/auth/login';
   };
 
   const signUp = async (email: string, password: string, metaData?: Record<string, unknown>) => {
