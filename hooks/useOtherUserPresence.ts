@@ -20,6 +20,7 @@ export function useOtherUserPresence(userId: string | undefined): UseOtherUserPr
   const [error, setError] = useState<string | null>(null)
   const channelRef = useRef<Channel | null>(null)
   const mountedRef = useRef(true)
+  const statusCheckIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     mountedRef.current = true
@@ -36,7 +37,14 @@ export function useOtherUserPresence(userId: string | undefined): UseOtherUserPr
         if (response.ok) {
           const data = await response.json()
           if (mountedRef.current) {
-            setIsOnline(data.status === 'online')
+            // Check if lastActive is within 5 minutes
+            if (data.lastActive) {
+              const lastActive = new Date(data.lastActive)
+              const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+              setIsOnline(lastActive > fiveMinutesAgo)
+            } else {
+              setIsOnline(data.status === 'online')
+            }
           }
         }
       } catch (err) {
@@ -45,6 +53,9 @@ export function useOtherUserPresence(userId: string | undefined): UseOtherUserPr
     }
 
     fetchInitialStatus()
+    
+    // Periodically check status as fallback (every 30 seconds)
+    statusCheckIntervalRef.current = setInterval(fetchInitialStatus, 30000)
 
     let pusher: ReturnType<typeof getPusherClient> | null = null
 
@@ -134,6 +145,12 @@ export function useOtherUserPresence(userId: string | undefined): UseOtherUserPr
     // Cleanup
     return () => {
       mountedRef.current = false
+
+      // Clear status check interval
+      if (statusCheckIntervalRef.current) {
+        clearInterval(statusCheckIntervalRef.current)
+        statusCheckIntervalRef.current = null
+      }
 
       if (channelRef.current) {
         console.log(`🔌 Unsubscribing from presence channel for ${userId}`)

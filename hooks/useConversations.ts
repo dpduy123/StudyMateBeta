@@ -68,57 +68,15 @@ export function useConversations(options: UseConversationsOptions = {}) {
       errorRetryCount: 3,
       errorRetryInterval: 1000,
       
-      // On success, update IndexedDB cache
-      onSuccess: async (data) => {
-        if (data?.conversations) {
-          try {
-            await cacheManager.setConversations(data.conversations)
-          } catch (error) {
-            console.error('Failed to cache conversations:', error)
-          }
-        }
-      },
-      
-      // On error, try to load from cache
-      onError: async (error) => {
+      // Simplified error handling - let SWR handle retries
+      onError: (error) => {
         console.error('Failed to fetch conversations:', error)
-        
-        // Try to load from IndexedDB cache as fallback
-        try {
-          const cachedConversations = await cacheManager.getConversations()
-          if (cachedConversations.length > 0) {
-            // Update SWR cache with cached data
-            mutate({ conversations: cachedConversations, count: cachedConversations.length }, false)
-          }
-        } catch (cacheError) {
-          console.error('Failed to load from cache:', cacheError)
-        }
       },
     }
   )
 
-  // Load from IndexedDB cache immediately on mount
-  useEffect(() => {
-    if (!enabled) return
-
-    const loadFromCache = async () => {
-      try {
-        const cachedConversations = await cacheManager.getConversations()
-        if (cachedConversations.length > 0) {
-          // Populate SWR cache with cached data immediately
-          // This provides instant UI update while API request is in flight
-          mutate(
-            { conversations: cachedConversations, count: cachedConversations.length },
-            false // Don't revalidate, let the normal SWR flow handle that
-          )
-        }
-      } catch (error) {
-        console.error('Failed to load conversations from cache:', error)
-      }
-    }
-
-    loadFromCache()
-  }, [enabled, mutate])
+  // Note: Removed IndexedDB cache loading - SWR handles caching efficiently
+  // with keepPreviousData and revalidateIfStale options
 
   // Real-time updates via Pusher
   // Listen for conversation updates
@@ -136,16 +94,6 @@ export function useConversations(options: UseConversationsOptions = {}) {
           lastMessage: data.lastMessage,
           unreadCount: data.unreadCount,
           lastActivity: data.lastActivity,
-          _cached: true,
-          _lastSync: new Date().toISOString(),
-          _prefetched: false,
-        }
-
-        // Update conversation in cache
-        try {
-          await cacheManager.updateConversation(updatedConversation.id, updatedConversation)
-        } catch (error) {
-          console.error('Failed to update conversation in cache:', error)
         }
 
         // Update SWR cache optimistically
@@ -186,14 +134,7 @@ export function useConversations(options: UseConversationsOptions = {}) {
   // Helper to update a specific conversation
   const updateConversation = useCallback(
     async (conversationId: string, updates: Partial<Conversation>) => {
-      // Update in cache
-      try {
-        await cacheManager.updateConversation(conversationId, updates)
-      } catch (error) {
-        console.error('Failed to update conversation in cache:', error)
-      }
-
-      // Update in SWR cache
+      // Update in SWR cache only (simplified)
       mutate(
         (current) => {
           if (!current) return current
@@ -224,14 +165,7 @@ export function useConversations(options: UseConversationsOptions = {}) {
   // Helper to delete a conversation
   const deleteConversation = useCallback(
     async (conversationId: string) => {
-      // Delete from cache
-      try {
-        await cacheManager.deleteConversation(conversationId)
-      } catch (error) {
-        console.error('Failed to delete conversation from cache:', error)
-      }
-
-      // Update SWR cache
+      // Update SWR cache only (simplified)
       mutate(
         (current) => {
           if (!current) return current

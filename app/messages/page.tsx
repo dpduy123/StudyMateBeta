@@ -12,26 +12,12 @@ import {
   PhoneIcon,
   VideoCameraIcon,
   EllipsisVerticalIcon,
-  ArrowLeftIcon,
-  UsersIcon,
-  ChatBubbleOvalLeftEllipsisIcon
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline'
 
 // Lazy load heavy chat components
 const ConversationsList = dynamic(
   () => import('@/components/chat/ConversationsList').then(mod => ({ default: mod.ConversationsList })),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-pulse text-gray-400">Đang tải...</div>
-      </div>
-    ),
-    ssr: false
-  }
-)
-
-const MatchedUsersList = dynamic(
-  () => import('@/components/chat/MatchedUsersList').then(mod => ({ default: mod.MatchedUsersList })),
   {
     loading: () => (
       <div className="flex items-center justify-center h-full">
@@ -76,7 +62,6 @@ interface SelectedConversation {
 export default function MessagesPage() {
   const { user } = useAuth()
   const [selectedConversation, setSelectedConversation] = useState<SelectedConversation | null>(null)
-  const [activeTab, setActiveTab] = useState<'conversations' | 'matches'>('conversations')
 
   // Enable notifications for this user
   useNotifications({
@@ -91,41 +76,38 @@ export default function MessagesPage() {
   const getStatusText = () => {
     if (!selectedConversation) return ''
 
+    // Check Pusher presence first (real-time)
     if (isOtherUserOnline) {
       return 'Đang hoạt động'
     }
 
-    // Show last active time if available
+    // Fallback: Check lastActive (within 5 minutes = online)
     if (selectedConversation.otherUser.lastActive) {
       const lastActive = new Date(selectedConversation.otherUser.lastActive)
       const now = new Date()
       const diffMs = now.getTime() - lastActive.getTime()
       const diffMins = Math.floor(diffMs / 60000)
 
-      if (diffMins < 1) return 'Vừa xong'
-      if (diffMins < 60) return `${diffMins} phút trước`
+      // If active within 5 minutes, show as online
+      if (diffMins < 5) return 'Đang hoạt động'
+      
+      // Otherwise show last active time
+      if (diffMins < 60) return `Hoạt động ${diffMins} phút trước`
 
       const diffHours = Math.floor(diffMins / 60)
-      if (diffHours < 24) return `${diffHours} giờ trước`
+      if (diffHours < 24) return `Hoạt động ${diffHours} giờ trước`
 
       const diffDays = Math.floor(diffHours / 24)
-      return `${diffDays} ngày trước`
+      if (diffDays === 1) return 'Hoạt động hôm qua'
+      if (diffDays < 7) return `Hoạt động ${diffDays} ngày trước`
+      
+      return 'Không hoạt động gần đây'
     }
 
-    return 'Offline'
+    return 'Không hoạt động gần đây'
   }
 
-  const handleMatchedUserSelect = (userId: string) => {
-    // Create a conversation object for the matched user
-    setSelectedConversation({
-      id: userId,
-      otherUser: {
-        id: userId,
-        firstName: 'Bạn học',
-        lastName: 'StudyMate'
-      }
-    })
-  }
+
 
   return (
 
@@ -147,48 +129,12 @@ export default function MessagesPage() {
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 h-[calc(100vh-120px)] sm:h-[calc(100vh-200px)] flex flex-col sm:flex-row">
           {/* Sidebar - Full width on mobile when no conversation selected */}
           <div className={`${selectedConversation ? 'hidden sm:flex' : 'flex'} sm:w-1/3 border-r border-gray-200 flex-col w-full`}>
-            {/* Tab Navigation */}
-            <div className="flex border-b border-gray-200">
-              <button
-                onClick={() => setActiveTab('conversations')}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'conversations'
-                  ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <ChatBubbleOvalLeftEllipsisIcon className="h-4 w-4" />
-                  <span>Tin nhắn</span>
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('matches')}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'matches'
-                  ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <UsersIcon className="h-4 w-4" />
-                  <span>Kết nối</span>
-                </div>
-              </button>
-            </div>
-
-            {/* Tab Content */}
-            <div className="flex-1 overflow-hidden">
-              {activeTab === 'conversations' ? (
-                <ConversationsList
-                  currentUserId={user?.id || ''}
-                  onSelectConversation={setSelectedConversation}
-                  selectedConversationId={selectedConversation?.id}
-                />
-              ) : (
-                <MatchedUsersList
-                  onSelectUser={handleMatchedUserSelect}
-                />
-              )}
-            </div>
+            {/* Conversations List - Shows all matched users */}
+            <ConversationsList
+              currentUserId={user?.id || ''}
+              onSelectConversation={setSelectedConversation}
+              selectedConversationId={selectedConversation?.id}
+            />
           </div>
 
           {/* Chat Window - Full width on mobile when conversation selected */}

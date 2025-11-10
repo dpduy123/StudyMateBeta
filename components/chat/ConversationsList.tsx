@@ -1,17 +1,12 @@
 'use client'
 
-import { useState, useMemo, memo, useCallback, useEffect, useRef } from 'react'
+import { useState, useMemo, memo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { formatDistanceToNow } from 'date-fns'
-import { vi } from 'date-fns/locale'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 import { usePresence } from '@/hooks/usePresence'
 import { useConversations } from '@/hooks/useConversations'
 import { useAuth } from '@/components/providers/Providers'
-import { cacheManager } from '@/lib/cache/CacheManager'
-import { getPrefetchManager } from '@/lib/prefetch/PrefetchManager'
-import { getBehaviorTracker } from '@/lib/prefetch/BehaviorTracker'
 import { ConversationListSkeleton } from '@/components/ui/SkeletonLoader'
 import { Avatar } from '@/components/ui/Avatar'
 import { OnlineIndicator } from '@/components/ui/OnlineIndicator'
@@ -43,8 +38,6 @@ interface ConversationCardProps {
   isOnline: boolean
   currentUserId: string
   onClick: (conversation: Conversation) => void
-  onHoverStart: (conversationId: string) => void
-  onHoverEnd: (conversationId: string) => void
 }
 
 const ConversationCard = memo(({ 
@@ -52,25 +45,16 @@ const ConversationCard = memo(({
   isSelected, 
   isOnline, 
   currentUserId, 
-  onClick,
-  onHoverStart,
-  onHoverEnd
+  onClick
 }: ConversationCardProps) => {
   return (
     <div
-      data-conversation-id={conversation.id}
       onClick={() => onClick(conversation)}
-      onMouseEnter={() => onHoverStart(conversation.id)}
-      onMouseLeave={() => onHoverEnd(conversation.id)}
-      className={`p-4 flex items-center space-x-3 cursor-pointer hardware-accelerated card-press border-l-4 ${
+      className={`p-4 flex items-center space-x-3 cursor-pointer transition-colors border-l-4 ${
         isSelected 
           ? 'bg-primary-50 border-l-primary-500' 
           : 'border-l-transparent hover:border-l-gray-200 hover:bg-gray-50'
       }`}
-      style={{
-        contentVisibility: 'auto', // Optimize off-screen rendering
-        containIntrinsicSize: '80px', // Hint for content-visibility
-      }}
     >
       {/* Avatar */}
       <div className="relative flex-shrink-0">
@@ -130,9 +114,7 @@ const ConversationCard = memo(({
     prevProps.conversation.unreadCount === nextProps.conversation.unreadCount &&
     prevProps.conversation.lastMessage?.id === nextProps.conversation.lastMessage?.id &&
     prevProps.conversation.lastMessage?.content === nextProps.conversation.lastMessage?.content &&
-    prevProps.conversation.lastActivity === nextProps.conversation.lastActivity &&
-    prevProps.onHoverStart === nextProps.onHoverStart &&
-    prevProps.onHoverEnd === nextProps.onHoverEnd
+    prevProps.conversation.lastActivity === nextProps.conversation.lastActivity
   )
 })
 
@@ -152,16 +134,13 @@ export function ConversationsList({
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
   const { user } = useAuth()
-  const prefetchManagerRef = useRef<ReturnType<typeof getPrefetchManager> | null>(null)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  const visibleConversationsRef = useRef<Set<string>>(new Set())
 
-  // Use cache-first conversations hook with real-time updates
+  // Simplified: Use SWR with built-in caching
   const { conversations, isLoading, error } = useConversations({
     userId: currentUserId,
     enabled: !!currentUserId,
-    revalidateOnFocus: true,
+    revalidateOnFocus: false, // Reduce unnecessary revalidations
+    refreshInterval: 30000, // Refresh every 30 seconds
   })
 
   // Get all user IDs from conversations for presence tracking
@@ -171,11 +150,13 @@ export function ConversationsList({
   )
 
   // Track presence of all users in conversations
-  // Note: Own presence is already broadcast by PresenceProvider globally
-  const { onlineUsers } = usePresence(undefined, userIds)
+  // Also broadcast own presence to let others see us online
+  const { onlineUsers } = usePresence(currentUserId, userIds)
 
-  // Memoize filtered and sorted conversations to prevent unnecessary recalculations
+  // Memoize filtered conversations
   const filteredConversations = useMemo(() => {
+    if (!searchQuery) return conversations
+    
     return conversations.filter(conversation =>
       `${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`
         .toLowerCase()
@@ -183,150 +164,40 @@ export function ConversationsList({
     )
   }, [conversations, searchQuery])
 
-  // Initialize prefetch manager
-  useEffect(() => {
-    if (!prefetchManagerRef.current) {
-      const behaviorTracker = getBehaviorTracker()
-      prefetchManagerRef.current = getPrefetchManager(cacheManager, behaviorTracker)
-    }
-  }, [])
-
-  // Prefetch top conversations on page load
-  useEffect(() => {
-    if (prefetchManagerRef.current && conversations.length > 0) {
-      // Prefetch top 5 conversations in background
-      prefetchManagerRef.current.prefetchTopConversations()
-      
-      // Also prefetch predicted conversation
-      prefetchManagerRef.current.prefetchPredicted(selectedConversationId)
-    }
-  }, [conversations, selectedConversationId])
-
-  // Set up Intersection Observer for scroll-based prefetching
-  useEffect(() => {
-    if (!scrollContainerRef.current || filteredConversations.length === 0) {
-      return
-    }
-
-    // Clean up existing observer
-    if (observerRef.current) {
-      observerRef.current.disconnect()
-    }
-
-    // Create new observer
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const conversationId = entry.target.getAttribute('data-conversation-id')
-          if (!conversationId) return
-
-          if (entry.isIntersecting) {
-            visibleConversationsRef.current.add(conversationId)
-          } else {
-            visibleConversationsRef.current.delete(conversationId)
-          }
-        })
-
-        // Trigger prefetch when user scrolls near bottom
-        if (prefetchManagerRef.current && visibleConversationsRef.current.size > 0) {
-          const visibleIds = Array.from(visibleConversationsRef.current)
-          const allIds = filteredConversations.map(c => c.id)
-          prefetchManagerRef.current.prefetchOnScroll(visibleIds, allIds)
-        }
-      },
-      {
-        root: scrollContainerRef.current,
-        rootMargin: '0px 0px 200px 0px', // Trigger 200px before reaching bottom
-        threshold: 0.1
-      }
-    )
-
-    // Observe all conversation cards
-    const conversationElements = scrollContainerRef.current.querySelectorAll('[data-conversation-id]')
-    conversationElements.forEach((element) => {
-      observerRef.current?.observe(element)
-    })
-
-    // Cleanup
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect()
-      }
-    }
-  }, [filteredConversations])
-
-  // Hover handlers for prefetching
-  const handleHoverStart = useCallback((conversationId: string) => {
-    if (prefetchManagerRef.current) {
-      prefetchManagerRef.current.prefetchOnHover(conversationId)
-      prefetchManagerRef.current.trackBehavior(conversationId, 'hover')
-    }
-  }, [])
-
-  const handleHoverEnd = useCallback((conversationId: string) => {
-    if (prefetchManagerRef.current) {
-      prefetchManagerRef.current.cancelHoverPrefetch(conversationId)
-    }
-  }, [])
-
-  // Memoize click handler to prevent recreation on every render
+  // Simplified click handler
   const handleConversationClick = useCallback((conversation: Conversation) => {
-    // Track behavior for prediction
-    if (prefetchManagerRef.current) {
-      prefetchManagerRef.current.trackBehavior(conversation.id, 'open')
-      
-      // Prefetch predicted next conversation
-      prefetchManagerRef.current.prefetchPredicted(conversation.id)
-    }
-
-    // Optimistic selection - update UI immediately
     if (onSelectConversation) {
       onSelectConversation(conversation)
     } else {
       router.push(`/messages/${conversation.otherUser.id}`)
     }
-    
-    // Fetch latest user status in background (non-blocking)
-    fetch(`/api/user/${conversation.otherUser.id}/status`)
-      .then(response => {
-        if (response.ok) {
-          return response.json()
-        }
-        return null
-      })
-      .then(data => {
-        if (data && onSelectConversation) {
-          // Update with latest status if callback is still available
-          const updatedConversation = {
-            ...conversation,
-            otherUser: {
-              ...conversation.otherUser,
-              lastActive: data.lastActive
-            }
-          }
-          onSelectConversation(updatedConversation)
-        }
-      })
-      .catch(err => {
-        console.error('Failed to fetch user status:', err)
-        // Silently fail - we already showed the conversation
-      })
   }, [onSelectConversation, router])
 
-  // Check if user is online using Pusher presence
-  const isOnline = (userId: string) => {
-    return onlineUsers.has(userId)
-  }
+  // Check if user is online using Pusher presence with fallback to lastActive
+  const isOnline = useCallback((userId: string) => {
+    // First check Pusher presence (real-time)
+    if (onlineUsers.has(userId)) {
+      return true
+    }
+    
+    // Fallback: Check lastActive from API (within 5 minutes)
+    const conversation = conversations.find(c => c.otherUser.id === userId)
+    if (conversation?.otherUser.lastActive) {
+      const lastActive = new Date(conversation.otherUser.lastActive)
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+      return lastActive > fiveMinutesAgo
+    }
+    
+    return false
+  }, [onlineUsers, conversations])
 
-  // Show skeleton only when loading AND no data available (not even from cache)
-  // Note: Due to cache-first strategy, this will rarely show
-  // The skeleton is primarily for first-time users with no cached data
-  if (isLoading && conversations.length === 0) {
+  // Show loading state
+  if (isLoading) {
     return <ConversationListSkeleton />
   }
 
-  // Show error only if we have no cached data
-  if (error && conversations.length === 0) {
+  // Show error state
+  if (error) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center text-gray-500">
@@ -359,8 +230,7 @@ export function ConversationsList({
       </div>
 
       {/* Conversations List */}
-      {/* Note: Virtual scrolling with react-window can be added for 100+ conversations if needed */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -372,7 +242,6 @@ export function ConversationsList({
             <p className="text-gray-500">Hãy kết nối với bạn học để bắt đầu trò chuyện!</p>
           </div>
         ) : (
-          // Regular rendering for < 100 conversations
           filteredConversations.map((conversation) => (
             <ConversationCard
               key={conversation.id}
@@ -381,8 +250,6 @@ export function ConversationsList({
               isOnline={isOnline(conversation.otherUser.id)}
               currentUserId={currentUserId}
               onClick={handleConversationClick}
-              onHoverStart={handleHoverStart}
-              onHoverEnd={handleHoverEnd}
             />
           ))
         )}

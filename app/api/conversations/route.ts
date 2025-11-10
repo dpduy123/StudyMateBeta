@@ -57,111 +57,146 @@ export async function GET(req: NextRequest) {
       console.warn('Cache read error (continuing without cache):', cacheError)
     }
 
-    // Get all messages where user is sender or receiver
-    const messages = await prisma.message.findMany({
-      where: {
-        OR: [
-          { senderId: user.id },
-          { receiverId: user.id }
-        ]
-      },
-      select: {
-        id: true,
-        senderId: true,
-        receiverId: true,
-        content: true,
-        isRead: true,
-        createdAt: true,
-        sender: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            lastActive: true
+    // Run queries in parallel for better performance
+    const [acceptedMatches, recentMessages, unreadCounts] = await Promise.all([
+      // Get all accepted matches (users you can message)
+      prisma.match.findMany({
+        where: {
+          OR: [
+            { senderId: user.id, status: 'ACCEPTED' },
+            { receiverId: user.id, status: 'ACCEPTED' }
+          ]
+        },
+        select: {
+          id: true,
+          senderId: true,
+          receiverId: true,
+          createdAt: true,
+          sender: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              lastActive: true
+            }
+          },
+          receiver: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              lastActive: true
+            }
           }
         },
-        receiver: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            lastActive: true
-          }
+        orderBy: { createdAt: 'desc' }
+      }),
+
+      // Get last message for each conversation
+      prisma.message.groupBy({
+        by: ['senderId', 'receiverId'],
+        where: {
+          OR: [
+            { senderId: user.id },
+            { receiverId: user.id }
+          ]
+        },
+        _max: {
+          createdAt: true
         }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: 200 // Limit to recent messages for performance
-    })
+      }),
 
-    // Group messages by conversation (other user)
-    const conversationsMap = new Map()
-    const otherUserIds: string[] = []
-
-    for (const message of messages) {
-      // Determine the other user (not current user)
-      const otherUser = message.senderId === user.id ? message.receiver : message.sender
-      
-      if (!otherUser) continue
-
-      const conversationId = otherUser.id
-
-      // If this conversation doesn't exist yet, create it
-      if (!conversationsMap.has(conversationId)) {
-        otherUserIds.push(otherUser.id)
-        
-        // Calculate if user is online (active within last 5 minutes)
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
-        const isOnline = otherUser.lastActive ? otherUser.lastActive > fiveMinutesAgo : false
-
-        conversationsMap.set(conversationId, {
-          id: conversationId,
-          otherUser: {
-            id: otherUser.id,
-            firstName: otherUser.firstName,
-            lastName: otherUser.lastName,
-            avatar: otherUser.avatar,
-            isOnline,
-            lastActive: otherUser.lastActive?.toISOString()
-          },
-          lastMessage: {
-            id: message.id,
-            content: message.content.substring(0, 100),
-            createdAt: message.createdAt.toISOString(),
-            senderId: message.senderId,
-            isRead: message.isRead
-          },
-          unreadCount: 0, // Will be updated below
-          lastActivity: message.createdAt.toISOString()
-        })
-      }
-    }
-
-    // Get unread counts for all conversations in parallel
-    if (otherUserIds.length > 0) {
-      const unreadCounts = await prisma.message.groupBy({
+      // Get unread counts
+      prisma.message.groupBy({
         by: ['senderId'],
         where: {
           receiverId: user.id,
-          isRead: false,
-          senderId: {
-            in: otherUserIds
-          }
+          isRead: false
         },
         _count: {
           id: true
         }
       })
+    ])
 
-      // Update unread counts in conversations
-      for (const count of unreadCounts) {
-        const conversation = conversationsMap.get(count.senderId)
+    // Build conversations map from matched users
+    const conversationsMap = new Map()
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+
+    // Add all matched users to conversations
+    for (const match of acceptedMatches) {
+      const otherUser = match.senderId === user.id ? match.receiver : match.sender
+      if (!otherUser) continue
+
+      const isOnline = otherUser.lastActive ? otherUser.lastActive > fiveMinutesAgo : false
+
+      conversationsMap.set(otherUser.id, {
+        id: otherUser.id,
+        otherUser: {
+          id: otherUser.id,
+          firstName: otherUser.firstName,
+          lastName: otherUser.lastName,
+          avatar: otherUser.avatar,
+          isOnline,
+          lastActive: otherUser.lastActive?.toISOString()
+        },
+        lastMessage: null,
+        unreadCount: 0,
+        lastActivity: match.createdAt.toISOString()
+      })
+    }
+
+    // Get actual last messages for conversations that have messages
+    const conversationIds = Array.from(conversationsMap.keys())
+    if (conversationIds.length > 0) {
+      const lastMessages = await prisma.message.findMany({
+        where: {
+          OR: conversationIds.flatMap(otherId => [
+            { senderId: user.id, receiverId: otherId },
+            { senderId: otherId, receiverId: user.id }
+          ])
+        },
+        select: {
+          id: true,
+          senderId: true,
+          receiverId: true,
+          content: true,
+          isRead: true,
+          createdAt: true
+        },
+        orderBy: { createdAt: 'desc' },
+        distinct: ['senderId', 'receiverId']
+      })
+
+      // Update conversations with last messages
+      for (const message of lastMessages) {
+        const otherId = message.senderId === user.id ? message.receiverId : message.senderId
+        const conversation = conversationsMap.get(otherId)
+        
         if (conversation) {
-          conversation.unreadCount = count._count.id
+          // Only update if this message is newer
+          if (!conversation.lastMessage || 
+              new Date(message.createdAt) > new Date(conversation.lastMessage.createdAt)) {
+            conversation.lastMessage = {
+              id: message.id,
+              content: message.content.substring(0, 100),
+              createdAt: message.createdAt.toISOString(),
+              senderId: message.senderId,
+              isRead: message.isRead
+            }
+            conversation.lastActivity = message.createdAt.toISOString()
+          }
         }
+      }
+    }
+
+    // Update unread counts
+    for (const count of unreadCounts) {
+      const conversation = conversationsMap.get(count.senderId)
+      if (conversation) {
+        conversation.unreadCount = count._count.id
       }
     }
 
