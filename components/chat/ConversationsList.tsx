@@ -170,8 +170,9 @@ export function ConversationsList({
     [conversations]
   )
 
-  // Track presence of all users in conversations (also broadcasts own presence)
-  const { onlineUsers } = usePresence(currentUserId, userIds)
+  // Track presence of all users in conversations
+  // Note: Own presence is already broadcast by PresenceProvider globally
+  const { onlineUsers } = usePresence(undefined, userIds)
 
   // Memoize filtered and sorted conversations to prevent unnecessary recalculations
   const filteredConversations = useMemo(() => {

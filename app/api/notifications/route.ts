@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/prisma'
+import { simpleCache } from '@/lib/cache/simple-cache'
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,29 +28,58 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get('unreadOnly') === 'true'
     const limit = parseInt(searchParams.get('limit') || '50')
 
+    // Check cache first (30 second TTL)
+    const cacheKey = `notifications:${currentUser.id}:${unreadOnly}:${limit}`
+    const cached = simpleCache.get<{ notifications: any[], unreadCount: number, total: number }>(cacheKey)
+    
+    if (cached) {
+      return NextResponse.json(cached)
+    }
+
     const whereClause: any = { userId: currentUser.id }
     if (unreadOnly) {
       whereClause.isRead = false
     }
 
-    const notifications = await prisma.notification.findMany({
-      where: whereClause,
-      orderBy: { createdAt: 'desc' },
-      take: limit
-    })
+    // Run queries in parallel for better performance
+    const [notifications, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          message: true,
+          isRead: true,
+          relatedUserId: true,
+          relatedMatchId: true,
+          relatedMessageId: true,
+          relatedRoomId: true,
+          metadata: true,
+          createdAt: true,
+          readAt: true,
+        }
+      }),
+      prisma.notification.count({
+        where: {
+          userId: currentUser.id,
+          isRead: false
+        }
+      })
+    ])
 
-    const unreadCount = await prisma.notification.count({
-      where: {
-        userId: currentUser.id,
-        isRead: false
-      }
-    })
-
-    return NextResponse.json({
+    const result = {
       notifications,
       unreadCount,
       total: notifications.length
-    })
+    }
+
+    // Cache for 30 seconds
+    simpleCache.set(cacheKey, result, 30000)
+
+    return NextResponse.json(result)
 
   } catch (error) {
     console.error('Error fetching notifications:', error)
@@ -98,6 +128,9 @@ export async function PATCH(request: NextRequest) {
         }
       })
 
+      // Invalidate cache
+      simpleCache.invalidatePattern(`notifications:${currentUser.id}:`)
+
       return NextResponse.json({ success: true, message: 'Notification marked as read' })
     }
 
@@ -112,6 +145,9 @@ export async function PATCH(request: NextRequest) {
           readAt: new Date()
         }
       })
+
+      // Invalidate cache
+      simpleCache.invalidatePattern(`notifications:${currentUser.id}:`)
 
       return NextResponse.json({ success: true, message: 'All notifications marked as read' })
     }
@@ -163,6 +199,9 @@ export async function DELETE(request: NextRequest) {
     await prisma.notification.delete({
       where: { id: notificationId }
     })
+
+    // Invalidate cache
+    simpleCache.invalidatePattern(`notifications:${currentUser.id}:`)
 
     return NextResponse.json({ success: true, message: 'Notification deleted' })
 

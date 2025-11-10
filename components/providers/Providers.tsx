@@ -39,9 +39,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  // Subscribe to own presence channel to broadcast online status
-  // Only when user is authenticated and not loading
-  usePresence(user && !loading ? user.id : undefined)
+  // Presence is now handled by PresenceProvider to avoid duplicate subscriptions
+  // usePresence(user && !loading ? user.id : undefined)
 
   useEffect(() => {
     // Get initial session

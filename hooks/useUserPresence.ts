@@ -122,10 +122,11 @@ export function useUserPresence(): UseUserPresenceReturn {
           setMembers(prev => prev.filter(m => m.id !== member.id))
         })
 
-        // Set up heartbeat to update lastActive every 30 seconds
+        // Set up heartbeat to update lastActive every 2 minutes (120 seconds)
+        // Reduced frequency to minimize database load
         heartbeatInterval = setInterval(() => {
           updateLastActive()
-        }, 30000)
+        }, 120000)
 
         // Update lastActive on page visibility change
         const handleVisibilityChange = () => {

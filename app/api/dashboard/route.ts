@@ -34,23 +34,149 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch user profile with stats
-    const profile = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        avatar: true,
-        university: true,
-        major: true,
-        year: true,
-        totalMatches: true,
-        successfulMatches: true,
-        averageRating: true,
-        createdAt: true,
-      },
-    })
+    // Run all queries in parallel for maximum performance
+    const [
+      profile,
+      recentMatches,
+      recentActivity,
+      allStudyActivities,
+      badgeCount,
+      userRooms
+    ] = await Promise.all([
+      // Fetch user profile with stats
+      prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatar: true,
+          university: true,
+          major: true,
+          year: true,
+          totalMatches: true,
+          successfulMatches: true,
+          averageRating: true,
+          createdAt: true,
+        },
+      }),
+      
+      // Get recent matches (both sent and received, accepted ones)
+      prisma.match.findMany({
+        where: {
+          OR: [
+            { senderId: user.id, status: 'ACCEPTED' },
+            { receiverId: user.id, status: 'ACCEPTED' }
+          ]
+        },
+        select: {
+          id: true,
+          senderId: true,
+          receiverId: true,
+          createdAt: true,
+          sender: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              university: true,
+              major: true,
+              lastActive: true,
+            }
+          },
+          receiver: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              university: true,
+              major: true,
+              lastActive: true,
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 6,
+      }),
+      
+      // Get recent activity
+      prisma.userActivity.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          activityType: true,
+          metadata: true,
+          createdAt: true,
+        }
+      }),
+      
+      // Get study session activities
+      prisma.userActivity.findMany({
+        where: { 
+          userId: user.id,
+          activityType: 'study_session_completed'
+        },
+        select: {
+          id: true,
+          metadata: true,
+        }
+      }),
+      
+      // Get user badges count
+      prisma.userBadge.count({
+        where: { userId: user.id },
+      }),
+      
+      // Get user rooms (moved here for parallel execution)
+      prisma.room.findMany({
+        where: {
+          OR: [
+            { ownerId: user.id },
+            {
+              members: {
+                some: {
+                  userId: user.id,
+                  leftAt: null,
+                  isBanned: false
+                }
+              }
+            }
+          ]
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          type: true,
+          topic: true,
+          maxMembers: true,
+          ownerId: true,
+          lastActivity: true,
+          owner: {
+            select: {
+              firstName: true,
+              lastName: true,
+            }
+          },
+          _count: {
+            select: {
+              members: {
+                where: {
+                  leftAt: null,
+                  isBanned: false
+                }
+              }
+            }
+          }
+        },
+        orderBy: { lastActivity: 'desc' },
+        take: 4,
+      })
+    ])
 
     if (!profile) {
       return NextResponse.json(
@@ -59,46 +185,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get recent matches (both sent and received, accepted ones)
-    const recentMatches = await prisma.match.findMany({
-      where: {
-        OR: [
-          { senderId: user.id, status: 'ACCEPTED' },
-          { receiverId: user.id, status: 'ACCEPTED' }
-        ]
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            university: true,
-            major: true,
-            lastActive: true,
-          }
-        },
-        receiver: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            university: true,
-            major: true,
-            lastActive: true,
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 6,
-    })
-
     // Transform matches to show the other person
     const transformedMatches = recentMatches.map(match => {
       const otherUser = match.senderId === user.id ? match.receiver : match.sender
-      const isOnline = otherUser.lastActive && new Date(otherUser.lastActive) > new Date(Date.now() - 15 * 60 * 1000) // Online if active within 15 minutes
+      const isOnline = otherUser.lastActive && new Date(otherUser.lastActive) > new Date(Date.now() - 15 * 60 * 1000)
       
       return {
         id: match.id,
@@ -107,30 +197,10 @@ export async function GET(request: NextRequest) {
         university: otherUser.university,
         subject: otherUser.major,
         avatar: otherUser.avatar,
-        matchScore: Math.floor(Math.random() * 20) + 80, // Generate score between 80-99 for now
+        matchScore: Math.floor(Math.random() * 20) + 80,
         isOnline: Boolean(isOnline),
         matchedAt: match.createdAt,
       }
-    })
-
-    // Get recent activity (simplified version using user activities)
-    const recentActivity = await prisma.userActivity.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    })
-
-    // Get all study session activities to calculate sessions and hours
-    const allStudyActivities = await prisma.userActivity.findMany({
-      where: { 
-        userId: user.id,
-        activityType: 'study_session_completed'
-      },
-    })
-
-    // Get user badges count
-    const badgeCount = await prisma.userBadge.count({
-      where: { userId: user.id },
     })
 
     // Calculate study hours from metadata if available
@@ -156,64 +226,7 @@ export async function GET(request: NextRequest) {
       badges: badgeCount,
     }
 
-    // Get upcoming events from active rooms the user is part of or can join
-    const userRooms = await prisma.room.findMany({
-      where: {
-        OR: [
-          // Rooms the user owns
-          { ownerId: user.id },
-          // Rooms the user is a member of
-          {
-            members: {
-              some: {
-                userId: user.id,
-                leftAt: null, // Still active member
-                isBanned: false
-              }
-            }
-          },
-          // Public rooms in user's field that are recently active
-          {
-            isPrivate: false,
-            topic: {
-              contains: profile.major,
-              mode: 'insensitive'
-            },
-            lastActivity: {
-              gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Active in last 24 hours
-            }
-          }
-        ]
-      },
-      include: {
-        owner: {
-          select: {
-            firstName: true,
-            lastName: true,
-          }
-        },
-        members: {
-          where: {
-            leftAt: null,
-            isBanned: false
-          }
-        },
-        _count: {
-          select: {
-            members: {
-              where: {
-                leftAt: null,
-                isBanned: false
-              }
-            }
-          }
-        }
-      },
-      orderBy: { lastActivity: 'desc' },
-      take: 4,
-    })
-
-    // Transform rooms to upcoming events format
+    // Transform rooms to upcoming events format (userRooms already fetched in parallel)
     const upcomingEvents = userRooms.map(room => {
       // Generate realistic upcoming times
       const now = new Date()

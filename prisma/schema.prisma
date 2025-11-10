@@ -122,6 +122,9 @@ model User {
   messageReactions  MessageReaction[] @relation("MessageReactions")
   roomMessageReactions RoomMessageReaction[] @relation("RoomMessageReactions")
 
+  @@index([lastActive])
+  @@index([university, major])
+  @@index([status, subscriptionTier])
   @@map("users")
 }
 
@@ -143,6 +146,9 @@ model Match {
   receiver    User        @relation("MatchReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, receiverId])
+  @@index([senderId, status])
+  @@index([receiverId, status])
+  @@index([status, createdAt])
   @@map("matches")
 }
 
@@ -241,6 +247,8 @@ model RoomMember {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([roomId, userId])
+  @@index([userId, leftAt])
+  @@index([roomId, leftAt, isBanned])
   @@map("room_members")
 }
 
@@ -411,8 +419,10 @@ model Notification {
   // Relations
   user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@index([userId, isRead])
   @@index([userId, createdAt])
+  @@index([userId, isRead, createdAt])
   @@map("notifications")
 }
 

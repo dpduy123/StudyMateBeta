@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/prisma'
 
+// In-memory throttle cache to prevent excessive DB writes
+const lastUpdateCache = new Map<string, number>()
+const THROTTLE_INTERVAL = 60000 // Only update DB every 60 seconds per user
+
 /**
  * POST /api/user/presence/heartbeat
- * Update user's lastActive timestamp (lightweight heartbeat)
+ * Update user's lastActive timestamp (throttled for performance)
  */
 export async function POST(req: NextRequest) {
   try {
@@ -49,17 +53,33 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Update user's lastActive timestamp in database
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        lastActive: new Date()
+    // Throttle: Only update DB if enough time has passed
+    const now = Date.now()
+    const lastUpdate = lastUpdateCache.get(user.id) || 0
+    const shouldUpdate = now - lastUpdate >= THROTTLE_INTERVAL
+
+    if (shouldUpdate) {
+      // Update user's lastActive timestamp in database
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastActive: new Date() },
+        select: { id: true } // Only select ID to minimize data transfer
+      })
+      
+      lastUpdateCache.set(user.id, now)
+      
+      // Clean up old entries (prevent memory leak)
+      if (lastUpdateCache.size > 10000) {
+        const entries = Array.from(lastUpdateCache.entries())
+        entries.sort((a, b) => a[1] - b[1])
+        entries.slice(0, 5000).forEach(([key]) => lastUpdateCache.delete(key))
       }
-    })
+    }
 
     return NextResponse.json({
       success: true,
-      lastActive: new Date().toISOString()
+      lastActive: new Date().toISOString(),
+      throttled: !shouldUpdate
     })
 
   } catch (error) {

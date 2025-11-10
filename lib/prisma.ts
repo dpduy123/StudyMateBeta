@@ -12,10 +12,14 @@ function createPrismaClient() {
         url: process.env.SUPABASE_CONNECTION_STRING
       }
     },
-    // Configure connection pool to prevent timeouts
+    // Optimize for PgBouncer connection pooling
     transactionOptions: {
-      timeout: 20000, // 20 seconds
+      timeout: 10000, // 10 seconds (reduced from 20s)
+      maxWait: 5000, // 5 seconds max wait for connection
     },
+    log: process.env.NODE_ENV === 'development' 
+      ? ['warn', 'error'] 
+      : ['error'],
   });
 
   let prismaClient: PrismaClient = client;
