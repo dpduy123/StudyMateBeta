@@ -20,6 +20,8 @@ export async function POST(request: NextRequest) {
       major,
       year,
       interests,
+      skills,
+      languages,
       studyGoals,
       preferredStudyTime,
       bio
@@ -41,6 +43,8 @@ export async function POST(request: NextRequest) {
         major,
         year: parseInt(year),
         interests: interests || [],
+        skills: skills || [],
+        languages: languages || [],
         studyGoals: studyGoals || [],
         preferredStudyTime: preferredStudyTime || [],
         bio: bio || null,

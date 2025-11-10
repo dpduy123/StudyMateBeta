@@ -12,6 +12,7 @@ import {
   ArrowRightIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '@/components/providers/Providers'
+import { Step2Bio, Step3Goals, Step5Skills, Step6Languages } from './steps'
 
 const UNIVERSITIES = [
   'Đại học Bách Khoa Hà Nội',
@@ -47,28 +48,34 @@ const MAJORS = [
 ]
 
 const INTERESTS = [
-  'Lập trình',
-  'Toán học',
-  'Vật lý',
-  'Hóa học',
-  'Sinh học',
-  'Kinh tế',
-  'Tài chính',
-  'Marketing',
-  'Thiết kế',
-  'Ngoại ngữ',
-  'Văn học',
-  'Lịch sử',
-  'Triết học',
-  'Tâm lý học',
-  'Khởi nghiệp'
+  'Lập trình', 'Toán học', 'Vật lý', 'Hóa học', 'Sinh học',
+  'Kinh tế', 'Tài chính', 'Marketing', 'Thiết kế', 'Ngoại ngữ',
+  'Văn học', 'Lịch sử', 'Triết học', 'Tâm lý học', 'Khởi nghiệp',
+  'Nghệ thuật', 'Âm nhạc', 'Thể thao'
+]
+
+const SKILLS = [
+  'Microsoft Office', 'Photoshop', 'Video Editing', 'Public Speaking',
+  'Writing', 'Research', 'Data Analysis', 'Project Management',
+  'Teamwork', 'Leadership', 'Problem Solving', 'Critical Thinking'
+]
+
+const LANGUAGES = [
+  { value: 'vi', label: 'Tiếng Việt' },
+  { value: 'en', label: 'English' },
+  { value: 'zh', label: '中文 (Chinese)' },
+  { value: 'ja', label: '日本語 (Japanese)' },
+  { value: 'ko', label: '한국어 (Korean)' },
+  { value: 'fr', label: 'Français (French)' },
+  { value: 'de', label: 'Deutsch (German)' },
+  { value: 'es', label: 'Español (Spanish)' }
 ]
 
 const STUDY_TIMES = [
-  { value: 'morning', label: 'Sáng (6h-12h)' },
-  { value: 'afternoon', label: 'Chiều (12h-18h)' },
-  { value: 'evening', label: 'Tối (18h-22h)' },
-  { value: 'night', label: 'Đêm (22h-6h)' }
+  { value: 'morning', label: 'Sáng (6h-12h)', icon: '🌅' },
+  { value: 'afternoon', label: 'Chiều (12h-18h)', icon: '☀️' },
+  { value: 'evening', label: 'Tối (18h-22h)', icon: '🌆' },
+  { value: 'night', label: 'Đêm (22h-6h)', icon: '🌙' }
 ]
 
 export default function OnboardingPage() {
@@ -79,17 +86,25 @@ export default function OnboardingPage() {
   const [error, setError] = useState('')
 
   const [formData, setFormData] = useState({
+    // Step 1: Academic
     university: '',
     major: '',
     year: 1,
-    interests: [] as string[],
+    // Step 2: Bio
+    bio: '',
+    // Step 3: Goals
     studyGoals: '',
-    preferredStudyTime: [] as string[],
-    bio: ''
+    // Step 4: Interests
+    interests: [] as string[],
+    // Step 5: Skills
+    skills: [] as string[],
+    // Step 6: Languages
+    languages: [] as string[],
+    // Step 7: Study Time
+    preferredStudyTime: [] as string[]
   })
 
   useEffect(() => {
-    // Check if user is authenticated
     if (!user && !loading) {
       router.push('/auth/login')
     }
@@ -112,6 +127,24 @@ export default function OnboardingPage() {
     }))
   }
 
+  const toggleSkill = (skill: string) => {
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills.includes(skill)
+        ? prev.skills.filter(s => s !== skill)
+        : [...prev.skills, skill]
+    }))
+  }
+
+  const toggleLanguage = (language: string) => {
+    setFormData(prev => ({
+      ...prev,
+      languages: prev.languages.includes(language)
+        ? prev.languages.filter(l => l !== language)
+        : [...prev.languages, language]
+    }))
+  }
+
   const toggleStudyTime = (time: string) => {
     setFormData(prev => ({
       ...prev,
@@ -122,14 +155,28 @@ export default function OnboardingPage() {
   }
 
   const handleNext = () => {
+    // Step 1: Academic - required
     if (step === 1) {
       if (!formData.university || !formData.major || !formData.year) {
-        setError('Vui lòng điền đầy đủ thông tin')
+        setError('Vui lòng điền đầy đủ thông tin học vấn')
         return
       }
-    } else if (step === 2) {
+    }
+    // Step 2: Bio - optional, no validation
+    // Step 3: Goals - optional, no validation
+    // Step 4: Interests - required
+    else if (step === 4) {
       if (formData.interests.length === 0) {
         setError('Vui lòng chọn ít nhất 1 sở thích')
+        return
+      }
+    }
+    // Step 5: Skills - optional
+    // Step 6: Languages - optional
+    // Step 7: Study Time - required
+    else if (step === 7) {
+      if (formData.preferredStudyTime.length === 0) {
+        setError('Vui lòng chọn ít nhất 1 khung giờ học')
         return
       }
     }
@@ -143,6 +190,7 @@ export default function OnboardingPage() {
   }
 
   const handleSubmit = async () => {
+    // Final validation
     if (formData.preferredStudyTime.length === 0) {
       setError('Vui lòng chọn ít nhất 1 khung giờ học')
       return
@@ -162,6 +210,8 @@ export default function OnboardingPage() {
           major: formData.major,
           year: formData.year,
           interests: formData.interests,
+          skills: formData.skills,
+          languages: formData.languages,
           studyGoals: formData.studyGoals.split(',').map(g => g.trim()).filter(Boolean),
           preferredStudyTime: formData.preferredStudyTime,
           bio: formData.bio
@@ -172,7 +222,6 @@ export default function OnboardingPage() {
         throw new Error('Không thể hoàn thành hồ sơ')
       }
 
-      // Redirect to dashboard
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Có lỗi xảy ra')
@@ -180,193 +229,6 @@ export default function OnboardingPage() {
       setIsLoading(false)
     }
   }
-
-  const renderStep1 = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
-    >
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <AcademicCapIcon className="h-8 w-8 text-primary-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Thông tin học vấn
-        </h2>
-        <p className="text-gray-600">
-          Cho chúng tôi biết về trường và ngành học của bạn
-        </p>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Trường đại học
-        </label>
-        <select
-          name="university"
-          value={formData.university}
-          onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        >
-          <option value="">Chọn trường</option>
-          {UNIVERSITIES.map(uni => (
-            <option key={uni} value={uni}>{uni}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Ngành học
-        </label>
-        <select
-          name="major"
-          value={formData.major}
-          onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        >
-          <option value="">Chọn ngành</option>
-          {MAJORS.map(major => (
-            <option key={major} value={major}>{major}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Năm học
-        </label>
-        <select
-          name="year"
-          value={formData.year}
-          onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        >
-          <option value={1}>Năm 1</option>
-          <option value={2}>Năm 2</option>
-          <option value={3}>Năm 3</option>
-          <option value={4}>Năm 4</option>
-          <option value={5}>Năm 5+</option>
-        </select>
-      </div>
-    </motion.div>
-  )
-
-  const renderStep2 = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
-    >
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <BookOpenIcon className="h-8 w-8 text-primary-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Sở thích học tập
-        </h2>
-        <p className="text-gray-600">
-          Chọn các môn học hoặc lĩnh vực bạn quan tâm
-        </p>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Chọn ít nhất 3 sở thích
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          {INTERESTS.map(interest => (
-            <button
-              key={interest}
-              type="button"
-              onClick={() => toggleInterest(interest)}
-              className={`px-4 py-3 rounded-xl border-2 transition-all ${
-                formData.interests.includes(interest)
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              {interest}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Mục tiêu học tập (phân cách bằng dấu phẩy)
-        </label>
-        <textarea
-          name="studyGoals"
-          value={formData.studyGoals}
-          onChange={handleInputChange}
-          rows={3}
-          placeholder="Ví dụ: Cải thiện điểm số, Chuẩn bị thi, Học thêm kỹ năng mới"
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        />
-      </div>
-    </motion.div>
-  )
-
-  const renderStep3 = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
-    >
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <ClockIcon className="h-8 w-8 text-primary-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Thời gian học
-        </h2>
-        <p className="text-gray-600">
-          Khi nào bạn thường học tập?
-        </p>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Chọn khung giờ phù hợp
-        </label>
-        <div className="space-y-3">
-          {STUDY_TIMES.map(time => (
-            <button
-              key={time.value}
-              type="button"
-              onClick={() => toggleStudyTime(time.value)}
-              className={`w-full px-4 py-3 rounded-xl border-2 transition-all text-left ${
-                formData.preferredStudyTime.includes(time.value)
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              {time.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Giới thiệu bản thân (tùy chọn)
-        </label>
-        <textarea
-          name="bio"
-          value={formData.bio}
-          onChange={handleInputChange}
-          rows={4}
-          placeholder="Viết vài dòng về bản thân, sở thích, hoặc điều bạn muốn chia sẻ..."
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        />
-      </div>
-    </motion.div>
-  )
 
   if (loading || !user) {
     return (
@@ -377,37 +239,271 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-2xl">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              Bước {step} / 3
+        {/* Progress Section */}
+        <div className="mb-8 bg-white rounded-2xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold text-gray-700">
+              Bước {step} / 7
             </span>
-            <span className="text-sm text-gray-500">
-              {Math.round((step / 3) * 100)}%
+            <span className="text-sm font-medium text-primary-600">
+              {Math.round((step / 7) * 100)}% hoàn thành
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 3) * 100}%` }}
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${(step / 7) * 100}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full shadow-sm"
             />
+          </div>
+
+          {/* Step indicators */}
+          <div className="grid grid-cols-7 gap-2 mt-6">
+            {[
+              { num: 1, label: 'Học vấn', icon: '🎓' },
+              { num: 2, label: 'Giới thiệu', icon: '👋' },
+              { num: 3, label: 'Mục tiêu', icon: '🎯' },
+              { num: 4, label: 'Sở thích', icon: '📚' },
+              { num: 5, label: 'Kỹ năng', icon: '💡' },
+              { num: 6, label: 'Ngôn ngữ', icon: '🌍' },
+              { num: 7, label: 'Thời gian', icon: '⏰' }
+            ].map((s) => (
+              <div key={s.num} className="flex flex-col items-center">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg transition-all ${s.num < step ? 'bg-primary-600 text-white' :
+                  s.num === step ? 'bg-primary-600 text-white ring-4 ring-primary-100 scale-110' :
+                    'bg-gray-200 text-gray-400'
+                  }`}>
+                  {s.num < step ? '✓' : s.icon}
+                </div>
+                <span className={`text-[10px] mt-1 font-medium text-center ${s.num === step ? 'text-primary-600' : 'text-gray-400'
+                  }`}>
+                  {s.label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Form Card */}
         <div className="bg-white py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10">
-          {step === 1 && renderStep1()}
-          {step === 2 && renderStep2()}
-          {step === 3 && renderStep3()}
+          {/* Step 1: Academic Info */}
+          {step === 1 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <div className="text-center mb-8">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", duration: 0.5 }}
+                  className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                >
+                  <AcademicCapIcon className="h-8 w-8 text-white" />
+                </motion.div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Thông tin học vấn
+                </h2>
+                <p className="text-gray-600">
+                  Cho chúng tôi biết về trường và ngành học của bạn
+                </p>
+              </div>
+
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Trường đại học</label>
+                <select
+                  name="university"
+                  value={formData.university}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white"
+                >
+                  <option value="">Chọn trường</option>
+                  {UNIVERSITIES.map(uni => (
+                    <option key={uni} value={uni}>{uni}</option>
+                  ))}
+                </select>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Ngành học</label>
+                <select
+                  name="major"
+                  value={formData.major}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white"
+                >
+                  <option value="">Chọn ngành</option>
+                  {MAJORS.map(major => (
+                    <option key={major} value={major}>{major}</option>
+                  ))}
+                </select>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Năm học</label>
+                <div className="grid grid-cols-5 gap-3">
+                  {[1, 2, 3, 4, 5].map((year) => (
+                    <button
+                      key={year}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, year }))}
+                      className={`py-3 rounded-xl border-2 transition-all font-semibold text-sm ${formData.year === year
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-md scale-105'
+                        : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      {year === 5 ? '5+' : year}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* Step 2: Bio/Introduction */}
+          {step === 2 && (
+            <Step2Bio formData={formData} handleInputChange={handleInputChange} />
+          )}
+
+          {/* Step 3: Study Goals */}
+          {step === 3 && (
+            <Step3Goals formData={formData} handleInputChange={handleInputChange} />
+          )}
+
+          {/* Step 4: Interests */}
+          {step === 4 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <div className="text-center mb-8">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", duration: 0.5 }}
+                  className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                >
+                  <BookOpenIcon className="h-8 w-8 text-white" />
+                </motion.div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Sở thích học tập
+                </h2>
+                <p className="text-gray-600">
+                  Chọn các môn học hoặc lĩnh vực bạn quan tâm
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-medium text-gray-700">Sở thích của bạn</label>
+                  <span className="text-xs text-primary-600 font-medium">{formData.interests.length} đã chọn</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {INTERESTS.map((interest, index) => (
+                    <motion.button
+                      key={interest}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      type="button"
+                      onClick={() => toggleInterest(interest)}
+                      className={`px-4 py-3 rounded-xl border-2 transition-all font-medium text-sm ${formData.interests.includes(interest)
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-md scale-105'
+                        : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      {interest}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+
+            </motion.div>
+          )}
+
+          {/* Step 5: Skills */}
+          {step === 5 && (
+            <Step5Skills formData={formData} toggleSkill={toggleSkill} SKILLS={SKILLS} />
+          )}
+
+          {/* Step 6: Languages */}
+          {step === 6 && (
+            <Step6Languages formData={formData} toggleLanguage={toggleLanguage} LANGUAGES={LANGUAGES} />
+          )}
+
+          {/* Step 7: Study Time & Final */}
+          {step === 7 && (
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <div className="text-center mb-8">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", duration: 0.5 }}
+                  className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                >
+                  <ClockIcon className="h-8 w-8 text-white" />
+                </motion.div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Thời gian học
+                </h2>
+                <p className="text-gray-600">
+                  Khi nào bạn thường học tập?
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-medium text-gray-700">Khung giờ học</label>
+                  <span className="text-xs text-purple-600 font-medium">{formData.preferredStudyTime.length} đã chọn</span>
+                </div>
+                <div className="space-y-3">
+                  {STUDY_TIMES.map((time, index) => (
+                    <motion.button
+                      key={time.value}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      type="button"
+                      onClick={() => toggleStudyTime(time.value)}
+                      className={`w-full px-5 py-4 rounded-xl border-2 transition-all text-left flex items-center gap-3 font-medium ${formData.preferredStudyTime.includes(time.value)
+                        ? 'border-purple-500 bg-purple-50 text-purple-700 shadow-md'
+                        : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      <span className="text-2xl">{time.icon}</span>
+                      <span>{time.label}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+
+            </motion.div>
+          )}
 
           {/* Error Message */}
           {error && (
-            <div className="mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl"
+            >
               <p className="text-sm">{error}</p>
-            </div>
+            </motion.div>
           )}
 
           {/* Navigation Buttons */}
@@ -420,13 +516,13 @@ export default function OnboardingPage() {
                 Quay lại
               </button>
             )}
-            {step < 3 ? (
+            {step < 7 ? (
               <button
                 onClick={handleNext}
-                className="flex-1 btn-primary flex items-center justify-center"
+                className="flex-1 btn-primary flex items-center justify-center group"
               >
                 Tiếp tục
-                <ArrowRightIcon className="ml-2 h-5 w-5" />
+                <ArrowRightIcon className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </button>
             ) : (
               <button
