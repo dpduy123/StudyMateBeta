@@ -10,8 +10,9 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
 export default function HomePage() {
-
-
+  // Note: User redirect logic is handled by middleware
+  // If user is authenticated and lands here after email verification,
+  // middleware will check profileCompleted and redirect accordingly
 
   return (
     <div className="min-h-screen">

@@ -78,3 +78,6 @@ export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 // Prevent connection leaks in development
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+// Default export for convenience
+export default prisma;

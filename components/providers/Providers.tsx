@@ -40,7 +40,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   // Subscribe to own presence channel to broadcast online status
-  usePresence(user?.id)
+  // Only when user is authenticated and not loading
+  usePresence(user && !loading ? user.id : undefined)
 
   useEffect(() => {
     // Get initial session
@@ -113,6 +114,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       password,
       options: {
         data: metaData,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 

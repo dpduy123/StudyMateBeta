@@ -58,8 +58,18 @@ export async function POST(req: NextRequest) {
     if (channel_name.startsWith('presence-')) {
       try {
         // Get user info for presence channel
+        // Handle both old format (firstName/lastName) and new format (full_name)
+        let userName = 'User'
+        if (user.user_metadata?.firstName && user.user_metadata?.lastName) {
+          userName = `${user.user_metadata.firstName} ${user.user_metadata.lastName}`.trim()
+        } else if (user.user_metadata?.full_name) {
+          userName = user.user_metadata.full_name
+        } else if (user.email) {
+          userName = user.email.split('@')[0]
+        }
+
         const userInfo = {
-          name: `${user.user_metadata?.firstName || 'User'} ${user.user_metadata?.lastName || ''}`.trim(),
+          name: userName,
           avatar: user.user_metadata?.avatar
         }
 

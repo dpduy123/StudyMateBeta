@@ -87,7 +87,7 @@ export function usePresence(
         const { data: { session } } = await supabase.auth.getSession()
         
         if (!session?.access_token) {
-          console.warn('⚠️ No access token available for presence')
+          // Silently skip if no session - user not authenticated yet
           return
         }
 
@@ -109,8 +109,11 @@ export function usePresence(
 
         ownChannel.bind('pusher:subscription_error', (err: any) => {
           if (!mountedRef.current) return
-          console.error(`❌ Failed to broadcast own presence:`, err)
-          setError(err.error || 'Failed to broadcast presence')
+          // Only log error if it's not an auth issue (user might not be logged in)
+          if (err.error && !err.error.includes('Auth')) {
+            console.error(`❌ Failed to broadcast own presence:`, err)
+            setError(err.error || 'Failed to broadcast presence')
+          }
         })
 
         // 2. Subscribe to OTHER users' presence channels to track them

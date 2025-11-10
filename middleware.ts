@@ -68,6 +68,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
+  // Define public routes that don't require profile completion
+  const publicRoutes = ['/', '/terms', '/privacy']
+  const isPublicRoute = publicRoutes.includes(pathname)
+
+  // If user is authenticated, check profile completion via user metadata
+  if (user && !isPublicRoute && !pathname.startsWith('/onboarding') && !pathname.startsWith('/auth/callback') && !pathname.startsWith('/api')) {
+    // Check if profile is completed from user metadata
+    const profileCompleted = user.user_metadata?.profile_completed || false
+    
+    // If profile not completed and not on onboarding page, redirect to onboarding
+    if (!profileCompleted && !pathname.startsWith('/onboarding') && !isAuthRoute) {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
+    
+    // If profile completed and trying to access onboarding, redirect to dashboard
+    if (profileCompleted && pathname.startsWith('/onboarding')) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
   // If user is authenticated and trying to access auth routes, redirect to dashboard
   if (user && isAuthRoute) {
     return NextResponse.redirect(new URL('/dashboard', request.url))

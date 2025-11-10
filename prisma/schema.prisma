@@ -93,6 +93,7 @@ model User {
   isProfilePublic   Boolean      @default(true)
   allowMessages     Boolean      @default(true)
   allowCalls        Boolean      @default(true)
+  profileCompleted  Boolean      @default(false)
 
   // Metrics for AI matching
   responseRate      Float        @default(0.0)
