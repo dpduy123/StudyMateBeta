@@ -7,6 +7,7 @@ import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/Mobil
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useOtherUserPresence } from '@/hooks/useOtherUserPresence'
+import { formatLastActiveForHeader } from '@/lib/utils/formatLastActive'
 import {
   ChatBubbleLeftRightIcon,
   PhoneIcon,
@@ -75,36 +76,11 @@ export default function MessagesPage() {
   // Get status text based on online status and last active
   const getStatusText = () => {
     if (!selectedConversation) return ''
-
-    // Check Pusher presence first (real-time)
-    if (isOtherUserOnline) {
-      return 'Đang hoạt động'
-    }
-
-    // Fallback: Check lastActive (within 5 minutes = online)
-    if (selectedConversation.otherUser.lastActive) {
-      const lastActive = new Date(selectedConversation.otherUser.lastActive)
-      const now = new Date()
-      const diffMs = now.getTime() - lastActive.getTime()
-      const diffMins = Math.floor(diffMs / 60000)
-
-      // If active within 5 minutes, show as online
-      if (diffMins < 5) return 'Đang hoạt động'
-      
-      // Otherwise show last active time
-      if (diffMins < 60) return `Hoạt động ${diffMins} phút trước`
-
-      const diffHours = Math.floor(diffMins / 60)
-      if (diffHours < 24) return `Hoạt động ${diffHours} giờ trước`
-
-      const diffDays = Math.floor(diffHours / 24)
-      if (diffDays === 1) return 'Hoạt động hôm qua'
-      if (diffDays < 7) return `Hoạt động ${diffDays} ngày trước`
-      
-      return 'Không hoạt động gần đây'
-    }
-
-    return 'Không hoạt động gần đây'
+    
+    return formatLastActiveForHeader(
+      selectedConversation.otherUser.lastActive,
+      isOtherUserOnline
+    )
   }
 
 

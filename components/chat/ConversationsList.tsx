@@ -74,13 +74,13 @@ const ConversationCard = memo(({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-center">
-          <p className="font-semibold text-gray-900 truncate">
+        <div className="flex justify-between items-center mb-1">
+          <p className={`font-bold text-gray-900 truncate ${conversation.unreadCount > 0 ? 'text-gray-900' : ''}`}>
             {conversation.otherUser.firstName} {conversation.otherUser.lastName}
           </p>
           <Timestamp
-            date={conversation.lastMessage?.createdAt || conversation.lastActivity}
-            className="text-xs text-gray-500 flex-shrink-0 ml-2"
+            date={conversation.otherUser.lastActive || conversation.lastMessage?.createdAt || conversation.lastActivity}
+            className={`text-xs flex-shrink-0 ml-2 ${conversation.unreadCount > 0 ? 'text-primary-600 font-semibold' : 'text-gray-500'}`}
           />
         </div>
         <div className="flex justify-between items-center mt-1">

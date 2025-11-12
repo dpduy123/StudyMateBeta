@@ -45,29 +45,29 @@ export function useConversations(options: UseConversationsOptions = {}) {
     {
       // Revalidate on focus to keep data fresh
       revalidateOnFocus,
-      
+
       // Revalidate on reconnect
       revalidateOnReconnect: true,
-      
+
       // Dedupe requests within 5 seconds
       dedupingInterval: 5000,
-      
+
       // Refresh interval (0 = disabled, rely on Pusher for updates)
       refreshInterval,
-      
+
       // Keep previous data while revalidating
       keepPreviousData: true,
-      
+
       // Use cache if available
       revalidateIfStale: true,
-      
+
       // Fallback data from IndexedDB
       fallbackData: undefined,
-      
+
       // Error retry configuration
       errorRetryCount: 3,
       errorRetryInterval: 1000,
-      
+
       // Simplified error handling - let SWR handle retries
       onError: (error) => {
         console.error('Failed to fetch conversations:', error)
@@ -86,7 +86,7 @@ export function useConversations(options: UseConversationsOptions = {}) {
     events: {
       'conversation-updated': async (data: any) => {
         console.log('📬 Conversation updated via Pusher:', data)
-        
+
         // Build updated conversation object
         const updatedConversation: Conversation = {
           id: data.otherUserId,
