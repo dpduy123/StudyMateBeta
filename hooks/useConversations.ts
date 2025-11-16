@@ -94,6 +94,9 @@ export function useConversations(options: UseConversationsOptions = {}) {
           lastMessage: data.lastMessage,
           unreadCount: data.unreadCount,
           lastActivity: data.lastActivity,
+          _cached: false,
+          _lastSync: new Date().toISOString(),
+          _prefetched: false,
         }
 
         // Update SWR cache optimistically
