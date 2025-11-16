@@ -112,32 +112,7 @@ export function FeaturesSection() {
           ))}
         </div>
 
-        {/* Additional Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          viewport={{ once: true }}
-          className="mt-16 text-center"
-        >
-          <div className="bg-primary-500 rounded-2xl p-8 md:p-12 text-white">
-            <h3 className="text-2xl md:text-3xl font-bold mb-4">
-              Sẵn sàng kết nối và học tập?
-            </h3>
-            <p className="text-xl opacity-90 mb-6 max-w-2xl mx-auto">
-              Tham gia cộng đồng hơn 10,000+ sinh viên đang sử dụng StudyMate
-              để nâng cao hiệu quả học tập
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-primary-600 hover:bg-gray-50 font-semibold px-8 py-3 rounded-xl transition-all duration-200 hover:scale-105">
-                Khám phá ngay
-              </button>
-              <button className="border-2 border-white text-white hover:bg-white hover:text-primary-600 font-semibold px-8 py-3 rounded-xl transition-all duration-200 hover:scale-105">
-                Xem demo
-              </button>
-            </div>
-          </div>
-        </motion.div>
+        
       </div>
     </section>
   )

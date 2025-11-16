@@ -83,30 +83,10 @@ export function HeroSection() {
             </Link>
           </motion.div>
 
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto"
-          >
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="flex justify-center mb-2">
-                  <stat.icon className="h-8 w-8 text-primary-500" />
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-gray-600 font-medium">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </motion.div>
+
         </div>
 
-        {/* Hero Image/Video Placeholder */}
+        {/* Hero Video */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -114,40 +94,20 @@ export function HeroSection() {
           className="mt-16 lg:mt-20 relative"
         >
           <div className="mx-auto max-w-5xl">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-white aspect-video border border-gray-200">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <UserGroupIcon className="mx-auto h-24 w-24 text-primary-300 mb-4" />
-                  <p className="text-xl text-gray-600 font-medium">
-                    Demo video sẽ được hiển thị tại đây
-                  </p>
-                  <p className="text-gray-500 mt-2">
-                    Khám phá cách StudyMate hoạt động
-                  </p>
-                </div>
-              </div>
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video border border-gray-200">
+              <video
+                className="w-full h-full object-cover"
+                controls
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+              >
+                <source src="/1111.mp4" type="video/mp4" />
+                Trình duyệt của bạn không hỗ trợ video.
+              </video>
 
-              {/* Floating elements */}
-              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                  <span className="text-sm font-medium text-gray-700">1,234 online</span>
-                </div>
-              </div>
-
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <ChatBubbleLeftRightIcon className="h-4 w-4 text-primary-500" />
-                  <span className="text-sm font-medium text-gray-700">152 rooms</span>
-                </div>
-              </div>
-
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <SparklesIcon className="h-4 w-4 text-accent-500" />
-                  <span className="text-sm font-medium text-gray-700">AI Matching Active</span>
-                </div>
-              </div>
             </div>
           </div>
         </motion.div>
