@@ -14,35 +14,6 @@ export interface Major {
 }
 
 export const UNIVERSITIES: University[] = [
-  // Các trường đại học công lập
-  {
-    id: 'hust',
-    name: 'Đại học Bách khoa Hà Nội',
-    shortName: 'HUST',
-    location: 'Hà Nội',
-    type: 'public'
-  },
-  {
-    id: 'neu',
-    name: 'Đại học Kinh tế Quốc dân',
-    shortName: 'NEU',
-    location: 'Hà Nội',
-    type: 'public'
-  },
-  {
-    id: 'tmu',
-    name: 'Đại học Thương mại',
-    shortName: 'TMU',
-    location: 'Hà Nội',
-    type: 'public'
-  },
-  {
-    id: 'UET',
-    name: 'Đại học Công nghệ - ĐHQGHN',
-    shortName: 'UET',
-    location: 'Hà Nội',
-    type: 'public'
-  },
 
   // Khối Đại học Quốc gia TP.HCM
   {
@@ -53,9 +24,9 @@ export const UNIVERSITIES: University[] = [
     type: 'public'
   },
   {
-    id: 'hcmUIT',
+    id: 'UIT',
     name: 'Đại học Công nghệ Thông tin - ĐHQG TP.HCM',
-    shortName: 'HCMUIT',
+    shortName: 'UIT',
     location: 'TP.HCM',
     type: 'public'
   },
@@ -89,6 +60,13 @@ export const UNIVERSITIES: University[] = [
     type: 'public'
   },
   {
+    id: 'ufm',
+    name: 'Đại học Tài chính – Marketing',
+    shortName: 'UFM',
+    location: 'TP.HCM',
+    type: 'public'
+  },
+  {
     id: 'ueh',
     name: 'Đại học Kinh tế TP.HCM',
     shortName: 'UEH',
@@ -102,6 +80,35 @@ export const UNIVERSITIES: University[] = [
     location: 'Cần Thơ',
     type: 'public'
   },
+    {
+    id: 'hust',
+    name: 'Đại học Bách khoa Hà Nội',
+    shortName: 'HUST',
+    location: 'Hà Nội',
+    type: 'public'
+  },
+  {
+    id: 'neu',
+    name: 'Đại học Kinh tế Quốc dân',
+    shortName: 'NEU',
+    location: 'Hà Nội',
+    type: 'public'
+  },
+  {
+    id: 'tmu',
+    name: 'Đại học Thương mại',
+    shortName: 'TMU',
+    location: 'Hà Nội',
+    type: 'public'
+  },
+  {
+    id: 'UET',
+    name: 'Đại học Công nghệ - ĐHQGHN',
+    shortName: 'UET',
+    location: 'Hà Nội',
+    type: 'public'
+  },
+
   {
     id: 'dut',
     name: 'Đại học Bách khoa Đà Nẵng',
@@ -114,13 +121,6 @@ export const UNIVERSITIES: University[] = [
     name: 'Đại học Huế',
     shortName: 'HUE',
     location: 'Huế',
-    type: 'public'
-  },
-  {
-    id: 'tnu',
-    name: 'Đại học Thái Nguyên',
-    shortName: 'TNU',
-    location: 'Thái Nguyên',
     type: 'public'
   },
 
@@ -153,13 +153,6 @@ export const UNIVERSITIES: University[] = [
     name: 'Đại học Fulbright Việt Nam',
     shortName: 'Fulbright',
     location: 'TP.HCM',
-    type: 'international'
-  },
-  {
-    id: 'british-uni',
-    name: 'Đại học Anh Quốc Việt Nam',
-    shortName: 'BUV',
-    location: 'Hà Nội',
     type: 'international'
   }
 ]

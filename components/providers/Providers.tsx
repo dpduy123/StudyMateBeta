@@ -43,9 +43,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // usePresence(user && !loading ? user.id : undefined)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+    // Get initial user (secure method - validates with Supabase server)
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user ?? null)
       setLoading(false)
     })
 

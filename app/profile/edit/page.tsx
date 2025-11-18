@@ -68,14 +68,23 @@ export default function EditProfilePage() {
   ]
 
   const universities = [
-    'Đại học Bách Khoa TP.HCM',
-    'Đại học Quốc gia TP.HCM',
-    'Đại học Kinh tế TP.HCM',
-    'Đại học Công nghệ Thông tin',
-    'Đại học Y Dược TP.HCM',
-    'Đại học Nông Lâm TP.HCM',
-    'Đại học Khoa học Tự nhiên',
-    'Đại học Sư phạm TP.HCM'
+    'Đại học Công nghệ Thông tin - ĐHQG TP.HCM',
+  'Đại học Khoa học Tự nhiên - ĐHQG TP.HCM',
+  'Đại học Khoa học Xã hội và Nhân văn - ĐHQG TP.HCM',
+  'Đại học Bách Khoa TP.HCM',
+  'Đại học Tài Chính Marketing',
+  'Đại học FPT',
+  'Đại học Bách Khoa Hà Nội',
+  'Đại học Ngoại thương',
+  'Đại học Y Hà Nội',
+  'Học viện Ngân hàng',
+  'Đại học Kinh tế TP.HCM',
+  'Đại học Y Dược TP.HCM',
+  'Đại học Nông Lâm TP.HCM',
+  'Đại học Công nghệ - ĐHQGHN',
+  'Đại học Khoa học Tự nhiên - ĐHQGHN',
+  'Đại học Khoa học Xã hội và Nhân văn - ĐHQGHN',
+  'Khác'
   ]
 
   useEffect(() => {

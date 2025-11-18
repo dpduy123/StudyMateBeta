@@ -13,39 +13,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useAuth } from '@/components/providers/Providers'
 import { Step2Bio, Step3Goals, Step5Skills, Step6Languages } from './steps'
-
-const UNIVERSITIES = [
-  'Đại học Bách Khoa Hà Nội',
-  'Đại học Quốc gia Hà Nội',
-  'Đại học Kinh tế Quốc dân',
-  'Đại học Ngoại thương',
-  'Đại học Công nghệ - ĐHQGHN',
-  'Đại học Khoa học Tự nhiên - ĐHQGHN',
-  'Đại học Khoa học Xã hội và Nhân văn - ĐHQGHN',
-  'Đại học Y Hà Nội',
-  'Học viện Ngân hàng',
-  'Đại học Thương mại',
-  'Khác'
-]
-
-const MAJORS = [
-  'Công nghệ thông tin',
-  'Kỹ thuật phần mềm',
-  'Khoa học máy tính',
-  'Kỹ thuật điện tử',
-  'Kinh tế',
-  'Quản trị kinh doanh',
-  'Kế toán',
-  'Tài chính - Ngân hàng',
-  'Marketing',
-  'Ngoại ngữ',
-  'Luật',
-  'Y khoa',
-  'Dược',
-  'Kiến trúc',
-  'Xây dựng',
-  'Khác'
-]
+import { UNIVERSITIES, MAJORS, type University, type Major, getUniversityById, getMajorById } from '@/lib/data/universities'
 
 const INTERESTS = [
   'Lập trình', 'Toán học', 'Vật lý', 'Hóa học', 'Sinh học',
@@ -85,6 +53,12 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Search states for searchable selects
+  const [universitySearch, setUniversitySearch] = useState('')
+  const [majorSearch, setMajorSearch] = useState('')
+  const [showUniversityDropdown, setShowUniversityDropdown] = useState(false)
+  const [showMajorDropdown, setShowMajorDropdown] = useState(false)
+
   const [formData, setFormData] = useState({
     // Step 1: Academic
     university: '',
@@ -109,6 +83,20 @@ export default function OnboardingPage() {
       router.push('/auth/login')
     }
   }, [user, loading, router])
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('.searchable-select')) {
+        setShowUniversityDropdown(false)
+        setShowMajorDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -152,6 +140,33 @@ export default function OnboardingPage() {
         ? prev.preferredStudyTime.filter(t => t !== time)
         : [...prev.preferredStudyTime, time]
     }))
+  }
+
+  // Filter universities based on search
+  const filteredUniversities = UNIVERSITIES.filter(uni =>
+    uni.name.toLowerCase().includes(universitySearch.toLowerCase()) ||
+    uni.shortName.toLowerCase().includes(universitySearch.toLowerCase()) ||
+    uni.location.toLowerCase().includes(universitySearch.toLowerCase())
+  )
+
+  // Filter majors based on search
+  const filteredMajors = MAJORS.filter(major =>
+    major.name.toLowerCase().includes(majorSearch.toLowerCase()) ||
+    major.category.toLowerCase().includes(majorSearch.toLowerCase())
+  )
+
+  // Select university from dropdown
+  const selectUniversity = (uni: University) => {
+    setFormData(prev => ({ ...prev, university: uni.id }))
+    setUniversitySearch('')
+    setShowUniversityDropdown(false)
+  }
+
+  // Select major from dropdown
+  const selectMajor = (major: Major) => {
+    setFormData(prev => ({ ...prev, major: major.id }))
+    setMajorSearch('')
+    setShowMajorDropdown(false)
   }
 
   const handleNext = () => {
@@ -200,6 +215,12 @@ export default function OnboardingPage() {
     setError('')
 
     try {
+      console.log('Submitting onboarding data:', {
+        university: formData.university,
+        major: formData.major,
+        year: formData.year
+      })
+
       const response = await fetch('/api/user/complete-profile', {
         method: 'POST',
         headers: {
@@ -218,12 +239,19 @@ export default function OnboardingPage() {
         })
       })
 
+      const result = await response.json()
+      console.log('API response:', result)
+
       if (!response.ok) {
-        throw new Error('Không thể hoàn thành hồ sơ')
+        throw new Error(result.error || 'Không thể hoàn thành hồ sơ')
       }
 
-      router.push('/dashboard')
+      console.log('Profile completed successfully, redirecting to dashboard...')
+
+      // Force a hard reload to ensure middleware picks up the updated profile status
+      window.location.href = '/dashboard'
     } catch (err) {
+      console.error('Error completing profile:', err)
       setError(err instanceof Error ? err.message : 'Có lỗi xảy ra')
     } finally {
       setIsLoading(false)
@@ -314,34 +342,90 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Trường đại học</label>
-                <select
-                  name="university"
-                  value={formData.university}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white"
-                >
-                  <option value="">Chọn trường</option>
-                  {UNIVERSITIES.map(uni => (
-                    <option key={uni} value={uni}>{uni}</option>
-                  ))}
-                </select>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="relative searchable-select">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Trường đại học
+                  {formData.university && (
+                    <span className="ml-2 text-xs text-primary-600 font-normal">✓ Đã chọn: {getUniversityById(formData.university)?.name}</span>
+                  )}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={universitySearch}
+                    onChange={(e) => {
+                      setUniversitySearch(e.target.value)
+                      setShowUniversityDropdown(true)
+                    }}
+                    onFocus={() => setShowUniversityDropdown(true)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                    placeholder={formData.university ? getUniversityById(formData.university)?.name : "Tìm kiếm trường đại học..."}
+                  />
+                  {showUniversityDropdown && filteredUniversities.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                      {filteredUniversities.map((uni) => (
+                        <button
+                          key={uni.id}
+                          type="button"
+                          onClick={() => selectUniversity(uni)}
+                          className="w-full px-4 py-3 text-left hover:bg-primary-50 transition-colors border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className={formData.university === uni.id ? 'text-primary-600' : 'text-gray-700'}>
+                            <span className={formData.university === uni.id ? 'font-medium' : ''}>
+                              {uni.name}
+                            </span>
+                            <span className="block text-xs text-gray-500 mt-0.5">
+                              {uni.shortName} • {uni.location}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ngành học</label>
-                <select
-                  name="major"
-                  value={formData.major}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white"
-                >
-                  <option value="">Chọn ngành</option>
-                  {MAJORS.map(major => (
-                    <option key={major} value={major}>{major}</option>
-                  ))}
-                </select>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="relative searchable-select">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ngành học
+                  {formData.major && (
+                    <span className="ml-2 text-xs text-primary-600 font-normal">✓ Đã chọn: {getMajorById(formData.major)?.name}</span>
+                  )}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={majorSearch}
+                    onChange={(e) => {
+                      setMajorSearch(e.target.value)
+                      setShowMajorDropdown(true)
+                    }}
+                    onFocus={() => setShowMajorDropdown(true)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                    placeholder={formData.major ? getMajorById(formData.major)?.name : "Tìm kiếm ngành học..."}
+                  />
+                  {showMajorDropdown && filteredMajors.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                      {filteredMajors.map((major) => (
+                        <button
+                          key={major.id}
+                          type="button"
+                          onClick={() => selectMajor(major)}
+                          className="w-full px-4 py-3 text-left hover:bg-primary-50 transition-colors border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className={formData.major === major.id ? 'text-primary-600' : 'text-gray-700'}>
+                            <span className={formData.major === major.id ? 'font-medium' : ''}>
+                              {major.name}
+                            </span>
+                            <span className="block text-xs text-gray-500 mt-0.5">
+                              {major.category}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
