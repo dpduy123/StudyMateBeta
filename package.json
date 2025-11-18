@@ -20,7 +20,11 @@
     "test:pusher:core": "npx tsx scripts/test-pusher-messaging.ts",
     "test:pusher:errors": "npx tsx scripts/test-pusher-errors.ts",
     "test:pusher:perf": "npx tsx scripts/test-pusher-performance.ts",
-    "test:monitoring": "npx tsx scripts/test-monitoring.ts"
+    "test:monitoring": "npx tsx scripts/test-monitoring.ts",
+    "diagrams:setup": "./scripts/setup-plantuml.sh",
+    "diagrams:export": "./scripts/export-diagrams.sh",
+    "diagrams:png": "plantuml -tpng -o exported docs/*.puml",
+    "diagrams:svg": "plantuml -tsvg -o exported docs/*.puml"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -41,6 +45,7 @@
     "lucide-react": "^0.468.0",
     "next": "15.5.3",
     "next-auth": "^4.24.11",
+    "nodemailer": "^6.10.1",
     "pako": "^2.1.0",
     "pusher": "^5.2.0",
     "pusher-js": "^8.4.0",
@@ -58,6 +63,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20.19.17",
+    "@types/nodemailer": "^7.0.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/simple-peer": "^9.11.8",
