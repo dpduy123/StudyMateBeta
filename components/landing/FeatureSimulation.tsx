@@ -97,22 +97,8 @@ export function FeatureSimulation() {
     const currentValue = featureValues[activeSimulation]
 
     return (
-        <section className="py-20 sm:py-24 lg:py-32 bg-gradient-to-b from-gray-50 to-white">
+        <section className="py-15 sm:py-18 lg:py-24 bg-gradient-to-b from-gray-50 to-white">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center mb-12"
-                >
-                    <h2 className="text-responsive-xl font-bold text-gray-900 mb-4">
-                        Trải nghiệm thực tế, hiểu giá trị ngay
-                    </h2>
-                    <p className="mx-auto max-w-2xl text-responsive-base text-gray-600">
-                        Đừng chỉ đọc về tính năng. Hãy thử ngay và cảm nhận sự khác biệt.
-                    </p>
-                </motion.div>
 
                 {/* Tabs */}
                 <div className="flex justify-center mb-12 overflow-x-auto pb-2">

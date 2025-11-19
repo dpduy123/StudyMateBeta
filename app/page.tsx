@@ -20,7 +20,7 @@ export default function HomePage() {
       <Header />
       <main >
         <HeroSection />
-        <StorySection />
+        {/* <StorySection /> */}
         <FeatureSimulation />
         <FeaturesSection />
         <HowItWorksSection />
