@@ -17,16 +17,16 @@ export const UNIVERSITIES: University[] = [
 
   // Khối Đại học Quốc gia TP.HCM
   {
-    id: 'hcmus',
-    name: 'Đại học Khoa học Tự nhiên - ĐHQG TP.HCM',
-    shortName: 'HCMUS',
+    id: 'UIT',
+    name: 'Đại học Công nghệ Thông tin - ĐHQG TP.HCM',
+    shortName: 'UIT',
     location: 'TP.HCM',
     type: 'public'
   },
   {
-    id: 'UIT',
-    name: 'Đại học Công nghệ Thông tin - ĐHQG TP.HCM',
-    shortName: 'UIT',
+    id: 'hcmus',
+    name: 'Đại học Khoa học Tự nhiên - ĐHQG TP.HCM',
+    shortName: 'HCMUS',
     location: 'TP.HCM',
     type: 'public'
   },

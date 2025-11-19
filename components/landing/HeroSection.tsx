@@ -60,57 +60,7 @@ export function HeroSection() {
             giúp bạn tìm được những người bạn học lý tưởng, tham gia các phòng thảo luận
             và xây dựng cộng đồng học tập năng động.
           </motion.p>
-
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
-          >
-            <Link
-              href="/auth/register"
-              className="btn-primary inline-flex items-center text-lg px-8 py-4 group"
-            >
-              Bắt đầu miễn phí
-              <SparklesIcon className="ml-2 h-5 w-5 group-hover:animate-pulse" />
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="btn-secondary inline-flex items-center text-lg px-8 py-4"
-            >
-              Tìm hiểu thêm
-            </Link>
-          </motion.div>
-
-
         </div>
-
-        {/* Hero Video */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-16 lg:mt-20 relative"
-        >
-          <div className="mx-auto max-w-5xl">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video border border-gray-200">
-              <video
-                className="w-full h-full object-cover"
-                controls
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-              >
-                <source src="/1111.mp4" type="video/mp4" />
-                Trình duyệt của bạn không hỗ trợ video.
-              </video>
-
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   )

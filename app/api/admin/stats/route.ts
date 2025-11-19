@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/prisma'
 
-const ADMIN_EMAILS = ['23560004@gm.uit.edu.vn']
+const ADMIN_EMAILS = ['23560004@gm.uit.edu.vn', '23520362@gm.uit.edu.vn']
 
 export async function GET(request: NextRequest) {
   try {
