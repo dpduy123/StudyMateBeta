@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/components/providers/Providers'
 import { useProfile } from '@/hooks/useProfile'
-import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
 import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton'
@@ -51,7 +51,6 @@ export default function ProfilePage() {
 
         {/* Mobile Navigation */}
         <BottomTabNavigation />
-        <FloatingActionButton />
       </div>
     </div>
   )

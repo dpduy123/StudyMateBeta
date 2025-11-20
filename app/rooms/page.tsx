@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/components/providers/Providers'
-import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
 import { CreateRoomDialog } from '@/components/rooms/CreateRoomDialog'
@@ -73,20 +73,22 @@ export default function RoomsPage() {
 
       />
 
-      {/* Create Button */}
-      <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8 py-2 mobile-safe-area flex justify-end">
-          <button 
+      {/* Main Content */}
+      <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8 pt-2 pb-20 mobile-safe-area">
+        {/* Create Button */}
+        <div className="flex justify-end mb-3">
+          <button
             onClick={() => setIsCreateDialogOpen(true)}
             className="btn-primary flex items-center space-x-2 text-sm sm:text-base px-3 sm:px-4 py-2"
           >
             <PlusIcon className="h-4 sm:h-5 w-4 sm:w-5" />
             <span className="hidden sm:inline">Tạo phòng mới</span>
             <span className="sm:hidden">Tạo</span>
-          </button> 
-      </div>
+          </button>
+        </div>
 
-      <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8 py-2 mobile-safe-area">
-        <RoomList 
+        {/* Room List */}
+        <RoomList
           rooms={filteredRooms}
           isLoading={isLoading}
           filters={filters}
@@ -105,7 +107,6 @@ export default function RoomsPage() {
 
       {/* Mobile Navigation */}
       <BottomTabNavigation />
-      <FloatingActionButton />
       </div>
   )
 }

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
 import { useRouter } from 'next/navigation'
-import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { useMatches, useMatchActions } from '@/hooks/useMatching'
 import {
@@ -612,7 +612,6 @@ export default function DiscoverPage() {
 
         {/* Mobile Navigation */}
         <BottomTabNavigation />
-        <FloatingActionButton />
       </div>
     </div>
   )

@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import { useAuth } from '@/components/providers/Providers'
-import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useOtherUserPresence } from '@/hooks/useOtherUserPresence'
@@ -186,7 +186,6 @@ export default function MessagesPage() {
 
       {/* Mobile Navigation */}
       <BottomTabNavigation />
-      {!selectedConversation && <FloatingActionButton />}
     </div>
 
   )

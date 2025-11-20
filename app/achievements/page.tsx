@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
-import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { motion } from 'framer-motion'
 import {
@@ -317,7 +317,6 @@ export default function AchievementsPage() {
 
       {/* Mobile Navigation */}
       <BottomTabNavigation />
-      <FloatingActionButton />
       </div>
     </AuthGuard>
   )

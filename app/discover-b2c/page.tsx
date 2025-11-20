@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
-import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { UserProfileDialog } from '@/components/discover/UserProfileDialog'
 import useSWR from 'swr'
 import {
@@ -401,7 +401,6 @@ export default function B2CDiscoverPage() {
 
           {/* Mobile Navigation */}
           <BottomTabNavigation />
-          <FloatingActionButton />
         </div>
 
         {/* User Profile Dialog */}

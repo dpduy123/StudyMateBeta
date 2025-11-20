@@ -6,7 +6,7 @@ import { useState } from 'react'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
 import { useRouter } from 'next/navigation'
-import { BottomTabNavigation, FloatingActionButton } from '@/components/ui/MobileNavigation'
+import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { useDashboard } from '@/hooks/useDashboard'
 import {
@@ -498,10 +498,10 @@ export default function DashboardPage() {
                   )
                 })
               ) : (
-                <div className="text-center py-8">
-                  <ClockIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có hoạt động nào</h3>
-                  <p className="text-gray-600">Các hoạt động của bạn sẽ xuất hiện ở đây</p>
+                <div className="text-center py-8 px-4">
+                  <ClockIcon className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Chưa có hoạt động nào</h3>
+                  <p className="text-sm sm:text-base text-gray-600">Các hoạt động của bạn sẽ xuất hiện ở đây</p>
                 </div>
               )}
             </div>
@@ -511,7 +511,6 @@ export default function DashboardPage() {
 
       {/* Mobile Navigation */}
       <BottomTabNavigation />
-      <FloatingActionButton />
       </div>
     </AuthGuard>
   )

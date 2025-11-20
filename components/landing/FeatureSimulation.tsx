@@ -101,19 +101,19 @@ export function FeatureSimulation() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
                 {/* Tabs */}
-                <div className="flex justify-center mb-12 overflow-x-auto pb-2">
+                <div className="flex justify-center mb-12 overflow-x-auto pb-2 scrollbar-hide">
                     <div className="inline-flex bg-white rounded-xl p-1 shadow-lg border border-gray-200 space-x-1">
                         {simulations.map((sim) => (
                             <button
                                 key={sim.id}
                                 onClick={() => setActiveSimulation(sim.id)}
-                                className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 whitespace-nowrap ${activeSimulation === sim.id
+                                className={`px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-1 sm:space-x-2 whitespace-nowrap ${activeSimulation === sim.id
                                     ? 'bg-primary-600 text-white shadow-md'
                                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                     }`}
                             >
-                                <sim.icon className="h-5 w-5" />
-                                <span className="text-sm">{sim.name}</span>
+                                <sim.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                                <span className="text-xs sm:text-sm">{sim.name}</span>
                             </button>
                         ))}
                     </div>
