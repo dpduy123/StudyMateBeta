@@ -9,7 +9,8 @@ interface AdminGuardProps {
 }
 
 const ADMIN_EMAILS = [
-  '23560004@gm.uit.edu.vn'
+  '23560004@gm.uit.edu.vn',
+  '23520362@gm.uit.edu.vn'
 ]
 
 export default function AdminGuard({ children }: AdminGuardProps) {

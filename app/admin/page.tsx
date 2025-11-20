@@ -7,12 +7,14 @@ import { UserManagement } from '@/components/admin/UserManagement'
 import { DatabaseViewer } from '@/components/admin/DatabaseViewer'
 import { FeatureManagement } from '@/components/admin/FeatureManagement'
 import { SeedUsers } from '@/components/admin/SeedUsers'
+import Link from 'next/link'
 import {
   HomeIcon,
   UsersIcon,
   CircleStackIcon,
   CogIcon,
-  PlusIcon
+  PlusIcon,
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
 
 type AdminTab = 'overview' | 'users' | 'database' | 'features' | 'seed'
@@ -64,6 +66,13 @@ export default function AdminPage() {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
+                <Link
+                  href="/discover-b2c"
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                >
+                  <BuildingOfficeIcon className="h-5 w-5" />
+                  <span>B2C Discovery</span>
+                </Link>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                   Online
                 </span>
