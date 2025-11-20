@@ -60,7 +60,7 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onJoinRoom, onRoomDeleted }) 
         <div className="p-6 flex-grow">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
-                    <h2 className="text-xl font-bold text-gray-900 mb-1">{room.name}</h2>
+                    <h2 className="text-xl font-bold text-gray-900 mb-1 line-clamp-2 min-h-[3.5rem]">{room.name}</h2>
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <span>bởi {room.owner.name}</span>
                       {room.isOwner && (
@@ -90,7 +90,7 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onJoinRoom, onRoomDeleted }) 
                   </div>
                 </div>
 
-      <p className="text-gray-600 mb-4 text-sm leading-relaxed">{room.description}</p>
+      <p className="text-gray-600 mb-4 text-sm leading-relaxed line-clamp-2 min-h-[2.5rem]">{room.description}</p>
 
       <div className="flex items-center space-x-2 mb-4">
         <HashtagIcon className="h-5 w-5 text-primary-600" />
