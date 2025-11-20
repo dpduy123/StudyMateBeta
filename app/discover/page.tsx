@@ -307,6 +307,7 @@ export default function DiscoverPage() {
         currentPage="/discover"
         rightContent={
           <>
+            {/* Filter Button 
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
@@ -314,6 +315,7 @@ export default function DiscoverPage() {
               <AdjustmentsHorizontalIcon className="h-5 w-5" />
               <span>Bộ lọc</span>
             </button>
+            */}
             <div className="text-sm text-gray-600">
               {currentCardIndex + 1} / {potentialMatches.length}
             </div>
