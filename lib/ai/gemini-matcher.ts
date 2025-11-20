@@ -35,7 +35,7 @@ export class GeminiMatcher {
     this.generativeAI = new GoogleGenerativeAI(apiKey)
     // Use Gemini 2.0 Flash Experimental (latest and fastest)
     this.model = this.generativeAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash-exp',
       generationConfig: {
         temperature: 0.3, // Lower temperature for consistent scoring
         maxOutputTokens: 8192,

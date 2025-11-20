@@ -97,7 +97,7 @@ export function FeatureSimulation() {
     const currentValue = featureValues[activeSimulation]
 
     return (
-        <section className="py-15 sm:py-18 lg:py-24 bg-gradient-to-b from-gray-50 to-white">
+        <section className="pb-7 sm:pb-9 lg:pb-12 bg-gradient-to-b from-gray-50 to-white">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
                 {/* Tabs */}
