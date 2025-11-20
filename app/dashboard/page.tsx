@@ -336,23 +336,23 @@ export default function DashboardPage() {
                 {upcomingEvents.length > 0 ? (
                   upcomingEvents.slice(0, 3).map((event, index) => (
                     <div key={event.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
-                      <div className={`w-2 h-2 rounded-full ${event.type === 'study' ? 'bg-primary-500' : event.type === 'help' ? 'bg-green-500' : event.type === 'discussion' ? 'bg-blue-500' : 'bg-gray-500'}`}></div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${event.type === 'study' ? 'bg-primary-500' : event.type === 'help' ? 'bg-green-500' : event.type === 'discussion' ? 'bg-blue-500' : 'bg-gray-500'}`}></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
                           <h3 className="font-medium text-gray-900 truncate">{event.title}</h3>
                           {event.isOwner && (
-                            <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full">Chủ phòng</span>
+                            <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0">Chủ phòng</span>
                           )}
                         </div>
-                        <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
-                          <ClockIcon className="h-4 w-4" />
-                          <span>{event.time}</span>
-                          <span>•</span>
-                          <span>{event.participants}/{event.maxMembers || 10}</span>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1 overflow-hidden">
+                          <ClockIcon className="h-4 w-4 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{event.time}</span>
+                          <span className="flex-shrink-0">•</span>
+                          <span className="whitespace-nowrap">{event.participants}/{event.maxMembers || 10}</span>
                           {event.topic && (
                             <>
-                              <span>•</span>
-                              <span className="text-primary-600 font-medium">{event.topic}</span>
+                              <span className="flex-shrink-0">•</span>
+                              <span className="text-primary-600 font-medium truncate">{event.topic}</span>
                             </>
                           )}
                         </div>
