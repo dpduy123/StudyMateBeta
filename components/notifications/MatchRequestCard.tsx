@@ -8,6 +8,7 @@ interface MatchRequestCardProps {
     message: string
     createdAt: string
     isRead: boolean
+    relatedUserId?: string
     metadata?: {
       senderName?: string
       senderAvatar?: string
@@ -17,6 +18,7 @@ interface MatchRequestCardProps {
   onAccept: () => void
   onReject: () => void
   onMarkRead: () => void
+  onViewProfile?: () => void
   isLoading: boolean
 }
 
@@ -25,23 +27,35 @@ export default function MatchRequestCard({
   onAccept,
   onReject,
   onMarkRead,
+  onViewProfile,
   isLoading
 }: MatchRequestCardProps) {
-  const handleAccept = () => {
+  const handleAccept = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (!isLoading) {
       onAccept()
     }
   }
 
-  const handleReject = () => {
+  const handleReject = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (!isLoading) {
       onReject()
     }
   }
 
+  const handleCardClick = () => {
+    if (onViewProfile && !isLoading) {
+      onViewProfile()
+    }
+  }
+
   return (
     <div className="space-y-3">
-      <div className="flex items-start space-x-3">
+      <div
+        className="flex items-start space-x-3 cursor-pointer hover:bg-gray-100/50 -mx-2 px-2 py-1 rounded-lg transition-colors"
+        onClick={handleCardClick}
+      >
         {notification.metadata?.senderAvatar ? (
           <img
             src={notification.metadata.senderAvatar}
@@ -76,7 +90,7 @@ export default function MatchRequestCard({
         )}
       </div>
 
-      <div className="flex space-x-2">
+      <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={handleAccept}
           disabled={isLoading}

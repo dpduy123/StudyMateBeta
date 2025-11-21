@@ -31,11 +31,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get the user profile
+    // Get the user profile with all necessary fields
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
+        email: true,
         firstName: true,
         lastName: true,
         avatar: true,
@@ -43,8 +44,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         major: true,
         year: true,
         bio: true,
-        lastActive: true,
+        interests: true,
+        skills: true,
+        languages: true,
+        preferredStudyTime: true,
+        studyGoals: true,
+        totalMatches: true,
+        successfulMatches: true,
+        averageRating: true,
+        gpa: true,
+        status: true,
+        subscriptionTier: true,
         isProfilePublic: true,
+        lastActive: true,
         createdAt: true
       }
     })
@@ -66,13 +78,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       })
 
       if (!match) {
-        return NextResponse.json({ 
-          error: 'This profile is private and you have not matched with this user' 
+        return NextResponse.json({
+          error: 'This profile is private and you have not matched with this user'
         }, { status: 403 })
       }
     }
 
-    return NextResponse.json({ user })
+    return NextResponse.json(user)
 
   } catch (error) {
     console.error('Error fetching user profile:', error)

@@ -5,6 +5,7 @@ import { BellIcon } from '@heroicons/react/24/outline'
 import { BellIcon as BellSolidIcon } from '@heroicons/react/24/solid'
 import { motion, AnimatePresence } from 'framer-motion'
 import MatchRequestCard from './MatchRequestCard'
+import { UserProfileDialog } from '@/components/discover/UserProfileDialog'
 
 interface Notification {
   id: string
@@ -23,6 +24,8 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false)
 
   useEffect(() => {
     fetchNotifications()
@@ -124,6 +127,33 @@ export default function NotificationBell() {
     }
   }
 
+  const handleViewProfile = async (userId: string) => {
+    setIsLoadingProfile(true)
+    try {
+      const response = await fetch(`/api/users/${userId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setSelectedUser(data)
+      } else {
+        const error = await response.json()
+        console.error('Error fetching user profile:', error.error)
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+    } finally {
+      setIsLoadingProfile(false)
+    }
+  }
+
+  const handleCloseProfileDialog = () => {
+    setSelectedUser(null)
+  }
+
+  const handleProfileAction = (action: 'like' | 'pass' | 'message', userId: string) => {
+    console.log(`Profile action: ${action} for user: ${userId}`)
+    setSelectedUser(null)
+  }
+
   return (
     <div className="relative">
       <button
@@ -194,6 +224,7 @@ export default function NotificationBell() {
                           onAccept={() => handleAcceptMatch(notification.relatedMatchId!, notification.id)}
                           onReject={() => handleRejectMatch(notification.relatedMatchId!, notification.id)}
                           onMarkRead={() => markAsRead(notification.id)}
+                          onViewProfile={() => handleViewProfile(notification.relatedUserId!)}
                           isLoading={isLoading}
                         />
                       ) : (
@@ -224,6 +255,16 @@ export default function NotificationBell() {
           </>
         )}
       </AnimatePresence>
+
+      {/* User Profile Dialog */}
+      {selectedUser && (
+        <UserProfileDialog
+          user={selectedUser}
+          isOpen={!!selectedUser}
+          onClose={handleCloseProfileDialog}
+          onAction={handleProfileAction}
+        />
+      )}
     </div>
   )
 }
