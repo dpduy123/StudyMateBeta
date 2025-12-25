@@ -29,6 +29,7 @@ export function DashboardHeader({
   const navigationItems = [
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Khám phá', href: '/discover' },
+    { name: 'Tìm kiếm', href: '/discover-b2c' },
     { name: 'Phòng học', href: '/rooms' },
     { name: 'Tin nhắn', href: '/messages' },
     { name: 'Thành tích', href: '/achievements' }

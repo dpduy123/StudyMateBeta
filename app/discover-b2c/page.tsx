@@ -192,7 +192,7 @@ export default function B2CDiscoverPage() {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
         <DashboardHeader
-          title="B2C Partner Discovery"
+          title="Tìm kiếm người dùng"
           description="Xem tất cả người dùng trên nền tảng"
           icon={BuildingOfficeIcon}
           currentPage="/discover-b2c"
@@ -296,7 +296,7 @@ export default function B2CDiscoverPage() {
                   <span className="text-sm font-medium text-gray-700">Bộ lọc</span>
                   {(filterUniversity !== 'all' || filterMajor !== 'all' || filterMinGPA || filterMinRating) && (
                     <span className="bg-primary-500 text-white text-xs rounded-full px-2 py-0.5">
-                      Active
+                      Đang lọc
                     </span>
                   )}
                 </button>
@@ -440,7 +440,7 @@ export default function B2CDiscoverPage() {
                               user.matchScore >= 60 ? 'bg-yellow-500 text-white' :
                               'bg-orange-500 text-white'}
                           `}>
-                            {user.matchScore}% match
+                            {user.matchScore}% phù hợp
                           </div>
                         </div>
                       )}
@@ -500,18 +500,18 @@ export default function B2CDiscoverPage() {
                       <div className="grid grid-cols-3 gap-2 mb-3">
                         <div className="text-center">
                           <div className="text-sm font-bold text-primary-600">{user.totalMatches}</div>
-                          <div className="text-xs text-gray-500">Matches</div>
+                          <div className="text-xs text-gray-500">Kết nối</div>
                         </div>
                         <div className="text-center">
                           <div className="flex items-center justify-center text-sm font-bold text-yellow-600">
                             {user.averageRating ? Number(user.averageRating).toFixed(1) : 'N/A'}
                             {user.averageRating && <StarIcon className="h-3 w-3 ml-0.5" />}
                           </div>
-                          <div className="text-xs text-gray-500">Rating</div>
+                          <div className="text-xs text-gray-500">Đánh giá</div>
                         </div>
                         <div className="text-center">
                           <div className="text-sm font-bold text-blue-600">{user.gpa || 'N/A'}</div>
-                          <div className="text-xs text-gray-500">GPA</div>
+                          <div className="text-xs text-gray-500">Điểm TB</div>
                         </div>
                       </div>
 

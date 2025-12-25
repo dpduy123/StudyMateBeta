@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   HomeIcon,
   MagnifyingGlassIcon,
+  SparklesIcon,
   VideoCameraIcon,
   ChatBubbleLeftRightIcon,
   TrophyIcon,
@@ -17,12 +18,48 @@ import {
 import {
   HomeIcon as HomeSolidIcon,
   MagnifyingGlassIcon as MagnifyingGlassSolidIcon,
+  SparklesIcon as SparklesSolidIcon,
   VideoCameraIcon as VideoCameraSolidIcon,
   ChatBubbleLeftRightIcon as ChatBubbleLeftRightSolidIcon,
   TrophyIcon as TrophySolidIcon,
   UserIcon as UserSolidIcon
 } from '@heroicons/react/24/solid'
 
+// Items for bottom tab (5 items)
+const bottomTabItems = [
+  {
+    name: 'Dashboard',
+    href: '/dashboard',
+    icon: HomeIcon,
+    activeIcon: HomeSolidIcon
+  },
+  {
+    name: 'Khám phá',
+    href: '/discover',
+    icon: MagnifyingGlassIcon,
+    activeIcon: MagnifyingGlassSolidIcon
+  },
+  {
+    name: 'Tìm kiếm',
+    href: '/discover-b2c',
+    icon: SparklesIcon,
+    activeIcon: SparklesSolidIcon
+  },
+  {
+    name: 'Tin nhắn',
+    href: '/messages',
+    icon: ChatBubbleLeftRightIcon,
+    activeIcon: ChatBubbleLeftRightSolidIcon
+  },
+  {
+    name: 'Hồ sơ',
+    href: '/profile',
+    icon: UserIcon,
+    activeIcon: UserSolidIcon
+  }
+]
+
+// All items for slide-out menu
 const navItems = [
   {
     name: 'Dashboard',
@@ -35,6 +72,12 @@ const navItems = [
     href: '/discover',
     icon: MagnifyingGlassIcon,
     activeIcon: MagnifyingGlassSolidIcon
+  },
+  {
+    name: 'Tìm kiếm',
+    href: '/discover-b2c',
+    icon: SparklesIcon,
+    activeIcon: SparklesSolidIcon
   },
   {
     name: 'Phòng học',
@@ -93,7 +136,7 @@ export function BottomTabNavigation() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden">
       <div className="grid grid-cols-5 gap-1">
-        {navItems.slice(0, 5).map((item) => {
+        {bottomTabItems.map((item) => {
           const isActive = pathname === item.href
           const Icon = isActive ? item.activeIcon : item.icon
 

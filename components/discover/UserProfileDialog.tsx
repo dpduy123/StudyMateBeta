@@ -314,14 +314,14 @@ export function UserProfileDialog({ user, isOpen, onClose, onAction, aiReasoning
                           className="flex-1 flex items-center justify-center space-x-2 py-3 px-6 border-2 border-red-300 text-red-600 hover:border-red-400 hover:bg-red-50 rounded-xl transition-colors"
                         >
                           <XMarkIcon className="h-5 w-5" />
-                          <span className="font-medium">Pass</span>
+                          <span className="font-medium">Bỏ qua</span>
                         </button>
                         <button
                           onClick={handleLike}
                           className="flex-1 flex items-center justify-center space-x-2 py-3 px-6 border-2 border-green-300 text-green-600 hover:border-green-400 hover:bg-green-50 rounded-xl transition-colors"
                         >
                           <HeartIcon className="h-5 w-5" />
-                          <span className="font-medium">Like</span>
+                          <span className="font-medium">Ghép</span>
                         </button>
                         <button
                           onClick={handleMessage}
