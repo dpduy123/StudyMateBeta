@@ -18,6 +18,8 @@ import {
   StarIcon,
   UserGroupIcon,
   XMarkIcon,
+  SparklesIcon,
+  XCircleIcon,
 } from '@heroicons/react/24/outline'
 
 interface User {
@@ -43,6 +45,10 @@ interface User {
   subscriptionTier: string
   isProfilePublic: boolean
   lastActive: string
+  // AI search result fields
+  matchScore?: number
+  aiReasoning?: string
+  matchedCriteria?: string[]
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -56,6 +62,12 @@ export default function B2CDiscoverPage() {
   const [filterMinGPA, setFilterMinGPA] = useState('')
   const [filterMinRating, setFilterMinRating] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+
+  // AI Query states
+  const [aiQuery, setAiQuery] = useState('')
+  const [isAiSearching, setIsAiSearching] = useState(false)
+  const [aiResults, setAiResults] = useState<User[] | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
 
   // Fetch all users for B2C partners
   const { data, error, isLoading, mutate } = useSWR<{ users: User[] }>(
@@ -110,6 +122,43 @@ export default function B2CDiscoverPage() {
     mutate()
   }
 
+  // AI Search handler
+  const handleAiSearch = async () => {
+    if (!aiQuery.trim() || isAiSearching) return
+
+    setIsAiSearching(true)
+    setAiError(null)
+
+    try {
+      const response = await fetch('/api/discover/b2c-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: aiQuery.trim() })
+      })
+
+      if (!response.ok) {
+        throw new Error('AI search failed')
+      }
+
+      const data = await response.json()
+      setAiResults(data.users)
+    } catch (err) {
+      setAiError('Không thể tìm kiếm. Vui lòng thử lại.')
+      console.error('AI search error:', err)
+    } finally {
+      setIsAiSearching(false)
+    }
+  }
+
+  const clearAiSearch = () => {
+    setAiQuery('')
+    setAiResults(null)
+    setAiError(null)
+  }
+
+  // Determine which users to display
+  const displayUsers = aiResults || filteredUsers
+
   // Loading state
   if (isLoading) {
     return (
@@ -161,9 +210,81 @@ export default function B2CDiscoverPage() {
                   placeholder="Tìm kiếm theo tên, trường, ngành..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  disabled={!!aiResults}
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
+
+              {/* AI Query Search Bar */}
+              <div className="relative">
+                <SparklesIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
+                <input
+                  type="text"
+                  placeholder="Tìm bằng AI: VD: 'Tìm người học Data Science, làm việc buổi tối, ưu tiên nữ'"
+                  value={aiQuery}
+                  onChange={(e) => setAiQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAiSearch()}
+                  className="w-full pl-12 pr-28 py-3 border-2 border-purple-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50"
+                />
+                <button
+                  onClick={handleAiSearch}
+                  disabled={isAiSearching || !aiQuery.trim()}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  {isAiSearching ? 'Đang tìm...' : 'Tìm AI'}
+                </button>
+              </div>
+
+              {/* AI Search Loading */}
+              <AnimatePresence>
+                {isAiSearching && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="bg-purple-50 rounded-xl p-4 flex items-center space-x-3"
+                  >
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                    <span className="text-purple-700">
+                      AI đang phân tích yêu cầu và tìm kiếm người phù hợp...
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* AI Error */}
+              {aiError && (
+                <div className="bg-red-50 text-red-700 rounded-xl p-4 flex items-center space-x-2">
+                  <XCircleIcon className="h-5 w-5" />
+                  <span>{aiError}</span>
+                </div>
+              )}
+
+              {/* AI Results Header */}
+              <AnimatePresence>
+                {aiResults && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center justify-between bg-purple-50 rounded-xl p-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <SparklesIcon className="h-5 w-5 text-purple-600" />
+                      <span className="text-purple-700 font-medium">
+                        AI tìm thấy {aiResults.length} người phù hợp
+                      </span>
+                    </div>
+                    <button
+                      onClick={clearAiSearch}
+                      className="flex items-center space-x-1 text-purple-600 hover:text-purple-800 text-sm font-medium"
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                      <span>Xóa tìm kiếm AI</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Filter Toggle */}
               <div className="flex items-center justify-between">
@@ -180,7 +301,7 @@ export default function B2CDiscoverPage() {
                   )}
                 </button>
                 <div className="text-sm text-gray-600">
-                  Tìm thấy <span className="font-semibold text-primary-600">{filteredUsers.length}</span> người dùng
+                  Tìm thấy <span className="font-semibold text-primary-600">{displayUsers.length}</span> người dùng
                 </div>
               </div>
 
@@ -288,7 +409,7 @@ export default function B2CDiscoverPage() {
             </div>
 
             {/* User Grid */}
-            {filteredUsers.length === 0 ? (
+            {displayUsers.length === 0 ? (
               <div className="text-center py-12">
                 <UserGroupIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -298,7 +419,7 @@ export default function B2CDiscoverPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-20">
-                {filteredUsers.map((user, index) => (
+                {displayUsers.map((user, index) => (
                   <motion.div
                     key={user.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -310,6 +431,19 @@ export default function B2CDiscoverPage() {
                     {/* Card Header */}
                     <div className="h-24 bg-gradient-to-r from-primary-500 to-primary-600 relative">
                       <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+                      {/* AI Match Score Badge */}
+                      {user.matchScore !== undefined && (
+                        <div className="absolute top-2 left-2 z-10">
+                          <div className={`
+                            px-2 py-1 rounded-full text-xs font-bold shadow-lg
+                            ${user.matchScore >= 80 ? 'bg-green-500 text-white' :
+                              user.matchScore >= 60 ? 'bg-yellow-500 text-white' :
+                              'bg-orange-500 text-white'}
+                          `}>
+                            {user.matchScore}% match
+                          </div>
+                        </div>
+                      )}
                       {/* Subscription Badge */}
                       {user.subscriptionTier !== 'BASIC' && (
                         <div className="absolute top-2 right-2">
@@ -410,6 +544,8 @@ export default function B2CDiscoverPage() {
             isOpen={!!selectedUser}
             onClose={handleCloseDialog}
             onAction={handleAction}
+            aiReasoning={selectedUser.aiReasoning}
+            matchScore={selectedUser.matchScore}
           />
         )}
       </div>

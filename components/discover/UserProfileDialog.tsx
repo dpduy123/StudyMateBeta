@@ -14,6 +14,7 @@ import {
   StarIcon,
   TrophyIcon,
   UserCircleIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline'
 
 interface User {
@@ -46,9 +47,11 @@ interface UserProfileDialogProps {
   isOpen: boolean
   onClose: () => void
   onAction: (action: 'like' | 'pass' | 'message', userId: string) => void
+  aiReasoning?: string
+  matchScore?: number
 }
 
-export function UserProfileDialog({ user, isOpen, onClose, onAction }: UserProfileDialogProps) {
+export function UserProfileDialog({ user, isOpen, onClose, onAction, aiReasoning, matchScore }: UserProfileDialogProps) {
   const router = useRouter()
 
   const handleLike = () => {
@@ -171,6 +174,37 @@ export function UserProfileDialog({ user, isOpen, onClose, onAction }: UserProfi
                         <div className="text-sm text-gray-600">GPA</div>
                       </div>
                     </div>
+
+                    {/* AI Match Analysis Section */}
+                    {(matchScore !== undefined || aiReasoning) && (
+                      <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+                        <div className="flex items-center mb-3">
+                          <SparklesIcon className="h-5 w-5 text-purple-600 mr-2" />
+                          <h3 className="text-lg font-semibold text-gray-900">Phân tích AI</h3>
+                        </div>
+
+                        {matchScore !== undefined && (
+                          <div className="flex items-center mb-3">
+                            <div className={`
+                              text-3xl font-bold
+                              ${matchScore >= 80 ? 'text-green-600' :
+                                matchScore >= 60 ? 'text-yellow-600' :
+                                'text-orange-600'}
+                            `}>
+                              {matchScore}%
+                            </div>
+                            <div className="ml-2 text-gray-600">độ phù hợp</div>
+                          </div>
+                        )}
+
+                        {aiReasoning && (
+                          <div className="text-gray-700 leading-relaxed">
+                            <span className="font-medium text-purple-700">Lý do: </span>
+                            {aiReasoning}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Bio */}
                     {user.bio && (
