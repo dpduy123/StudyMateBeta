@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import useSWR, { mutate } from 'swr'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
+import { useProfile } from '@/hooks/useProfile'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import {
@@ -251,7 +252,7 @@ function PostCard({ post, onLike, onComment }: { post: Post; onLike: (postId: st
   )
 }
 
-function CreatePostBox({ onPost, userAvatar }: { onPost: (content: string, imageUrl?: string) => void; userAvatar?: string }) {
+function CreatePostBox({ onPost, userAvatar, userInitials }: { onPost: (content: string, imageUrl?: string) => void; userAvatar?: string; userInitials?: string }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -276,7 +277,7 @@ function CreatePostBox({ onPost, userAvatar }: { onPost: (content: string, image
           />
         ) : (
           <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-            U
+            {userInitials || 'U'}
           </div>
         )}
         <div className="flex-1">
@@ -422,6 +423,7 @@ function SuggestedUserCard({ user }: { user: SuggestedUser }) {
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const { profile } = useProfile()
 
   // Fetch posts
   const { data: postsData, error: postsError, mutate: mutatePosts } = useSWR<{ posts: Post[] }>(
@@ -434,9 +436,6 @@ export default function DashboardPage() {
     '/api/posts/suggested-users',
     fetcher
   )
-
-  // Fetch user profile
-  const { data: profileData } = useSWR('/api/profile', fetcher)
 
   const handleCreatePost = useCallback(async (content: string, imageUrl?: string) => {
     try {
@@ -510,7 +509,10 @@ export default function DashboardPage() {
 
   const posts = postsData?.posts || []
   const suggestedUsers = suggestedData?.users || []
-  const userAvatar = profileData?.avatar
+  const userAvatar = profile?.avatar
+  const userInitials = profile?.firstName && profile?.lastName
+    ? `${profile.firstName[0]}${profile.lastName[0]}`.toUpperCase()
+    : undefined
 
   return (
     <AuthGuard>
@@ -528,7 +530,7 @@ export default function DashboardPage() {
             {/* Main Feed */}
             <div className="lg:col-span-8 space-y-4">
               {/* Create Post Box */}
-              <CreatePostBox onPost={handleCreatePost} userAvatar={userAvatar} />
+              <CreatePostBox onPost={handleCreatePost} userAvatar={userAvatar} userInitials={userInitials} />
 
               {/* Posts Feed */}
               {postsError ? (

@@ -42,6 +42,7 @@ export const createFetcher = (baseURL = '') => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Ensure cookies are sent with requests
     })
 
     if (!response.ok) {

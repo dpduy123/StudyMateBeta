@@ -8,6 +8,7 @@ import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { UserProfileDialog } from '@/components/discover/UserProfileDialog'
 import useSWR from 'swr'
+import toast from 'react-hot-toast'
 import {
   BuildingOfficeIcon,
   UserCircleIcon,
@@ -114,11 +115,51 @@ export default function B2CDiscoverPage() {
     setSelectedUser(null)
   }
 
-  const handleAction = (action: 'like' | 'pass' | 'message', userId: string) => {
-    console.log(`Action: ${action} for user: ${userId}`)
+  const handleAction = async (action: 'like' | 'pass' | 'message', userId: string) => {
+    if (action === 'message') {
+      // Message action is handled by the dialog itself
+      setSelectedUser(null)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/discover/smart-matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: action.toUpperCase(),
+          targetUserId: userId
+        })
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        if (action === 'like') {
+          if (result.match) {
+            // It's a mutual match!
+            toast.success(`Kết nối thành công! Bạn có thể nhắn tin ngay.`, {
+              duration: 4000,
+              icon: '🎉'
+            })
+          } else {
+            toast.success('Lời mời kết bạn đã được gửi!', {
+              duration: 2000,
+              icon: '💚'
+            })
+          }
+        }
+      } else {
+        toast.error(result.message || 'Có lỗi xảy ra')
+      }
+    } catch (error) {
+      console.error(`Error performing ${action}:`, error)
+      toast.error('Không thể thực hiện. Vui lòng thử lại.')
+    }
+
     // Close dialog after action
     setSelectedUser(null)
-    // Optionally refresh the list or remove the user from view
+    // Refresh the list
     mutate()
   }
 

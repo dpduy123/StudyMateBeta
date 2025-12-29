@@ -43,21 +43,59 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // usePresence(user && !loading ? user.id : undefined)
 
   useEffect(() => {
-    // Get initial user (secure method - validates with Supabase server)
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user ?? null)
-      setLoading(false)
-    })
+    // Initialize auth - get session first (auto-refreshes tokens), then validate user
+    const initAuth = async () => {
+      try {
+        // getSession() retrieves from storage and refreshes expired tokens
+        // This is crucial for maintaining session after page reload
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    // Listen for auth changes
+        if (sessionError) {
+          console.warn('Session error:', sessionError.message)
+          setUser(null)
+          setLoading(false)
+          return
+        }
+
+        if (session?.user) {
+          // Session exists - validate with server for security
+          const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+          if (userError) {
+            console.warn('User validation error:', userError.message)
+            // Session might be invalid, but don't clear - let middleware handle it
+          }
+
+          setUser(user ?? session.user)
+        } else {
+          setUser(null)
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error)
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    initAuth()
+
+    // Listen for auth changes (login, logout, token refresh)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
+      console.log('Auth state changed:', event)
 
-      // User profile creation is handled by auth callback route
-      // No need to create profile here
+      if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed successfully')
+      }
+
+      setUser(session?.user ?? null)
+
+      // Don't set loading to false here as it might override initAuth
+      if (event !== 'INITIAL_SESSION') {
+        setLoading(false)
+      }
     })
 
     return () => subscription.unsubscribe()

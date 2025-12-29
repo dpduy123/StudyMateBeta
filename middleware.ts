@@ -31,9 +31,39 @@ export async function middleware(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // First, try to refresh the session (this handles expired access tokens)
+  // This is crucial for maintaining session after page reload
+  let user = null
+  try {
+    // getUser() will automatically refresh the session if needed
+    // The refreshed tokens will be set via setAll() callback above
+    const { data, error } = await supabase.auth.getUser()
+
+    if (error) {
+      // Only clear cookies for specific unrecoverable errors
+      if (error.code === 'refresh_token_not_found' ||
+          error.code === 'invalid_refresh_token' ||
+          error.message?.includes('Invalid Refresh Token')) {
+        console.warn('Invalid refresh token, clearing session:', error.code || error.message)
+        // Clear all Supabase auth cookies from the response
+        request.cookies.getAll().forEach(cookie => {
+          if (cookie.name.startsWith('sb-')) {
+            supabaseResponse.cookies.delete(cookie.name)
+          }
+        })
+      } else {
+        // For other errors (network, temporary), don't clear cookies
+        // Just log and continue - user may still have valid session
+        console.warn('Auth error (not clearing session):', error.message)
+      }
+    } else {
+      user = data.user
+    }
+  } catch (error: unknown) {
+    // Log error but DON'T clear cookies for unexpected errors
+    // This prevents logout on temporary network issues
+    console.error('Unexpected auth error in middleware:', error)
+  }
 
   const { pathname } = request.nextUrl
 

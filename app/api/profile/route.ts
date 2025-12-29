@@ -1,25 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getUniversityById, getMajorById } from '@/lib/data/universities'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Create Supabase client to get the current user
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll()
-          },
-          setAll() {
-            // Not needed for GET request
-          },
-        },
-      }
-    )
+    const supabase = await createClient()
 
     // Get current user from Supabase
     const {
@@ -93,20 +80,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Create Supabase client to get the current user
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll()
-          },
-          setAll() {
-            // Not needed for PUT request
-          },
-        },
-      }
-    )
+    const supabase = await createClient()
 
     // Get current user from Supabase
     const {

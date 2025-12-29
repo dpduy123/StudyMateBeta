@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { useMatches, useMatchActions } from '@/hooks/useMatching'
+import toast from 'react-hot-toast'
 import {
   SparklesIcon,
   AdjustmentsHorizontalIcon,
@@ -176,10 +177,36 @@ export default function DiscoverPage() {
     setAnimationDirection('right')
 
     try {
-      // Use smart batch processing
-      smartLikeUser(currentMatch.id)
+      // Call API directly for immediate feedback
+      const response = await fetch('/api/discover/smart-matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'LIKE',
+          targetUserId: currentMatch.id
+        })
+      })
 
-      // Instant UI feedback - no waiting for API
+      const result = await response.json()
+
+      if (response.ok) {
+        if (result.match) {
+          // It's a mutual match!
+          toast.success(`Kết nối thành công với ${currentMatch.firstName}! Bạn có thể nhắn tin ngay.`, {
+            duration: 4000,
+            icon: '🎉'
+          })
+        } else {
+          toast.success('Lời mời kết bạn đã được gửi!', {
+            duration: 2000,
+            icon: '💚'
+          })
+        }
+      } else {
+        toast.error(result.message || 'Có lỗi xảy ra')
+      }
+
+      // UI feedback
       setTimeout(() => {
         nextCard()
         setIsAnimating(false)
@@ -188,6 +215,7 @@ export default function DiscoverPage() {
 
     } catch (error) {
       console.error('Error liking user:', error)
+      toast.error('Không thể gửi lời mời. Vui lòng thử lại.')
       setIsAnimating(false)
       setAnimationDirection(null)
     }
@@ -201,10 +229,17 @@ export default function DiscoverPage() {
     setAnimationDirection('left')
 
     try {
-      // Use smart batch processing
-      smartPassUser(currentMatch.id)
+      // Call API to record the pass action
+      await fetch('/api/discover/smart-matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'PASS',
+          targetUserId: currentMatch.id
+        })
+      })
 
-      // Instant UI feedback - no waiting for API
+      // UI feedback
       setTimeout(() => {
         nextCard()
         setIsAnimating(false)
