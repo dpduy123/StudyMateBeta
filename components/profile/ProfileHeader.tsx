@@ -6,7 +6,7 @@ import { UserProfile } from './types'
 import { getUniversityById, getMajorById } from '@/lib/data/universities'
 import {
   UserCircleIcon,
-  CameraIcon,
+  PencilIcon,
   AcademicCapIcon,
   MapPinIcon,
   CalendarIcon,
@@ -17,9 +17,10 @@ import { SuccessfulMatchesDialog } from './SuccessfulMatchesDialog'
 
 interface ProfileHeaderProps {
   profile: UserProfile
+  onEditClick: () => void
 }
 
-export function ProfileHeader({ profile }: ProfileHeaderProps) {
+export function ProfileHeader({ profile, onEditClick }: ProfileHeaderProps) {
   const [isMatchesDialogOpen, setIsMatchesDialogOpen] = useState(false)
 
   // Use university and major info from API if available, otherwise fallback to lookup
@@ -35,8 +36,12 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
       {/* Cover Photo */}
       <div className="h-48 bg-gradient-to-r from-primary-500 to-primary-600 relative">
         <div className="absolute inset-0 bg-black/20"></div>
-        <button className="absolute top-4 right-4 p-2 bg-white/20 rounded-lg backdrop-blur-sm hover:bg-white/30 transition-colors">
-          <CameraIcon className="h-5 w-5 text-white" />
+        <button
+          onClick={onEditClick}
+          className="absolute top-4 right-4 p-2 bg-white/20 rounded-lg backdrop-blur-sm hover:bg-white/30 transition-colors"
+          title="Chỉnh sửa hồ sơ"
+        >
+          <PencilIcon className="h-5 w-5 text-white" />
         </button>
       </div>
 

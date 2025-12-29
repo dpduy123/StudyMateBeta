@@ -76,13 +76,14 @@ export function UserDropdownMenu({
   const avatarSize = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'
   const textSize = size === 'sm' ? 'text-sm' : 'text-sm'
 
-  // Get display name and avatar
-  const displayName = profile
+  // Get display name and avatar - handle undefined/null values properly
+  const hasValidProfileName = profile?.firstName && profile?.lastName
+  const displayName = hasValidProfileName
     ? `${profile.firstName} ${profile.lastName}`
     : user?.email?.split('@')[0] || 'Student'
 
-  const avatarInitials = profile
-    ? `${profile.firstName?.charAt(0) || ''}${profile.lastName?.charAt(0) || ''}`.toUpperCase()
+  const avatarInitials = hasValidProfileName
+    ? `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase()
     : user?.email?.charAt(0).toUpperCase() || 'S'
 
   return (

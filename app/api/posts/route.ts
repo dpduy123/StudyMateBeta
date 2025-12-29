@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const cursor = searchParams.get('cursor')
     const limit = parseInt(searchParams.get('limit') || '10')
+    const userId = searchParams.get('userId')
 
     // Fetch posts with author info, likes count, comments count
     const posts = await prisma.post.findMany({
@@ -37,6 +38,9 @@ export async function GET(request: NextRequest) {
       ...(cursor && {
         cursor: { id: cursor },
         skip: 1,
+      }),
+      ...(userId && {
+        where: { authorId: userId },
       }),
       orderBy: { createdAt: 'desc' },
       include: {

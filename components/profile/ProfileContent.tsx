@@ -4,8 +4,7 @@ import { UserProfile } from './types'
 import { ProfileHeader } from './ProfileHeader'
 import { ProfileSkills } from './ProfileSkills'
 import { ProfileGoals } from './ProfileGoals'
-import { ProfileActions } from './ProfileActions'
-import { NotificationSettings } from '@/components/notifications/NotificationSettings'
+import { UserPosts } from './UserPosts'
 
 interface ProfileContentProps {
   profile: UserProfile
@@ -15,17 +14,15 @@ interface ProfileContentProps {
 export function ProfileContent({ profile, onEditClick }: ProfileContentProps) {
   return (
     <>
-      <ProfileHeader profile={profile} />
+      <ProfileHeader profile={profile} onEditClick={onEditClick} />
       <ProfileSkills profile={profile} />
       <ProfileGoals profile={profile} />
-      
-      {/* Notification Settings */}
+
+      {/* User Posts */}
       <div className="mt-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Cài đặt thông báo</h3>
-        <NotificationSettings userId={profile.id} />
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Bài viết</h3>
+        <UserPosts userId={profile.id} />
       </div>
-      
-      <ProfileActions onEditClick={onEditClick} />
     </>
   )
 }
