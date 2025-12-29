@@ -27,7 +27,7 @@ export function DashboardHeader({
   const [loadingPage, setLoadingPage] = useState<string | null>(null)
 
   const navigationItems = [
-    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Bảng tin', href: '/dashboard' },
     { name: 'Khám phá', href: '/discover' },
     { name: 'Tìm kiếm', href: '/discover-b2c' },
     { name: 'Phòng học', href: '/rooms' },

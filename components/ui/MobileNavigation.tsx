@@ -28,7 +28,7 @@ import {
 // Items for bottom tab (5 items)
 const bottomTabItems = [
   {
-    name: 'Dashboard',
+    name: 'Bảng tin',
     href: '/dashboard',
     icon: HomeIcon,
     activeIcon: HomeSolidIcon
@@ -62,7 +62,7 @@ const bottomTabItems = [
 // All items for slide-out menu
 const navItems = [
   {
-    name: 'Dashboard',
+    name: 'Bảng tin',
     href: '/dashboard',
     icon: HomeIcon,
     activeIcon: HomeSolidIcon

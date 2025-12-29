@@ -121,6 +121,9 @@ model User {
   notifications     Notification[]
   messageReactions  MessageReaction[] @relation("MessageReactions")
   roomMessageReactions RoomMessageReaction[] @relation("RoomMessageReactions")
+  posts             Post[]       @relation("PostAuthor")
+  postLikes         PostLike[]   @relation("PostLikes")
+  postComments      PostComment[] @relation("PostComments")
 
   @@index([lastActive])
   @@index([university, major])
@@ -424,6 +427,60 @@ model Notification {
   @@index([userId, createdAt])
   @@index([userId, isRead, createdAt])
   @@map("notifications")
+}
+
+// Post System (News Feed)
+model Post {
+  id          String      @id @default(cuid())
+  authorId    String
+  content     String
+  imageUrl    String?     // Optional image attachment
+
+  // Timestamps
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  author      User        @relation("PostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  likes       PostLike[]
+  comments    PostComment[]
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation("PostLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+  @@map("post_likes")
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation("PostComments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([authorId])
+  @@map("post_comments")
 }
 
 // Analytics and Metrics
