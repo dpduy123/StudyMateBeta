@@ -372,7 +372,7 @@ function SuggestedUserCard({ user }: { user: SuggestedUser }) {
       const response = await fetch('/api/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ receiverId: user.id }),
+        body: JSON.stringify({ targetUserId: user.id }),
       })
       if (response.ok) {
         setIsConnected(true)
