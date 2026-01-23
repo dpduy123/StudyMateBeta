@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { traceAICall } from './opik'
 
 export interface UserProfile {
   id: string
@@ -50,33 +51,49 @@ export class GeminiMatcher {
     currentUser: UserProfile,
     candidates: UserProfile[]
   ): Promise<SortedMatch[]> {
-    const startTime = Date.now()
-    console.log(`🤖 Gemini AI: Sorting ${candidates.length} candidates for user ${currentUser.id}`)
+    return traceAICall(
+      'gemini_sort_candidates',
+      {
+        currentUserId: currentUser.id,
+        currentUserMajor: currentUser.major,
+        currentUserUniversity: currentUser.university,
+        candidateCount: candidates.length,
+        candidateIds: candidates.map(c => c.id),
+      },
+      async () => {
+        const startTime = Date.now()
+        console.log(`🤖 Gemini AI: Sorting ${candidates.length} candidates for user ${currentUser.id}`)
 
-    try {
-      const prompt = this.buildSortingPrompt(currentUser, candidates)
+        try {
+          const prompt = this.buildSortingPrompt(currentUser, candidates)
 
-      const result = await this.model.generateContent(prompt)
-      const response = result.response
-      const text = response.text()
+          const result = await this.model.generateContent(prompt)
+          const response = result.response
+          const text = response.text()
 
-      console.log(`🤖 Gemini AI: Response received in ${Date.now() - startTime}ms`)
+          console.log(`🤖 Gemini AI: Response received in ${Date.now() - startTime}ms`)
 
-      // Parse JSON response
-      const sortedMatches = this.parseGeminiResponse(text, candidates)
+          // Parse JSON response
+          const sortedMatches = this.parseGeminiResponse(text, candidates)
 
-      console.log(`✅ Gemini AI: Sorted ${sortedMatches.length} candidates successfully`)
-      return sortedMatches
+          console.log(`✅ Gemini AI: Sorted ${sortedMatches.length} candidates successfully`)
+          return sortedMatches
 
-    } catch (error) {
-      console.error('❌ Gemini AI: Error sorting candidates:', error)
-      // Fallback: return candidates in original order with default scores
-      return candidates.map((candidate, index) => ({
-        userId: candidate.id,
-        score: 75 + (25 - index), // Descending scores 75-100
-        reasoning: 'Fallback scoring (AI error)'
-      }))
-    }
+        } catch (error) {
+          console.error('❌ Gemini AI: Error sorting candidates:', error)
+          // Fallback: return candidates in original order with default scores
+          return candidates.map((candidate, index) => ({
+            userId: candidate.id,
+            score: 75 + (25 - index), // Descending scores 75-100
+            reasoning: 'Fallback scoring (AI error)'
+          }))
+        }
+      },
+      {
+        model: 'gemini-2.0-flash-exp',
+        feature: 'smart_matching',
+      }
+    )
   }
 
   /**

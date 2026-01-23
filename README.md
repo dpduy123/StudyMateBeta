@@ -1,228 +1,317 @@
-# StudyMate - Nền tảng kết nối sinh viên
+# StudyMate
 
-StudyMate là một nền tảng kết nối sinh viên thông minh sử dụng AI để giúp sinh viên tìm được những người bạn học phù hợp, tham gia các phòng thảo luận và xây dựng cộng đồng học tập năng động.
+> AI-powered student connection platform for Vietnamese universities
 
-Note for deploy:
-## 🌟 Tính năng chính 
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)](https://supabase.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-### 1. **AI-Powered Matching (Khám phá)**
-- Thuật toán AI phân tích hồ sơ học thuật để gợi ý những người bạn học phù hợp
-- Matching dựa trên môn học, sở thích, mục tiêu và lịch học
-- Độ chính xác cao với tỷ lệ match thành công >85%
+StudyMate helps students find compatible study partners through intelligent AI matching, real-time messaging, and virtual study rooms. Exclusively for verified .edu email users.
 
-### 2. **Hệ thống tin nhắn**
-- Chat real-time với Pusher (WebSocket + HTTP fallback)
-- Chia sẻ file tài liệu, ghi chú
-- Typing indicators và read receipts
-- Voice/Video calls tích hợp
+---
 
-### 3. **Voice/Video Chat Rooms**
-- Phòng học nhóm theo chủ đề
-- Screen sharing (Premium feature)
-- Moderation tools
+## Features
 
-### 4. **Hệ thống thành tích**
-- Badge system: Network Pro, Chat Master, Study Influencer
-- Leaderboards dựa trên hoạt động
-- Điểm thưởng và ranking
+### Core Platform
 
-### 5. **Xác thực .edu**
-- Chỉ sinh viên có email .edu được tham gia
-- Môi trường an toàn 100%
-- OAuth 2.0 integration
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Smart Matching** | AI algorithm analyzing courses, GPA, learning styles, schedules | Done |
+| **Real-time Chat** | Pusher WebSocket messaging with reactions, threads, read receipts | Done |
+| **Study Rooms** | Voice/video rooms with screen sharing and moderation | Done |
+| **Gamification** | Badges, achievements, leaderboards, peer ratings | Done |
+| **Subscriptions** | Basic (free), Premium, Elite tiers | Done |
 
-### 6. **Gói Premium**
-- **Basic (Miễn phí)**: 5 matches/ngày, 5 rooms/ngày
-- **Premium (79k/tháng)**: Unlimited matches, advanced filters
-- **Elite (149k/tháng)**: AI Tutor, exclusive events, career mentoring
+### AI-Powered Features
 
-## 🛠 Tech Stack
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Match Algorithm** | >85% accuracy based on academic profiles | Done |
+| **AI Study Tutor** | Elite feature - personalized tutoring | In Progress |
+| **Conversation Facilitator** | Icebreakers and topic suggestions | Planned |
+| **Room Moderator** | Auto-moderation and summaries | Planned |
+
+---
+
+## Tech Stack
 
 ### Frontend
-- **Next.js 15** với App Router
-- **React 19** với TypeScript
-- **Tailwind CSS** cho styling
-- **Framer Motion** cho animations
-- **React Hook Form** + **Zod** cho form validation
-- **Lucide React** cho icons
+- **Next.js 15** - App Router, Server Components
+- **React 19** - Latest features with TypeScript
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** - Smooth animations
+- **Zustand** - State management
+- **SWR** - Data fetching and caching
 
-### Backend & Database
-- **Supabase** cho authentication và database
-- **PostgreSQL** database
-- **Prisma ORM** cho database management
-- **Pusher** cho real-time messaging (WebSocket + HTTP fallback)
-- **Redis** (optional) cho caching và performance optimization
+### Backend
+- **Next.js API Routes** - 47 endpoints
+- **Prisma ORM** - Type-safe database access
+- **Supabase** - Auth + PostgreSQL database
+- **Pusher** - Real-time WebSocket messaging
+- **Redis** - Optional caching layer
 
-### UI/UX
-- **Responsive design** cho mobile, HD, 2K, 4K, 21:9 screens
-- **GenZ professional styling** với màu sắc đồng bộ
-- **No linear gradients** theo yêu cầu
-- **Accessibility compliant**
+### AI & Analytics
+- **Google Gemini** - AI matching and tutoring
+- **Opik by Comet** - LLM observability (planned)
 
-## 📁 Cấu trúc dự án
+### Infrastructure
+- **Vercel** - Deployment
+- **WebRTC** - Video/voice calls via Simple Peer
+
+---
+
+## Project Structure
 
 ```
-src/
-├── app/                    # Next.js App Router
-│   ├── auth/              # Authentication pages
-│   ├── dashboard/         # Dashboard và các trang chính
-│   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Landing page
-├── components/            # React components
-│   ├── landing/           # Landing page components
-│   ├── dashboard/         # Dashboard components
-│   ├── layout/            # Layout components
-│   └── providers/         # Context providers
-├── lib/                   # Utility functions
-│   └── supabase/          # Supabase client configuration
-└── types/                 # TypeScript type definitions
-
-prisma/
-└── schema.prisma          # Database schema
+StudyMateBeta/
+├── app/                          # Next.js App Router
+│   ├── api/                      # 47 API routes
+│   ├── auth/                     # Login, register, password reset
+│   ├── dashboard/                # Main dashboard
+│   ├── discover/                 # Tinder-style matching
+│   ├── discover-b2c/             # Partner grid view
+│   ├── messages/                 # Direct messaging
+│   ├── rooms/                    # Study rooms
+│   ├── profile/                  # User profiles
+│   ├── achievements/             # Badges & achievements
+│   └── admin/                    # Admin dashboard
+│
+├── components/                   # React components (15 modules)
+│   ├── chat/                     # Messaging UI
+│   ├── video/                    # Video call components
+│   ├── rooms/                    # Study room UI
+│   ├── discover/                 # Matching interface
+│   └── ui/                       # Shared components
+│
+├── lib/                          # Business logic
+│   ├── matching/                 # Smart matching engine
+│   ├── ai/                       # Gemini AI integration
+│   ├── pusher/                   # Real-time messaging
+│   ├── supabase/                 # Auth & database
+│   └── cache/                    # Redis caching
+│
+├── hooks/                        # 21 React hooks
+├── stores/                       # Zustand stores
+├── prisma/                       # Database schema
+└── docs/                         # Documentation (22 files)
 ```
 
-## 🚀 Cài đặt và chạy
+---
 
-### 1. Clone repository
+## Database Schema
+
+```
+Users           Matching         Messaging        Gamification
+┌─────────┐    ┌─────────┐      ┌─────────┐      ┌─────────┐
+│ User    │───▶│ Match   │      │ Message │      │ Badge   │
+│ Activity│    │ Rating  │      │ Reaction│      │ Achieve │
+│ Metrics │    └─────────┘      └─────────┘      └─────────┘
+└─────────┘                           │
+                              ┌───────┴───────┐
+                              │               │
+                         ┌─────────┐    ┌─────────┐
+                         │ Room    │    │ RoomMsg │
+                         │ Member  │    │ Reaction│
+                         └─────────┘    └─────────┘
+```
+
+**13 tables** with cascade deletion, indexed queries, and JSON metadata fields.
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+ or Bun
+- PostgreSQL (via Supabase)
+- Pusher account (free tier available)
+
+### Installation
+
 ```bash
-git clone <repository-url>
-cd StudyMateProject
-```
+# Clone the repository
+git clone https://github.com/yourusername/studymate.git
+cd studymate
 
-### 2. Cài đặt dependencies
-```bash
-npm install
-```
+# Install dependencies
+bun install  # or npm install
 
-### 3. Cấu hình environment variables
-```bash
+# Set up environment
 cp .env.example .env.local
 ```
 
-Điền thông tin cần thiết trong `.env.local`:
-- Supabase URL và keys
-- Database connection strings
-- Pusher credentials (app ID, key, secret, cluster)
-- Redis connection (optional)
-- Các API keys khác
+### Environment Variables
 
-**Pusher Setup:**
-1. Đăng ký tài khoản miễn phí tại [https://dashboard.pusher.com/](https://dashboard.pusher.com/)
-2. Tạo một Channels app mới
-3. Copy credentials vào `.env.local`:
-   - `PUSHER_APP_ID`
-   - `PUSHER_SECRET`
-   - `NEXT_PUBLIC_PUSHER_KEY`
-   - `NEXT_PUBLIC_PUSHER_CLUSTER`
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 
-### 4. Setup database
+# Database
+DATABASE_URL=
+
+# Pusher (Real-time)
+PUSHER_APP_ID=
+PUSHER_SECRET=
+NEXT_PUBLIC_PUSHER_KEY=
+NEXT_PUBLIC_PUSHER_CLUSTER=
+
+# AI
+GOOGLE_AI_API_KEY=
+
+# Optional
+REDIS_URL=
+OPIK_API_KEY=
+```
+
+### Database Setup
+
 ```bash
 # Generate Prisma client
 npx prisma generate
 
-# Run database migrations
+# Push schema to database
 npx prisma db push
 
-# (Optional) Seed database
+# Seed with test data (optional)
 npx prisma db seed
 ```
 
-### 5. Chạy development server
+### Run Development Server
+
 ```bash
-npm run dev
+bun dev  # or npm run dev
 ```
 
-Mở [http://localhost:3000](http://localhost:3000) để xem ứng dụng.
-
-## 📊 Database Schema
-
-### Các model chính:
-
-- **User**: Thông tin người dùng và hồ sơ học thuật
-- **Match**: Hệ thống matching giữa users
-- **Message**: Tin nhắn giữa users đã match
-- **Room**: Phòng voice/video chat
-- **RoomMember**: Thành viên trong phòng
-- **Badge**: Hệ thống badge
-- **Achievement**: Thành tích và progress
-- **Rating**: Đánh giá giữa users
-
-Xem chi tiết trong `prisma/schema.prisma`
-
-## 🎨 Design System
-
-### Màu sắc
-- **Primary**: Blue tones (#0ea5e9)
-- **Accent**: Purple tones (#e149ff)
-- **Success**: Green tones (#22c55e)
-- **Warning**: Yellow tones (#f59e0b)
-- **Gray**: Neutral tones
-
-### Typography
-- **Font**: Inter (Vietnamese support)
-- **Responsive text**: Tự động scale theo screen size
-
-### Components
-- Consistent spacing và border radius
-- Hover effects và micro-interactions
-- Mobile-first responsive design
-
-## 🔒 Security Features
-
-- **Email .edu verification**
-- **Rate limiting** cho API calls
-- **Input sanitization**
-- **CSRF protection**
-- **Secure file uploads**
-
-## 📱 Responsive Design
-
-- **Mobile**: 375px - 767px
-- **Tablet**: 768px - 1023px
-- **Desktop**: 1024px - 1919px
-- **2K**: 1920px - 2559px
-- **4K**: 2560px+
-- **Ultrawide**: 3440px+ (21:9 aspect ratio)
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-1. Connect GitHub repository to Vercel
-2. Add environment variables
-3. Deploy automatically
-
-### Manual Deployment
-```bash
-npm run build
-npm start
-```
-
-## 🤝 Contributing
-
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-## 📝 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
-## 👥 Team
-
-- **Frontend**: React/Next.js developers
-- **Backend**: Node.js/Supabase developers
-- **UI/UX**: Design team
-- **QA**: Testing team
-
-## 📞 Support
-
-- Email: support@studymate.vn
-- Documentation: [docs.studymate.vn](https://docs.studymate.vn)
-- Community: [community.studymate.vn](https://community.studymate.vn)
+Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-**StudyMate** - Kết nối sinh viên, học tập cùng nhau! 🎓✨
+## Subscription Tiers
+
+| Feature | Basic (Free) | Premium (79k/mo) | Elite (149k/mo) |
+|---------|:------------:|:----------------:|:---------------:|
+| Daily matches | 5 | Unlimited | Unlimited |
+| Daily rooms | 5 | Unlimited | Unlimited |
+| Advanced filters | - | Yes | Yes |
+| Screen sharing | - | Yes | Yes |
+| AI Tutor | - | - | Yes |
+| Career mentoring | - | - | Yes |
+| Exclusive events | - | - | Yes |
+
+---
+
+## Responsive Design
+
+Optimized for all screen sizes:
+
+| Device | Resolution |
+|--------|------------|
+| Mobile | 375px - 767px |
+| Tablet | 768px - 1023px |
+| Desktop | 1024px - 1919px |
+| 2K | 1920px - 2559px |
+| 4K | 2560px+ |
+| Ultrawide | 3440px+ (21:9) |
+
+---
+
+## API Overview
+
+47 API endpoints across these categories:
+
+- **Auth** - Email verification, OAuth callbacks
+- **Discovery** - Smart matches, user browsing, stats
+- **Messages** - Private/room messages, reactions, typing
+- **Rooms** - Room management, members, messaging
+- **Users** - Profiles, preferences, activity
+- **Admin** - Dashboard, monitoring, moderation
+
+---
+
+## Roadmap
+
+### Phase 1: Core Platform (Completed)
+- [x] User authentication with .edu verification
+- [x] AI-powered matching algorithm
+- [x] Real-time messaging with Pusher
+- [x] Study rooms with video/voice
+- [x] Gamification system
+- [x] Subscription tiers
+
+### Phase 2: AI Enhancement (In Progress)
+- [x] Smart matching engine optimization
+- [ ] AI Study Tutor (Elite feature)
+- [ ] Opik integration for LLM observability
+- [ ] Conversation facilitator agent
+- [ ] Study room moderator agent
+
+### Phase 3: Growth (Planned)
+- [ ] Mobile app (React Native)
+- [ ] University partnerships
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
+
+---
+
+## Performance
+
+- **Image optimization** - AVIF, WebP formats
+- **Code splitting** - Separate chunks for React, Pusher, animations
+- **Tree shaking** - Optimized bundle size
+- **Redis caching** - Optional performance layer
+- **Virtualized lists** - Efficient rendering for large datasets
+
+---
+
+## Security
+
+- **Email verification** - .edu domains only
+- **Rate limiting** - API protection
+- **Input sanitization** - XSS prevention
+- **CSRF protection** - Token-based security
+- **Secure file uploads** - Validated and sandboxed
+
+---
+
+## Documentation
+
+Comprehensive docs available in `/docs`:
+
+- Authentication flows
+- API reference
+- Database monitoring
+- Performance optimization
+- Middleware configuration
+- Mock data setup
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+## Contact
+
+- **Email**: support@studymate.vn
+- **Website**: [studymate.vn](https://studymate.vn)
+
+---
+
+Built with Next.js, React, and AI for Vietnamese students.

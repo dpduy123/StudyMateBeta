@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { traceAICall } from './opik'
 
 export interface B2CUserProfile {
   id: string
@@ -70,36 +71,50 @@ export class GeminiB2CQuery {
     query: string,
     users: B2CUserProfile[]
   ): Promise<B2CQueryResult> {
-    const startTime = Date.now()
-    console.log(`🔍 Gemini B2C Query: Processing query "${query}" against ${users.length} users`)
+    return traceAICall(
+      'gemini_b2c_query',
+      {
+        query,
+        userCount: users.length,
+        queryLanguage: 'vietnamese',
+      },
+      async () => {
+        const startTime = Date.now()
+        console.log(`🔍 Gemini B2C Query: Processing query "${query}" against ${users.length} users`)
 
-    try {
-      const prompt = this.buildQueryPrompt(query, users)
+        try {
+          const prompt = this.buildQueryPrompt(query, users)
 
-      const result = await this.model.generateContent(prompt)
-      const response = result.response
-      const text = response.text()
+          const result = await this.model.generateContent(prompt)
+          const response = result.response
+          const text = response.text()
 
-      console.log(`🔍 Gemini B2C Query: Response received in ${Date.now() - startTime}ms`)
+          console.log(`🔍 Gemini B2C Query: Response received in ${Date.now() - startTime}ms`)
 
-      const queryResult = this.parseQueryResponse(text, users)
+          const queryResult = this.parseQueryResponse(text, users)
 
-      console.log(`✅ Gemini B2C Query: Found ${queryResult.scoredUsers.length} matching users`)
-      return queryResult
+          console.log(`✅ Gemini B2C Query: Found ${queryResult.scoredUsers.length} matching users`)
+          return queryResult
 
-    } catch (error) {
-      console.error('❌ Gemini B2C Query: Error processing query:', error)
-      // Fallback: return all users with default scores
-      return {
-        extractedCriteria: {},
-        scoredUsers: users.map((user, index) => ({
-          userId: user.id,
-          score: Math.max(30, 100 - index * 2),
-          reasoning: 'Không thể phân tích query (lỗi AI)',
-          matchedCriteria: []
-        }))
+        } catch (error) {
+          console.error('❌ Gemini B2C Query: Error processing query:', error)
+          // Fallback: return all users with default scores
+          return {
+            extractedCriteria: {},
+            scoredUsers: users.map((user, index) => ({
+              userId: user.id,
+              score: Math.max(30, 100 - index * 2),
+              reasoning: 'Không thể phân tích query (lỗi AI)',
+              matchedCriteria: []
+            }))
+          }
+        }
+      },
+      {
+        model: 'gemini-2.5-flash',
+        feature: 'b2c_search',
       }
-    }
+    )
   }
 
   /**
