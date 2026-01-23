@@ -1,4 +1,4 @@
-import { Opik } from 'opik';
+import { Opik, Trace, Span } from 'opik';
 
 // Initialize Opik client singleton
 let opikInstance: Opik | null = null;
@@ -72,28 +72,32 @@ export async function traceAICall<T>(
 
     const latencyMs = Date.now() - startTime;
 
-    // End the trace with success
-    trace.end({
+    // Update trace with output and end it
+    trace.update({
       output: { result },
       metadata: {
+        ...metadata,
         latencyMs,
         status: 'success',
       },
     });
+    trace.end();
 
     return result;
   } catch (error) {
     const latencyMs = Date.now() - startTime;
 
-    // End the trace with error
-    trace.end({
+    // Update trace with error and end it
+    trace.update({
       output: { error: error instanceof Error ? error.message : 'Unknown error' },
       metadata: {
+        ...metadata,
         latencyMs,
         status: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
       },
     });
+    trace.end();
 
     throw error;
   }
@@ -103,7 +107,7 @@ export async function traceAICall<T>(
  * Create a span within an existing trace for nested operations
  */
 export async function traceSpan<T>(
-  parentTrace: ReturnType<Opik['trace']>,
+  parentTrace: Trace,
   name: string,
   input: Record<string, unknown>,
   fn: () => Promise<T>
@@ -118,17 +122,18 @@ export async function traceSpan<T>(
   try {
     const result = await fn();
 
-    span.end({
+    span.update({
       output: { result },
       metadata: {
         latencyMs: Date.now() - startTime,
         status: 'success',
       },
     });
+    span.end();
 
     return result;
   } catch (error) {
-    span.end({
+    span.update({
       output: { error: error instanceof Error ? error.message : 'Unknown error' },
       metadata: {
         latencyMs: Date.now() - startTime,
@@ -136,13 +141,15 @@ export async function traceSpan<T>(
         error: error instanceof Error ? error.message : 'Unknown error',
       },
     });
+    span.end();
 
     throw error;
   }
 }
 
 /**
- * Log feedback for a trace (e.g., match outcome, user rating)
+ * Log feedback score for a trace
+ * Uses the trace.score() method to record feedback
  */
 export async function logFeedback(
   traceId: string,
@@ -158,15 +165,73 @@ export async function logFeedback(
   }
 
   try {
-    await client.logFeedbackScore({
-      id: traceId,
+    // Create a feedback trace that references the original trace
+    const feedbackTrace = client.trace({
+      name: `feedback_${category}`,
+      input: {
+        originalTraceId: traceId,
+        category,
+        score,
+      },
+      metadata: {
+        feedbackType: category,
+        originalTraceId: traceId,
+        ...metadata,
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+    // Add the score to the feedback trace
+    feedbackTrace.score({
       name: category,
       value: score,
-      reason: metadata?.reason as string,
+      reason: metadata?.reason as string | undefined,
     });
+
+    feedbackTrace.update({
+      output: {
+        recorded: true,
+        score,
+        category,
+      },
+    });
+
+    feedbackTrace.end();
   } catch (error) {
     console.error('❌ Failed to log feedback to Opik:', error);
   }
+}
+
+/**
+ * Add a score directly to an active trace
+ */
+export function scoreTrace(
+  trace: Trace,
+  name: string,
+  value: number,
+  reason?: string
+): void {
+  trace.score({
+    name,
+    value,
+    reason,
+  });
+}
+
+/**
+ * Add a score directly to an active span
+ */
+export function scoreSpan(
+  span: Span,
+  name: string,
+  value: number,
+  reason?: string
+): void {
+  span.score({
+    name,
+    value,
+    reason,
+  });
 }
 
 /**
@@ -184,3 +249,6 @@ export async function flushTraces(): Promise<void> {
     }
   }
 }
+
+// Re-export types for convenience
+export type { Trace, Span };

@@ -22,6 +22,7 @@
     "test:pusher:perf": "npx tsx scripts/test-pusher-performance.ts",
     "test:monitoring": "npx tsx scripts/test-monitoring.ts",
     "test:opik": "npx tsx scripts/test-opik.ts",
+    "test:opik:matching": "npx tsx scripts/test-opik-matching.ts",
     "diagrams:setup": "./scripts/setup-plantuml.sh",
     "diagrams:export": "./scripts/export-diagrams.sh",
     "diagrams:png": "plantuml -tpng -o exported docs/*.puml",

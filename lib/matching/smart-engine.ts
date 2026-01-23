@@ -1,5 +1,6 @@
 import { MatchingUser } from './algorithm'
 import { UserProfile } from '@/components/profile/types'
+import { traceAICall } from '../ai/opik'
 
 export interface SmartMatchingConfig {
   bufferSize: number
@@ -34,39 +35,56 @@ export class SmartMatchingEngine {
   private static buffers = new Map<string, MatchBuffer>()
 
   /**
-   * Initialize smart matching for a user
+   * Initialize smart matching for a user with Opik tracing
    */
   static async initializeBuffer(userId: string, excludedIds: string[] = []): Promise<MatchBuffer> {
-    const cacheKey = this.getCacheKey(userId, excludedIds)
+    return traceAICall(
+      'smart_matching_initialize',
+      {
+        userId,
+        excludedCount: excludedIds.length,
+        bufferSize: this.config.bufferSize,
+        batchSize: this.config.batchSize,
+      },
+      async () => {
+        const cacheKey = this.getCacheKey(userId, excludedIds)
 
-    // Check memory cache first
-    const cached = this.memoryCache.get(cacheKey)
-    if (cached && this.isCacheValid(cached)) {
-      const buffer: MatchBuffer = {
-        matches: cached.matches.slice(0, this.config.bufferSize),
-        cursor: 0,
-        isLoading: false,
-        hasMore: cached.matches.length > this.config.bufferSize,
-        lastFetch: cached.timestamp
+        // Check memory cache first
+        const cached = this.memoryCache.get(cacheKey)
+        if (cached && this.isCacheValid(cached)) {
+          const buffer: MatchBuffer = {
+            matches: cached.matches.slice(0, this.config.bufferSize),
+            cursor: 0,
+            isLoading: false,
+            hasMore: cached.matches.length > this.config.bufferSize,
+            lastFetch: cached.timestamp
+          }
+          this.buffers.set(userId, buffer)
+          console.log(`✅ Smart Matching: Buffer initialized from cache for user ${userId}`)
+          return buffer
+        }
+
+        // Initialize empty buffer and start loading
+        const buffer: MatchBuffer = {
+          matches: [],
+          cursor: 0,
+          isLoading: true,
+          hasMore: true,
+          lastFetch: Date.now()
+        }
+        this.buffers.set(userId, buffer)
+
+        // Load initial matches
+        await this.refillBuffer(userId, excludedIds)
+
+        console.log(`✅ Smart Matching: Buffer initialized from API for user ${userId}`)
+        return this.buffers.get(userId)!
+      },
+      {
+        feature: 'smart_matching',
+        operation: 'initialize_buffer',
       }
-      this.buffers.set(userId, buffer)
-      return buffer
-    }
-
-    // Initialize empty buffer and start loading
-    const buffer: MatchBuffer = {
-      matches: [],
-      cursor: 0,
-      isLoading: true,
-      hasMore: true,
-      lastFetch: Date.now()
-    }
-    this.buffers.set(userId, buffer)
-
-    // Load initial matches
-    await this.refillBuffer(userId, excludedIds)
-
-    return this.buffers.get(userId)!
+    )
   }
 
   /**
@@ -105,11 +123,15 @@ export class SmartMatchingEngine {
   }
 
   /**
-   * Process user action and update buffer
+   * Process user action and update buffer with Opik tracing
    */
   static processAction(userId: string, targetUserId: string, action: 'LIKE' | 'PASS') {
     const buffer = this.buffers.get(userId)
     if (!buffer) return
+
+    // Find the match score before removing
+    const targetMatch = buffer.matches.find(match => match.id === targetUserId)
+    const matchScore = targetMatch?.matchScore
 
     // Remove the processed user from current buffer
     buffer.matches = buffer.matches.filter(match => match.id !== targetUserId)
@@ -124,6 +146,43 @@ export class SmartMatchingEngine {
 
     // Trigger refill if buffer is getting low
     this.checkAndRefill(userId)
+
+    // Track action for analytics (non-blocking)
+    this.trackMatchAction(userId, targetUserId, action, matchScore)
+  }
+
+  /**
+   * Track match action for Opik analytics
+   */
+  private static trackMatchAction(
+    userId: string,
+    targetUserId: string,
+    action: 'LIKE' | 'PASS',
+    matchScore?: number
+  ) {
+    // Fire-and-forget tracing for match actions
+    traceAICall(
+      'match_action',
+      {
+        userId,
+        targetUserId,
+        action,
+        matchScore,
+        timestamp: new Date().toISOString(),
+      },
+      async () => {
+        return {
+          action,
+          matchScore,
+          outcome: action === 'LIKE' ? 'positive' : 'negative',
+        }
+      },
+      {
+        feature: 'smart_matching',
+        operation: 'user_action',
+        actionType: action,
+      }
+    ).catch(err => console.error('Failed to track match action:', err))
   }
 
   /**

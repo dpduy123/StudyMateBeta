@@ -1,4 +1,5 @@
 import { UserProfile } from '@/components/profile/types'
+import { traceAICall } from '../ai/opik'
 
 export interface MatchScore {
   userId: string
@@ -227,6 +228,62 @@ export class AIMatchingEngine {
     return scoredUsers
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, limit)
+  }
+
+  /**
+   * Get recommended matches with Opik tracing for observability
+   */
+  static async getRecommendedMatchesWithTracing(
+    currentUser: UserProfile,
+    allUsers: UserProfile[],
+    excludeUserIds: string[] = [],
+    limit: number = 10
+  ): Promise<MatchingUser[]> {
+    return traceAICall(
+      'algorithm_matching',
+      {
+        currentUserId: currentUser.id,
+        currentUserMajor: currentUser.major,
+        currentUserUniversity: currentUser.university,
+        totalCandidates: allUsers.length,
+        excludedCount: excludeUserIds.length,
+        limit,
+      },
+      async () => {
+        const startTime = Date.now()
+
+        // Filter out current user and excluded users
+        const candidateUsers = allUsers.filter(user =>
+          user.id !== currentUser.id &&
+          !excludeUserIds.includes(user.id)
+        )
+
+        // Calculate match scores
+        const scoredUsers = candidateUsers.map(user => {
+          const matchData = this.calculateMatchScore(currentUser, user)
+          return {
+            ...user,
+            matchScore: matchData.score,
+            matchBreakdown: matchData.breakdown,
+            distance: this.calculateDistance(currentUser, user),
+            isOnline: Math.random() > 0.5
+          }
+        })
+
+        // Sort by match score and return top matches
+        const topMatches = scoredUsers
+          .sort((a, b) => b.matchScore - a.matchScore)
+          .slice(0, limit)
+
+        console.log(`✅ Algorithm Matching: Found ${topMatches.length} matches in ${Date.now() - startTime}ms`)
+
+        return topMatches
+      },
+      {
+        feature: 'algorithm_matching',
+        algorithm: 'weighted_score',
+      }
+    )
   }
 
   /**
