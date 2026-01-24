@@ -124,6 +124,7 @@ model User {
   posts             Post[]       @relation("PostAuthor")
   postLikes         PostLike[]   @relation("PostLikes")
   postComments      PostComment[] @relation("PostComments")
+  chatThreads       ChatThread[] @relation("ChatThreads")
 
   @@index([lastActive])
   @@index([university, major])
@@ -482,6 +483,93 @@ model PostComment {
   @@index([authorId])
   @@map("post_comments")
 }
+
+// ==========================================
+// CHATBOT SYSTEM
+// ==========================================
+
+enum ChatRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+// Chat Thread - A conversation between user and AI assistant
+model ChatThread {
+  id          String        @id @default(cuid())
+  userId      String
+  title       String?       // Auto-generated from first message
+  isActive    Boolean       @default(true)
+
+  // Timestamps
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  user        User          @relation("ChatThreads", fields: [userId], references: [id], onDelete: Cascade)
+  messages    ChatMessage[]
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@map("chat_threads")
+}
+
+// Chat Message - Individual messages in a thread
+model ChatMessage {
+  id          String      @id @default(cuid())
+  threadId    String
+  role        ChatRole
+  content     String      @db.Text
+
+  // Tool tracking
+  toolCalls   Json?       // Store tool calls made by assistant
+  toolResults Json?       // Store tool results
+
+  // Metrics
+  tokens      Int?        // Token usage for this message
+  latencyMs   Int?        // Response generation time
+
+  // User feedback
+  feedback    Int?        // 1-5 rating from user
+  feedbackText String?    // Optional feedback comment
+
+  // Timestamps
+  createdAt   DateTime    @default(now())
+
+  // Relations
+  thread      ChatThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([threadId, createdAt])
+  @@map("chat_messages")
+}
+
+// Knowledge Document - For RAG system
+model KnowledgeDocument {
+  id          String    @id @default(cuid())
+  title       String
+  content     String    @db.Text
+  category    String    // study_tips, platform_help, faq, academic
+  tags        String[]  // For filtering
+
+  // Metadata
+  source      String?   // Where this content came from
+  language    String    @default("vi") // vi or en
+  isActive    Boolean   @default(true)
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([category])
+  @@index([category, isActive])
+  @@map("knowledge_documents")
+}
+
+// ==========================================
+// ANALYTICS AND METRICS
+// ==========================================
 
 // Analytics and Metrics
 model UserActivity {
