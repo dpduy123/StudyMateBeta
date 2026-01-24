@@ -11,6 +11,7 @@ import {
   PhoneIcon,
   MapPinIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from '@/lib/i18n/context'
 // Social media icons as SVG components
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
@@ -37,41 +38,43 @@ const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 export function Footer() {
+  const { t } = useTranslation()
+
   const footerSections = [
     {
-      title: 'Sản phẩm',
+      title: t('landing.footer.product'),
       links: [
-        { name: 'Tính năng', href: '#features' },
-        { name: 'Cách hoạt động', href: '#how-it-works' },
-        { name: 'Bảng giá', href: '#pricing' },
-        { name: 'Đánh giá', href: '#testimonials' }
+        { name: t('landing.footer.features'), href: '#features' },
+        { name: t('landing.footer.howItWorks'), href: '#how-it-works' },
+        { name: t('landing.footer.pricing'), href: '#pricing' },
+        { name: t('landing.footer.testimonials'), href: '#testimonials' }
       ]
     },
     {
-      title: 'Cộng đồng',
+      title: t('landing.footer.community'),
       links: [
-        { name: 'Tìm bạn học', href: '/discover' },
-        { name: 'Phòng học nhóm', href: '/rooms' },
-        { name: 'Sự kiện', href: '/events' },
-        { name: 'Blog', href: '/blog' }
+        { name: t('landing.footer.findPartners'), href: '/discover' },
+        { name: t('landing.footer.studyRooms'), href: '/rooms' },
+        { name: t('landing.footer.events'), href: '/events' },
+        { name: t('landing.footer.blog'), href: '/blog' }
       ]
     },
     {
-      title: 'Hỗ trợ',
+      title: t('landing.footer.support'),
       links: [
-        { name: 'Trung tâm trợ giúp', href: '/help' },
-        { name: 'Liên hệ', href: '/contact' },
-        { name: 'Báo cáo sự cố', href: '/report' },
-        { name: 'An toàn cộng đồng', href: '/safety' }
+        { name: t('landing.footer.helpCenter'), href: '/help' },
+        { name: t('landing.footer.contact'), href: '/contact' },
+        { name: t('landing.footer.reportIssue'), href: '/report' },
+        { name: t('landing.footer.communitySafety'), href: '/safety' }
       ]
     },
     {
-      title: 'Công ty',
+      title: t('landing.footer.company'),
       links: [
-        { name: 'Về chúng tôi', href: '/about' },
-        { name: 'Tuyển dụng', href: '/careers' },
-        { name: 'Báo chí', href: '/press' },
-        { name: 'Đối tác', href: '/partners' }
+        { name: t('landing.footer.aboutUs'), href: '/about' },
+        { name: t('landing.footer.careers'), href: '/careers' },
+        { name: t('landing.footer.press'), href: '/press' },
+        { name: t('landing.footer.partners'), href: '/partners' }
       ]
     }
   ]
@@ -86,18 +89,18 @@ export function Footer() {
   const features = [
     {
       icon: ShieldCheckIcon,
-      title: 'An toàn 100%',
-      description: 'Xác thực email .edu'
+      title: t('landing.footer.safe100'),
+      description: t('landing.footer.eduVerification')
     },
     {
       icon: AcademicCapIcon,
-      title: 'Hỗ trợ học tập',
-      description: 'AI matching thông minh'
+      title: t('landing.footer.learningSupport'),
+      description: t('landing.footer.smartAIMatching')
     },
     {
       icon: UserGroupIcon,
-      title: 'Cộng đồng lớn',
-      description: '10,000+ sinh viên'
+      title: t('landing.footer.largeCommunity'),
+      description: t('landing.footer.studentsCount')
     }
   ]
 
@@ -109,17 +112,17 @@ export function Footer() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold mb-4">
-                Sẵn sàng kết nối với bạn học?
+                {t('landing.footer.readyToConnect')}
               </h2>
               <p className="text-gray-300 text-lg mb-6">
-                Tham gia cùng hàng nghìn sinh viên đang học tập hiệu quả trên StudyMate
+                {t('landing.footer.joinThousands')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button className="btn-primary">
-                  Đăng ký miễn phí
+                  {t('landing.footer.signUpFree')}
                 </button>
                 <button className="btn-secondary bg-gray-800 border-gray-700 text-white hover:bg-gray-700">
-                  Tải ứng dụng
+                  {t('landing.footer.downloadApp')}
                 </button>
               </div>
             </div>
@@ -150,7 +153,7 @@ export function Footer() {
               <span className="text-xl font-bold">StudyMate</span>
             </div>
             <p className="text-gray-400 mb-6 max-w-xs">
-              Nền tảng kết nối sinh viên hàng đầu Việt Nam, giúp bạn tìm bạn học phù hợp và phát triển bản thân.
+              {t('landing.footer.description')}
             </p>
 
             {/* Contact Info */}
@@ -196,7 +199,7 @@ export function Footer() {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-6 mb-4 md:mb-0">
-              <span className="text-gray-400">Theo dõi chúng tôi:</span>
+              <span className="text-gray-400">{t('landing.footer.followUs')}</span>
               {socialLinks.map((social, index) => (
                 <Link
                   key={index}
@@ -209,9 +212,9 @@ export function Footer() {
               ))}
             </div>
             <div className="flex items-center space-x-2 text-gray-400">
-              <span>Made with</span>
+              <span>{t('landing.footer.madeWith')}</span>
               <HeartIcon className="h-4 w-4 text-red-500" />
-              <span>in Vietnam</span>
+              <span>{t('landing.footer.inVietnam')}</span>
             </div>
           </div>
         </div>
@@ -222,17 +225,17 @@ export function Footer() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
             <div className="mb-4 md:mb-0">
-              <p>&copy; 2024 StudyMate. Tất cả quyền được bảo lưu.</p>
+              <p>{t('landing.footer.copyright')}</p>
             </div>
             <div className="flex items-center space-x-6">
               <Link href="/privacy" className="hover:text-white transition-colors">
-                Chính sách bảo mật
+                {t('landing.footer.privacy')}
               </Link>
               <Link href="/terms" className="hover:text-white transition-colors">
-                Điều khoản sử dụng
+                {t('landing.footer.terms')}
               </Link>
               <Link href="/cookies" className="hover:text-white transition-colors">
-                Cookie Policy
+                {t('landing.footer.cookies')}
               </Link>
             </div>
           </div>

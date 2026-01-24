@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/providers/Providers'
 import { motion } from 'framer-motion'
+import { useTranslation } from '@/lib/i18n/context'
 import {
   Bars3Icon,
   XMarkIcon,
@@ -15,12 +16,13 @@ import {
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user, signOut, loading } = useAuth()
+  const { t } = useTranslation()
 
   const navigation = [
-    { name: 'Tính năng', href: '#features' },
-    { name: 'Cách hoạt động', href: '#how-it-works' },
-    { name: 'Gói dịch vụ', href: '#pricing' },
-    { name: 'Đánh giá', href: '#testimonials' },
+    { name: t('landing.header.features'), href: '#features' },
+    { name: t('landing.header.howItWorks'), href: '#how-it-works' },
+    { name: t('landing.header.pricing'), href: '#pricing' },
+    { name: t('landing.header.testimonials'), href: '#testimonials' },
   ]
 
   return (
@@ -68,14 +70,14 @@ export function Header() {
                   className="hidden sm:inline-flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
                 >
                   <UserCircleIcon className="h-5 w-5" />
-                  <span>Hồ sơ</span>
+                  <span>{t('landing.header.profile')}</span>
                 </Link>
                 <button
                   onClick={signOut}
                   className="inline-flex items-center space-x-2 text-gray-600 hover:text-red-600 font-medium transition-colors"
                 >
                   <ArrowRightOnRectangleIcon className="h-5 w-5" />
-                  <span className="hidden sm:inline">Đăng xuất</span>
+                  <span className="hidden sm:inline">{t('landing.header.logout')}</span>
                 </button>
               </div>
             ) : (
@@ -84,13 +86,13 @@ export function Header() {
                   href="/auth/login"
                   className="text-gray-600 hover:text-primary-600 font-medium transition-colors duration-200"
                 >
-                  Đăng nhập
+                  {t('landing.header.login')}
                 </Link>
                 <Link
                   href="/auth/register"
                   className="btn-primary"
                 >
-                  Đăng ký
+                  {t('landing.header.signup')}
                 </Link>
               </div>
             )}
@@ -143,7 +145,7 @@ export function Header() {
                     className="block text-gray-600 hover:text-primary-600 font-medium transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Hồ sơ
+                    {t('landing.header.profile')}
                   </Link>
                 </>
               )}
@@ -155,14 +157,14 @@ export function Header() {
                       className="block text-gray-600 hover:text-primary-600 font-medium transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Đăng nhập
+                      {t('landing.header.login')}
                     </Link>
                     <Link
                       href="/auth/register"
                       className="block w-full text-center btn-primary"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Đăng ký
+                      {t('landing.header.signup')}
                     </Link>
                   </div>
                 </>

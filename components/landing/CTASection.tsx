@@ -7,8 +7,11 @@ import {
   UserGroupIcon,
   AcademicCapIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from '@/lib/i18n/context'
 
 export function CTASection() {
+  const { t } = useTranslation()
+
   return (
     <section className="py-16 sm:py-20 lg:py-24 bg-primary-500 relative overflow-hidden">
       {/* Background Elements */}
@@ -29,18 +32,17 @@ export function CTASection() {
           >
             <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-8">
               <SparklesIcon className="h-4 w-4" />
-              <span>Hoàn toàn miễn phí để bắt đầu</span>
+              <span>{t('landing.cta.freeToStart')}</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Sẵn sàng thay đổi cách
+              {t('landing.cta.title')}
               <br />
-              <span className="text-yellow-300">học tập của bạn?</span>
+              <span className="text-yellow-300">{t('landing.cta.titleHighlight')}</span>
             </h2>
 
             <p className="mx-auto max-w-3xl text-xl text-white/90 mb-10 leading-relaxed">
-              Tham gia cùng hơn 10,000+ sinh viên đang sử dụng StudyMate để kết nối,
-              học tập và phát triển bản thân mỗi ngày
+              {t('landing.cta.subtitle')}
             </p>
           </motion.div>
 
@@ -53,10 +55,10 @@ export function CTASection() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
           >
             {[
-              { icon: UserGroupIcon, value: '10,000+', label: 'Sinh viên active' },
-              { icon: AcademicCapIcon, value: '50+', label: 'Trường đại học' },
-              { icon: SparklesIcon, value: '50,000+', label: 'Match thành công' },
-              { icon: SparklesIcon, value: '95%', label: 'Mức độ hài lòng' }
+              { icon: UserGroupIcon, value: '10,000+', label: t('landing.cta.stats.activeStudents') },
+              { icon: AcademicCapIcon, value: '50+', label: t('landing.cta.stats.universities') },
+              { icon: SparklesIcon, value: '50,000+', label: t('landing.cta.stats.successfulMatches') },
+              { icon: SparklesIcon, value: '95%', label: t('landing.cta.stats.satisfaction') }
             ].map((stat, index) => (
               <div key={index} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-white">
                 <stat.icon className="h-8 w-8 mx-auto mb-3 text-yellow-300" />
@@ -75,11 +77,11 @@ export function CTASection() {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
           >
             <button className="group bg-white text-primary-600 hover:bg-gray-50 font-semibold text-lg px-8 py-4 rounded-xl transition-all duration-200 hover:scale-105 shadow-xl inline-flex items-center">
-              Đăng ký miễn phí ngay
+              {t('landing.cta.signUpNow')}
               <ArrowRightIcon className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <button className="border-2 border-white text-white hover:bg-white hover:text-primary-600 font-semibold text-lg px-8 py-4 rounded-xl transition-all duration-200 hover:scale-105">
-              Xem demo trực tiếp
+              {t('landing.cta.watchDemo')}
             </button>
           </motion.div>
 
@@ -92,14 +94,14 @@ export function CTASection() {
             className="text-center"
           >
             <p className="text-white/80 text-sm mb-4">
-              Được tin tưởng bởi sinh viên từ các trường hàng đầu
+              {t('landing.cta.trustedBy')}
             </p>
             <div className="flex flex-wrap justify-center items-center gap-8 opacity-70">
               {[
-                'Đại học Bách khoa Hà Nội',
-                'Đại học Kinh tế Quốc dân',
-                'Đại học Công nghệ',
-                'Đại học Khoa học Tự nhiên'
+                'Hanoi University of Science and Technology',
+                'National Economics University',
+                'VNU University of Engineering and Technology',
+                'VNU University of Science'
               ].map((university, index) => (
                 <div key={index} className="text-white/70 text-sm font-medium">
                   {university}
@@ -119,16 +121,16 @@ export function CTASection() {
         >
           {[
             {
-              title: 'AI Matching',
-              description: 'Thuật toán thông minh tìm bạn học phù hợp'
+              title: t('landing.cta.highlights.aiMatching.title'),
+              description: t('landing.cta.highlights.aiMatching.description')
             },
             {
-              title: 'An toàn 100%',
-              description: 'Xác thực email .edu đảm bảo môi trường tin cậy'
+              title: t('landing.cta.highlights.safe.title'),
+              description: t('landing.cta.highlights.safe.description')
             },
             {
-              title: 'Miễn phí',
-              description: 'Bắt đầu hoàn toàn miễn phí, nâng cấp khi cần'
+              title: t('landing.cta.highlights.free.title'),
+              description: t('landing.cta.highlights.free.description')
             }
           ].map((feature, index) => (
             <div key={index} className="text-center">

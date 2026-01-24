@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast'
 import { SWRConfig } from 'swr'
 import { swrConfig } from '@/lib/swrConfig'
 import { usePresence } from '@/hooks/usePresence'
+import { I18nProvider } from '@/lib/i18n/context'
 
 interface AuthContextType {
   user: User | null;
@@ -172,9 +173,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <SWRConfig value={swrConfig}>
-      <AuthContext.Provider value={{ user, loading, signOut, signUp, signIn, signInWithGoogle }}>
-        {children}
-        <Toaster
+      <I18nProvider>
+        <AuthContext.Provider value={{ user, loading, signOut, signUp, signIn, signInWithGoogle }}>
+          {children}
+          <Toaster
           position="top-right"
           toastOptions={{
             duration: 4000,
@@ -200,8 +202,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
               },
             },
           }}
-        />
-      </AuthContext.Provider>
+          />
+        </AuthContext.Provider>
+      </I18nProvider>
     </SWRConfig>
   )
 }

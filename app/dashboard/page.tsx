@@ -10,6 +10,7 @@ import { useAuth } from '@/components/providers/Providers'
 import { useProfile } from '@/hooks/useProfile'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
+import { useTranslation } from '@/lib/i18n/context'
 import {
   PhotoIcon,
   VideoCameraIcon,
@@ -65,22 +66,11 @@ interface SuggestedUser {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-  if (diffInSeconds < 60) return 'Vừa xong'
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`
-  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} ngày trước`
-  return `${Math.floor(diffInSeconds / 2592000)} tháng trước`
-}
-
 function PostCard({ post, onLike, onComment }: { post: Post; onLike: (postId: string) => void; onComment: (postId: string, content: string) => void }) {
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { t, formatRelativeTime } = useTranslation()
 
   const handleSubmitComment = async () => {
     if (!commentText.trim() || isSubmitting) return
@@ -118,7 +108,7 @@ function PostCard({ post, onLike, onComment }: { post: Post; onLike: (postId: st
                 {post.author.firstName} {post.author.lastName}
               </h3>
               <p className="text-sm text-gray-500">{post.author.major} - {post.author.university}</p>
-              <p className="text-xs text-gray-400">{formatTimeAgo(post.createdAt)}</p>
+              <p className="text-xs text-gray-400">{formatRelativeTime(new Date(post.createdAt))}</p>
             </div>
           </div>
           <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -147,13 +137,13 @@ function PostCard({ post, onLike, onComment }: { post: Post; onLike: (postId: st
       <div className="px-4 py-2 flex items-center justify-between text-sm text-gray-500 border-t border-gray-100">
         <div className="flex items-center space-x-1">
           <HeartSolidIcon className="h-4 w-4 text-red-500" />
-          <span>{post.likesCount} lượt thích</span>
+          <span>{t('dashboard.post.likes', { count: post.likesCount })}</span>
         </div>
         <button
           onClick={() => setShowComments(!showComments)}
           className="hover:text-primary-600 hover:underline"
         >
-          {post.commentsCount} bình luận
+          {t('dashboard.post.comments', { count: post.commentsCount })}
         </button>
       </div>
 
@@ -170,18 +160,18 @@ function PostCard({ post, onLike, onComment }: { post: Post; onLike: (postId: st
           ) : (
             <HeartIcon className="h-5 w-5" />
           )}
-          <span className="font-medium">Thích</span>
+          <span className="font-medium">{t('dashboard.post.like')}</span>
         </button>
         <button
           onClick={() => setShowComments(!showComments)}
           className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
         >
           <ChatBubbleLeftIcon className="h-5 w-5" />
-          <span className="font-medium">Bình luận</span>
+          <span className="font-medium">{t('dashboard.post.comment')}</span>
         </button>
         <button className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600">
           <ShareIcon className="h-5 w-5" />
-          <span className="font-medium hidden sm:inline">Chia sẻ</span>
+          <span className="font-medium hidden sm:inline">{t('dashboard.post.share')}</span>
         </button>
       </div>
 
@@ -205,7 +195,7 @@ function PostCard({ post, onLike, onComment }: { post: Post; onLike: (postId: st
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSubmitComment()}
-                  placeholder="Viết bình luận..."
+                  placeholder={t('dashboard.post.writeComment')}
                   className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <button
@@ -239,7 +229,7 @@ function PostCard({ post, onLike, onComment }: { post: Post; onLike: (postId: st
                         {comment.author.firstName} {comment.author.lastName}
                       </p>
                       <p className="text-sm text-gray-700">{comment.content}</p>
-                      <p className="text-xs text-gray-400 mt-1">{formatTimeAgo(comment.createdAt)}</p>
+                      <p className="text-xs text-gray-400 mt-1">{formatRelativeTime(new Date(comment.createdAt))}</p>
                     </div>
                   </div>
                 ))}
@@ -256,6 +246,7 @@ function CreatePostBox({ onPost, userAvatar, userInitials }: { onPost: (content:
   const [isExpanded, setIsExpanded] = useState(false)
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { t } = useTranslation()
 
   const handleSubmit = async () => {
     if (!content.trim() || isSubmitting) return
@@ -286,7 +277,7 @@ function CreatePostBox({ onPost, userAvatar, userInitials }: { onPost: (content:
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Bạn đang nghĩ gì về học tập?"
+                placeholder={t('dashboard.createPost.placeholder')}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
                 rows={4}
                 autoFocus
@@ -311,14 +302,14 @@ function CreatePostBox({ onPost, userAvatar, userInitials }: { onPost: (content:
                     }}
                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
-                    Hủy
+                    {t('dashboard.createPost.cancel')}
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={!content.trim() || isSubmitting}
                     className="px-6 py-2 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? 'Đang đăng...' : 'Đăng'}
+                    {isSubmitting ? t('dashboard.createPost.posting') : t('dashboard.createPost.post')}
                   </button>
                 </div>
               </div>
@@ -328,7 +319,7 @@ function CreatePostBox({ onPost, userAvatar, userInitials }: { onPost: (content:
               onClick={() => setIsExpanded(true)}
               className="w-full text-left px-4 py-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
             >
-              Bạn đang nghĩ gì về học tập?
+              {t('dashboard.createPost.placeholder')}
             </button>
           )}
         </div>
@@ -341,21 +332,21 @@ function CreatePostBox({ onPost, userAvatar, userInitials }: { onPost: (content:
             className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
           >
             <PhotoIcon className="h-5 w-5 text-green-500" />
-            <span className="font-medium">Ảnh</span>
+            <span className="font-medium">{t('dashboard.createPost.photo')}</span>
           </button>
           <button
             onClick={() => setIsExpanded(true)}
             className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
           >
             <VideoCameraIcon className="h-5 w-5 text-blue-500" />
-            <span className="font-medium">Video</span>
+            <span className="font-medium">{t('dashboard.createPost.video')}</span>
           </button>
           <button
             onClick={() => setIsExpanded(true)}
             className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
           >
             <DocumentTextIcon className="h-5 w-5 text-orange-500" />
-            <span className="font-medium">Bài viết</span>
+            <span className="font-medium">{t('dashboard.createPost.article')}</span>
           </button>
         </div>
       )}
@@ -366,6 +357,7 @@ function CreatePostBox({ onPost, userAvatar, userInitials }: { onPost: (content:
 function SuggestedUserCard({ user }: { user: SuggestedUser }) {
   const [isConnecting, setIsConnecting] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
+  const { t } = useTranslation()
 
   const handleConnect = async () => {
     setIsConnecting(true)
@@ -403,7 +395,7 @@ function SuggestedUserCard({ user }: { user: SuggestedUser }) {
             {user.firstName} {user.lastName}
           </h4>
           <p className="text-xs text-gray-500 truncate max-w-[120px]">{user.major}</p>
-          <p className="text-xs text-gray-400">Năm {user.year}</p>
+          <p className="text-xs text-gray-400">{t('dashboard.sidebar.year', { year: user.year })}</p>
         </div>
       </div>
       <button
@@ -415,7 +407,7 @@ function SuggestedUserCard({ user }: { user: SuggestedUser }) {
             : 'border border-primary-600 text-primary-600 hover:bg-primary-50'
         }`}
       >
-        {isConnected ? 'Đã gửi' : isConnecting ? '...' : 'Kết nối'}
+        {isConnected ? t('dashboard.sidebar.sent') : isConnecting ? '...' : t('dashboard.sidebar.connect')}
       </button>
     </div>
   )
@@ -424,6 +416,7 @@ function SuggestedUserCard({ user }: { user: SuggestedUser }) {
 export default function DashboardPage() {
   const { user } = useAuth()
   const { profile } = useProfile()
+  const { t } = useTranslation()
 
   // Fetch posts
   const { data: postsData, error: postsError, mutate: mutatePosts } = useSWR<{ posts: Post[] }>(
@@ -519,8 +512,8 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gray-100">
         {/* Header */}
         <DashboardHeader
-          title="Bảng tin"
-          description="Cập nhật từ cộng đồng học tập"
+          title={t('dashboard.title')}
+          description={t('dashboard.subtitle')}
           icon={NewspaperIcon}
           currentPage="/dashboard"
         />
@@ -535,13 +528,13 @@ export default function DashboardPage() {
               {/* Posts Feed */}
               {postsError ? (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-                  <p className="text-gray-500">Không thể tải bảng tin. Vui lòng thử lại.</p>
+                  <p className="text-gray-500">{t('dashboard.post.loadError')}</p>
                 </div>
               ) : posts.length === 0 ? (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
                   <NewspaperIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bài viết nào</h3>
-                  <p className="text-gray-500 mb-4">Hãy là người đầu tiên chia sẻ về trải nghiệm học tập của bạn!</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('dashboard.post.noPosts')}</h3>
+                  <p className="text-gray-500 mb-4">{t('dashboard.post.noPostsDescription')}</p>
                 </div>
               ) : (
                 posts.map((post) => (
@@ -561,9 +554,9 @@ export default function DashboardPage() {
                 {/* Suggested Connections */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900">Gợi ý kết nối</h3>
+                    <h3 className="font-semibold text-gray-900">{t('dashboard.sidebar.suggestedConnections')}</h3>
                     <Link href="/discover" className="text-sm text-primary-600 hover:underline">
-                      Xem tất cả
+                      {t('dashboard.sidebar.viewAll')}
                     </Link>
                   </div>
                   <div className="divide-y divide-gray-100">
@@ -574,7 +567,7 @@ export default function DashboardPage() {
                     ) : (
                       <div className="py-4 text-center text-sm text-gray-500">
                         <UserPlusIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                        Không có gợi ý mới
+                        {t('dashboard.sidebar.noSuggestions')}
                       </div>
                     )}
                   </div>
@@ -582,39 +575,39 @@ export default function DashboardPage() {
 
                 {/* Quick Links */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">Truy cập nhanh</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">{t('dashboard.sidebar.quickAccess')}</h3>
                   <div className="space-y-2">
                     <Link
                       href="/discover"
                       className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                      Khám phá bạn học
+                      {t('dashboard.sidebar.discoverPartners')}
                     </Link>
                     <Link
                       href="/discover-b2c"
                       className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                      Tìm kiếm AI
+                      {t('dashboard.sidebar.aiSearch')}
                     </Link>
                     <Link
                       href="/rooms"
                       className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                      Phòng học nhóm
+                      {t('dashboard.sidebar.studyRooms')}
                     </Link>
                     <Link
                       href="/messages"
                       className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                      Tin nhắn
+                      {t('dashboard.sidebar.messages')}
                     </Link>
                   </div>
                 </div>
 
                 {/* Footer */}
                 <div className="text-xs text-gray-400 px-4">
-                  <p>StudyMate - Kết nối học tập</p>
-                  <p className="mt-1">2024 StudyMate. All rights reserved.</p>
+                  <p>{t('dashboard.sidebar.footer')}</p>
+                  <p className="mt-1">{t('dashboard.sidebar.copyright')}</p>
                 </div>
               </div>
             </div>

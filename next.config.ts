@@ -24,8 +24,21 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
+  // Server-only packages that should not be bundled for the client
+  serverExternalPackages: ['opik'],
+
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Externalize opik and its dependencies on server side
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push({
+        'opik': 'commonjs opik',
+        'fsevents': 'commonjs fsevents',
+        'chokidar': 'commonjs chokidar',
+      });
+    }
+
     if (!dev && !isServer) {
       // Enable tree shaking
       config.optimization = {

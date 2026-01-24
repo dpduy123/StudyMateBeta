@@ -1,3 +1,4 @@
+import 'server-only';
 import { Opik, Trace, Span } from 'opik';
 
 // Initialize Opik client singleton

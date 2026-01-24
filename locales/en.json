@@ -1,0 +1,738 @@
+{
+  "common": {
+    "appName": "StudyMate",
+    "tagline": "Find Your Perfect Study Partner",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try Again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "clear": "Clear",
+    "apply": "Apply",
+    "viewAll": "View All",
+    "seeMore": "See More",
+    "showLess": "Show Less",
+    "noResults": "No results found",
+    "comingSoon": "Coming Soon",
+    "beta": "Beta",
+    "new": "New",
+    "premium": "Premium",
+    "elite": "Elite"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "discover": "Discover",
+    "messages": "Messages",
+    "rooms": "Study Rooms",
+    "profile": "Profile",
+    "settings": "Settings",
+    "achievements": "Achievements",
+    "notifications": "Notifications",
+    "help": "Help",
+    "logout": "Log Out",
+    "signOut": "Sign Out",
+    "signingOut": "Signing out..."
+  },
+  "auth": {
+    "login": "Log In",
+    "signup": "Sign Up",
+    "logout": "Log Out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "rememberMe": "Remember me",
+    "orContinueWith": "Or continue with",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "verifyEmail": "Verify Your Email",
+    "verificationSent": "We've sent a verification link to your email",
+    "resendVerification": "Resend Verification Email",
+    "eduEmailRequired": "A .edu email is required to register",
+    "invalidCredentials": "Invalid email or password",
+    "emailInUse": "This email is already registered",
+    "weakPassword": "Password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match"
+  },
+  "onboarding": {
+    "welcome": "Welcome to StudyMate!",
+    "welcomeSubtitle": "Let's set up your profile to find the best study partners",
+    "step": "Step {{current}} of {{total}}",
+    "basicInfo": "Basic Information",
+    "academicInfo": "Academic Information",
+    "interests": "Interests & Skills",
+    "preferences": "Study Preferences",
+    "profilePhoto": "Profile Photo",
+    "uploadPhoto": "Upload Photo",
+    "skipForNow": "Skip for now",
+    "completeProfile": "Complete Profile",
+    "profileComplete": "Your profile is complete!",
+    "startExploring": "Start Exploring"
+  },
+  "profile": {
+    "myProfile": "My Profile",
+    "editProfile": "Edit Profile",
+    "viewProfile": "View Profile",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "displayName": "Display Name",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell others about yourself...",
+    "university": "University",
+    "major": "Major",
+    "year": "Year",
+    "yearOptions": {
+      "1": "Freshman (Year 1)",
+      "2": "Sophomore (Year 2)",
+      "3": "Junior (Year 3)",
+      "4": "Senior (Year 4)",
+      "5": "Graduate"
+    },
+    "gpa": "GPA",
+    "interests": "Interests",
+    "skills": "Skills",
+    "languages": "Languages",
+    "studyGoals": "Study Goals",
+    "preferredStudyTime": "Preferred Study Time",
+    "studyTimes": {
+      "morning": "Morning (6:00-12:00)",
+      "afternoon": "Afternoon (12:00-18:00)",
+      "evening": "Evening (19:00-22:00)",
+      "night": "Night (22:00-02:00)",
+      "weekend": "Weekends"
+    },
+    "profileUpdated": "Profile updated successfully",
+    "memberSince": "Member since {{date}}",
+    "matchesFound": "{{count}} matches found",
+    "studyHours": "{{hours}} study hours",
+    "rating": "{{rating}} rating"
+  },
+  "discover": {
+    "title": "Discover Study Partners",
+    "subtitle": "Find students who match your study style",
+    "findPartners": "Find Partners",
+    "noMoreMatches": "No more matches available",
+    "checkBackLater": "Check back later for new study partners",
+    "like": "Like",
+    "pass": "Pass",
+    "superLike": "Super Like",
+    "itsAMatch": "It's a Match!",
+    "matchMessage": "You and {{name}} liked each other",
+    "sendMessage": "Send Message",
+    "keepSwiping": "Keep Swiping",
+    "compatibility": "{{score}}% Compatible",
+    "sharedInterests": "{{count}} shared interests",
+    "sameMajor": "Same major",
+    "sameUniversity": "Same university",
+    "filters": {
+      "title": "Filter Matches",
+      "university": "University",
+      "major": "Major",
+      "year": "Year",
+      "interests": "Interests",
+      "studyTime": "Study Time",
+      "distance": "Distance",
+      "online": "Online Now"
+    },
+    "search": {
+      "placeholder": "Search by name, major, or interest...",
+      "noResults": "No students match your search",
+      "tryDifferent": "Try different keywords or filters"
+    },
+    "dailyLimit": "Daily Limit Reached",
+    "upgradeForMore": "Upgrade to Premium for unlimited matches",
+    "matchesRemaining": "{{count}} matches remaining today"
+  },
+  "messages": {
+    "title": "Messages",
+    "noConversations": "No conversations yet",
+    "startChatting": "Start chatting with your matches!",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "online": "Online",
+    "offline": "Offline",
+    "lastSeen": "Last seen {{time}}",
+    "typing": "typing...",
+    "delivered": "Delivered",
+    "read": "Read",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "newMessage": "New message",
+    "unreadMessages": "{{count}} unread messages",
+    "searchConversations": "Search conversations...",
+    "noMessages": "No messages yet",
+    "startConversation": "Say hi to start the conversation!",
+    "messageDeleted": "This message was deleted",
+    "editMessage": "Edit Message",
+    "deleteMessage": "Delete Message",
+    "replyTo": "Reply to",
+    "reactions": {
+      "like": "Like",
+      "love": "Love",
+      "laugh": "Haha",
+      "wow": "Wow",
+      "sad": "Sad",
+      "pray": "Thanks"
+    },
+    "attachments": {
+      "photo": "Photo",
+      "file": "File",
+      "location": "Location"
+    }
+  },
+  "rooms": {
+    "title": "Study Rooms",
+    "subtitle": "Join or create study sessions",
+    "createRoom": "Create Room",
+    "joinRoom": "Join Room",
+    "leaveRoom": "Leave Room",
+    "roomName": "Room Name",
+    "roomDescription": "Description",
+    "roomTopic": "Topic",
+    "maxParticipants": "Max Participants",
+    "isPrivate": "Private Room",
+    "requiresPassword": "Requires Password",
+    "password": "Room Password",
+    "enterPassword": "Enter room password",
+    "participants": "{{count}} participants",
+    "activeNow": "Active Now",
+    "startingIn": "Starting in {{time}}",
+    "endingIn": "Ending in {{time}}",
+    "roomFull": "Room is full",
+    "roomClosed": "Room is closed",
+    "noRooms": "No active study rooms",
+    "createFirst": "Be the first to create one!",
+    "features": {
+      "video": "Video",
+      "audio": "Audio",
+      "chat": "Chat",
+      "screenShare": "Screen Share",
+      "whiteboard": "Whiteboard"
+    },
+    "controls": {
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "videoOn": "Turn on camera",
+      "videoOff": "Turn off camera",
+      "share": "Share screen",
+      "stopShare": "Stop sharing",
+      "raiseHand": "Raise hand",
+      "lowerHand": "Lower hand"
+    },
+    "dailyLimit": "Daily room limit reached",
+    "upgradeForMore": "Upgrade to create more rooms"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "subtitle": "Track your progress and earn badges",
+    "points": "{{count}} points",
+    "level": "Level {{level}}",
+    "progress": "{{current}}/{{total}}",
+    "unlocked": "Unlocked!",
+    "locked": "Locked",
+    "recent": "Recent Achievements",
+    "all": "All Achievements",
+    "categories": {
+      "social": "Social",
+      "study": "Study",
+      "engagement": "Engagement",
+      "special": "Special"
+    },
+    "badges": {
+      "firstMatch": {
+        "name": "First Connection",
+        "description": "Make your first match"
+      },
+      "socialButterfly": {
+        "name": "Social Butterfly",
+        "description": "Match with 10 study partners"
+      },
+      "studyStreak": {
+        "name": "Study Streak",
+        "description": "Study for 7 days in a row"
+      },
+      "roomCreator": {
+        "name": "Room Creator",
+        "description": "Create your first study room"
+      },
+      "helpfulPartner": {
+        "name": "Helpful Partner",
+        "description": "Receive 5 positive ratings"
+      },
+      "earlyAdopter": {
+        "name": "Early Adopter",
+        "description": "Join during beta period"
+      }
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "weekly": "This Week",
+      "monthly": "This Month",
+      "allTime": "All Time",
+      "yourRank": "Your Rank: #{{rank}}"
+    }
+  },
+  "subscription": {
+    "title": "Subscription Plans",
+    "subtitle": "Choose the plan that works for you",
+    "currentPlan": "Current Plan",
+    "upgrade": "Upgrade",
+    "downgrade": "Downgrade",
+    "cancel": "Cancel Subscription",
+    "perMonth": "/month",
+    "billed": "Billed {{frequency}}",
+    "monthly": "monthly",
+    "yearly": "yearly",
+    "savePercent": "Save {{percent}}%",
+    "plans": {
+      "basic": {
+        "name": "Basic",
+        "price": "Free",
+        "description": "Get started with StudyMate",
+        "features": [
+          "5 matches per day",
+          "5 study rooms per day",
+          "Basic filters",
+          "Standard support"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "79,000",
+        "currency": "VND",
+        "description": "For serious students",
+        "features": [
+          "Unlimited matches",
+          "Unlimited study rooms",
+          "Advanced filters",
+          "Screen sharing",
+          "Priority support",
+          "No ads"
+        ]
+      },
+      "elite": {
+        "name": "Elite",
+        "price": "149,000",
+        "currency": "VND",
+        "description": "The complete experience",
+        "features": [
+          "Everything in Premium",
+          "AI Study Tutor",
+          "Career mentoring",
+          "Exclusive events",
+          "Profile boost",
+          "24/7 support"
+        ]
+      }
+    },
+    "trial": {
+      "title": "Start Free Trial",
+      "duration": "{{days}} days free",
+      "noCardRequired": "No credit card required"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "account": {
+      "title": "Account",
+      "email": "Email",
+      "changeEmail": "Change Email",
+      "changePassword": "Change Password",
+      "deleteAccount": "Delete Account",
+      "deleteWarning": "This action cannot be undone"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "push": "Push Notifications",
+      "email": "Email Notifications",
+      "matches": "New Matches",
+      "messages": "New Messages",
+      "rooms": "Study Room Invites",
+      "marketing": "Marketing & Updates"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "profileVisibility": "Profile Visibility",
+      "showOnline": "Show Online Status",
+      "showLastSeen": "Show Last Seen",
+      "showDistance": "Show Distance",
+      "blockList": "Blocked Users"
+    },
+    "language": {
+      "title": "Language",
+      "select": "Select Language",
+      "english": "English",
+      "vietnamese": "Tiếng Việt"
+    },
+    "theme": {
+      "title": "Appearance",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "about": {
+      "title": "About",
+      "version": "Version",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "contact": "Contact Us",
+      "rate": "Rate StudyMate"
+    }
+  },
+  "tutor": {
+    "title": "AI Study Tutor",
+    "subtitle": "Your personal AI learning assistant",
+    "eliteOnly": "Available for Elite members",
+    "askQuestion": "Ask a question...",
+    "selectSubject": "Select Subject",
+    "subjects": {
+      "math": "Mathematics",
+      "physics": "Physics",
+      "chemistry": "Chemistry",
+      "biology": "Biology",
+      "computerScience": "Computer Science",
+      "economics": "Economics",
+      "literature": "Literature",
+      "history": "History",
+      "other": "Other"
+    },
+    "thinking": "Thinking...",
+    "helpful": "Was this helpful?",
+    "followUp": "Follow-up questions",
+    "newChat": "New Chat",
+    "history": "Chat History",
+    "upgrade": "Upgrade to Elite to access AI Tutor"
+  },
+  "errors": {
+    "network": "Network error. Please check your connection.",
+    "server": "Server error. Please try again later.",
+    "unauthorized": "Please log in to continue.",
+    "forbidden": "You don't have permission to do this.",
+    "notFound": "The requested resource was not found.",
+    "validation": "Please check your input and try again.",
+    "unknown": "An unexpected error occurred.",
+    "timeout": "Request timed out. Please try again."
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hours ago",
+    "daysAgo": "{{count}} days ago",
+    "weeksAgo": "{{count}} weeks ago",
+    "monthsAgo": "{{count}} months ago"
+  },
+  "dashboard": {
+    "title": "News Feed",
+    "subtitle": "Updates from the learning community",
+    "createPost": {
+      "placeholder": "What's on your mind about studying?",
+      "photo": "Photo",
+      "video": "Video",
+      "article": "Article",
+      "cancel": "Cancel",
+      "posting": "Posting...",
+      "post": "Post"
+    },
+    "post": {
+      "likes": "{{count}} likes",
+      "comments": "{{count}} comments",
+      "like": "Like",
+      "comment": "Comment",
+      "share": "Share",
+      "writeComment": "Write a comment...",
+      "noPosts": "No posts yet",
+      "noPostsDescription": "Be the first to share your learning experience!",
+      "loadError": "Could not load feed. Please try again."
+    },
+    "sidebar": {
+      "suggestedConnections": "Suggested Connections",
+      "viewAll": "View All",
+      "noSuggestions": "No new suggestions",
+      "year": "Year {{year}}",
+      "sent": "Sent",
+      "connect": "Connect",
+      "quickAccess": "Quick Access",
+      "discoverPartners": "Discover Partners",
+      "aiSearch": "AI Search",
+      "studyRooms": "Study Rooms",
+      "messages": "Messages",
+      "footer": "StudyMate - Learning Connection",
+      "copyright": "2024 StudyMate. All rights reserved."
+    }
+  },
+  "landing": {
+    "header": {
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "pricing": "Pricing",
+      "testimonials": "Testimonials",
+      "login": "Log In",
+      "signup": "Sign Up",
+      "profile": "Profile",
+      "logout": "Log Out"
+    },
+    "hero": {
+      "title": "Find Your Perfect",
+      "titleHighlight": "Study Partner",
+      "subtitle": "Connect with students who share your academic goals. Smart AI matching helps you find the ideal study partners based on your major, schedule, and learning style.",
+      "cta": "Start Now",
+      "secondaryCta": "Learn More",
+      "stats": {
+        "students": "10,000+ Students",
+        "matches": "50,000+ Matches",
+        "universities": "100+ Universities"
+      }
+    },
+    "features": {
+      "title": "Outstanding Features",
+      "subtitle": "StudyMate integrates the most advanced features to create an excellent learning experience for students",
+      "aiMatching": {
+        "title": "Smart AI Matching",
+        "description": "AI algorithm analyzes your academic profile to suggest the most suitable study partners based on subjects, interests, and goals."
+      },
+      "realTimeChat": {
+        "title": "Real-time Messaging",
+        "description": "Chat directly with study partners, share documents, notes, and support each other effectively in the learning process."
+      },
+      "studyRooms": {
+        "title": "Online Study Rooms",
+        "description": "Join voice/video chat rooms with academic topics, group discussions, and learn together vividly."
+      },
+      "achievements": {
+        "title": "Achievement System",
+        "description": "Earn badges, rankings, and accumulate points through learning activities. Create motivation and healthy competition in the community."
+      },
+      "eduVerification": {
+        "title": "Safe .edu Verification",
+        "description": "Only students with .edu emails can join, ensuring a 100% safe and trustworthy academic environment."
+      },
+      "community": {
+        "title": "Professional Community",
+        "description": "Connect with students from the same school, same major, and build long-lasting academic networks."
+      }
+    },
+    "howItWorks": {
+      "title": "How StudyMate Works",
+      "subtitle": "With just 4 simple steps, you can start your journey to connect and learn with wonderful friends",
+      "step1": {
+        "title": "Sign up with .edu email",
+        "description": "Create an account with your university email to verify your student identity and ensure a safe environment.",
+        "features": ["Automatic email verification", "Detailed academic profile", "Information security"]
+      },
+      "step2": {
+        "title": "AI finds suitable study partners",
+        "description": "The AI algorithm analyzes your interests, subjects, and goals to suggest ideal study partners.",
+        "features": ["Smart matching", "High compatibility", "Personalized suggestions"]
+      },
+      "step3": {
+        "title": "Connect and learn",
+        "description": "Chat, call, join group study rooms, and share materials with your matched friends.",
+        "features": ["Real-time chat", "Voice/Video call", "Document sharing"]
+      },
+      "step4": {
+        "title": "Earn achievements",
+        "description": "Accumulate points, earn badges, and climb the ranks through active learning activities in the community.",
+        "features": ["Badge system", "Leaderboard", "Bonus points"]
+      },
+      "step": "Step",
+      "freeForStudents": "Free for students",
+      "startToday": "Start your learning journey today",
+      "joinThousands": "Join thousands of students connecting and learning effectively",
+      "signUpFree": "Sign up free"
+    },
+    "pricing": {
+      "title": "Business Proposal",
+      "subtitle": "Explore business models suitable for StudyMate",
+      "b2cFreemium": "B2C Freemium",
+      "b2bPartnership": "B2B Partnership & B2B2C Ecosystem",
+      "mostPopular": "Most Popular",
+      "basic": {
+        "name": "Basic",
+        "price": "Free",
+        "description": "Perfect for students just starting + Ads",
+        "features": [
+          "5 matches per day",
+          "5 study rooms per day",
+          "Basic chat with matched friends",
+          "Basic academic profile",
+          "Email notifications",
+          "Banner ads (45k CPM)",
+          "Native ads in feed",
+          "Community support"
+        ],
+        "cta": "Start free"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "79,000đ",
+        "period": "/month",
+        "description": "For students wanting to optimize their experience",
+        "features": [
+          "Unlimited matches",
+          "Unlimited study rooms",
+          "Advanced filters",
+          "Chat + Voice/Video calls",
+          "Unlimited file sharing",
+          "Priority matching",
+          "No ads",
+          "Study statistics",
+          "Priority support"
+        ],
+        "cta": "Choose Premium"
+      },
+      "elite": {
+        "name": "Elite",
+        "price": "149,000đ",
+        "period": "/month",
+        "description": "For those who want comprehensive development",
+        "features": [
+          "All Premium features",
+          "AI Tutor Access 24/7",
+          "Exclusive Events & Workshops",
+          "Career Mentoring",
+          "Alumni Networking",
+          "Profile boost",
+          "Advanced analytics",
+          "Dedicated support"
+        ],
+        "cta": "Choose Elite"
+      },
+      "partnership": {
+        "name": "Partnership",
+        "price": "289M",
+        "period": "/year",
+        "description": "Annual fee for universities (2027: 10 schools, 2028: 20 schools)",
+        "features": [
+          "StudyMate portal with custom domain (studymate.university.edu)",
+          "SSO integration with existing student system",
+          "AI matching within school + inter-school",
+          "Video rooms for online classes (up to 100 users)",
+          "Analytics Dashboard (+10M/year)",
+          "Custom branding (school logo, colors)",
+          "API webhooks to send data to current LMS",
+          "Training and deployment support"
+        ],
+        "cta": "Contact for partnership"
+      },
+      "ecosystem": {
+        "name": "Ecosystem",
+        "price": "250,000đ",
+        "period": "/registration",
+        "description": "B2B2C for enterprises (2027: 50 companies, 2028: 80 companies)",
+        "features": [
+          "One-time business registration fee: 250k",
+          "Affiliates revenue: 7% + 25k/transaction",
+          "Virtual meeting spaces for employees",
+          "Internal courses and training",
+          "Cross-company networking events",
+          "Corporate study groups",
+          "Employee skill matching",
+          "Analytics for HR and Learning & Development"
+        ],
+        "cta": "Learn more"
+      },
+      "faq": {
+        "title": "Frequently Asked Questions",
+        "partnerInfo": "Partnership Information",
+        "whyFree": "Why is Basic free?",
+        "whyFreeAnswer": "Revenue from ads: Banner CPM 45k, Native Ads 45k CPM, Sponsored Content 5M CPD.",
+        "canCancel": "Can I cancel paid plans?",
+        "canCancelAnswer": "Yes, you can cancel anytime and still use until the end of the billing cycle.",
+        "adsAnnoying": "Are ads annoying?",
+        "adsAnnoyingAnswer": "Ads are optimized for students: books, courses, jobs. Premium/Elite has no ads.",
+        "conversionRate": "Conversion rate from Basic to Premium?",
+        "conversionRateAnswer": "Assuming 15% of users who log in and join 3+ rooms will upgrade to Premium (79k/month).",
+        "partnershipIncludes": "What does Partnership 289M/year include?",
+        "partnershipIncludesAnswer": "Unlimited users for 1 university. Separate Analytics Dashboard +10M/year. Target: 10 schools 2027, 20 schools 2028.",
+        "b2b2cRevenue": "How does B2B2C Ecosystem make money?",
+        "b2b2cRevenueAnswer": "Business registration fee: 250k. Affiliates: 7% + 25k/transaction from meeting spaces, courses.",
+        "b2b2cTarget": "B2B2C target market?",
+        "b2b2cTargetAnswer": "2027: 50 enterprises. 2028: 80 enterprises. Focus: banking, tech, consulting firms.",
+        "b2bROI": "What's the ROI for businesses?",
+        "b2bROIAnswer": "Employee retention up 20%, training cost down 30% thanks to peer-to-peer learning."
+      }
+    },
+    "cta": {
+      "title": "Ready to change the way",
+      "titleHighlight": "you study?",
+      "subtitle": "Join over 10,000+ students using StudyMate to connect, learn, and develop themselves every day",
+      "freeToStart": "Completely free to start",
+      "signUpNow": "Sign up free now",
+      "watchDemo": "Watch live demo",
+      "trustedBy": "Trusted by students from top universities",
+      "stats": {
+        "activeStudents": "Active students",
+        "universities": "Universities",
+        "successfulMatches": "Successful matches",
+        "satisfaction": "Satisfaction rate"
+      },
+      "highlights": {
+        "aiMatching": {
+          "title": "AI Matching",
+          "description": "Smart algorithm finds suitable study partners"
+        },
+        "safe": {
+          "title": "100% Safe",
+          "description": ".edu email verification ensures trustworthy environment"
+        },
+        "free": {
+          "title": "Free",
+          "description": "Start completely free, upgrade when needed"
+        }
+      }
+    },
+    "footer": {
+      "description": "Vietnam's leading student connection platform, helping you find suitable study partners and develop yourself.",
+      "readyToConnect": "Ready to connect with study partners?",
+      "joinThousands": "Join thousands of students learning effectively on StudyMate",
+      "signUpFree": "Sign up free",
+      "downloadApp": "Download app",
+      "product": "Product",
+      "community": "Community",
+      "support": "Support",
+      "company": "Company",
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "pricing": "Pricing",
+      "testimonials": "Testimonials",
+      "findPartners": "Find Study Partners",
+      "studyRooms": "Study Rooms",
+      "events": "Events",
+      "blog": "Blog",
+      "helpCenter": "Help Center",
+      "contact": "Contact",
+      "reportIssue": "Report Issue",
+      "communitySafety": "Community Safety",
+      "aboutUs": "About Us",
+      "careers": "Careers",
+      "press": "Press",
+      "partners": "Partners",
+      "followUs": "Follow us:",
+      "madeWith": "Made with",
+      "inVietnam": "in Vietnam",
+      "copyright": "© 2024 StudyMate. All rights reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookies": "Cookie Policy",
+      "safe100": "100% Safe",
+      "eduVerification": ".edu email verification",
+      "learningSupport": "Learning Support",
+      "smartAIMatching": "Smart AI matching",
+      "largeCommunity": "Large Community",
+      "studentsCount": "10,000+ students"
+    }
+  }
+}

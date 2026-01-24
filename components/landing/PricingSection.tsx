@@ -10,109 +10,70 @@ import {
   BuildingOfficeIcon,
   GlobeAltIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from '@/lib/i18n/context'
 
 export function PricingSection() {
+  const { t, tArray } = useTranslation()
   const [activeTab, setActiveTab] = useState('B2C')
-  
+
   const b2cPlans = [
     {
-      name: 'Basic',
-      price: 'Miễn phí',
+      name: t('landing.pricing.basic.name'),
+      price: t('landing.pricing.basic.price'),
       period: '',
-      description: 'Hoàn hảo cho sinh viên mới bắt đầu + Quảng cáo',
+      description: t('landing.pricing.basic.description'),
       icon: SparklesIcon,
       color: 'gray',
       popular: false,
-      features: [
-        '5 lượt match mỗi ngày',
-        '5 phòng học nhóm mỗi ngày',
-        'Chat cơ bản với bạn đã match',
-        'Hồ sơ học thuật cơ bản',
-        'Thông báo email',
-        'Banner quảng cáo (45k CPM)',
-        'Native ads trong feed',
-        'Hỗ trợ cộng đồng'
-      ]
+      features: tArray('landing.pricing.basic.features'),
+      cta: t('landing.pricing.basic.cta')
     },
     {
-      name: 'Premium',
-      price: '79.000đ',
-      period: '/tháng',
-      description: 'Dành cho sinh viên muốn tối ưu trải nghiệm',
+      name: t('landing.pricing.premium.name'),
+      price: t('landing.pricing.premium.price'),
+      period: t('landing.pricing.premium.period'),
+      description: t('landing.pricing.premium.description'),
       icon: StarIcon,
       color: 'primary',
       popular: true,
-      features: [
-        'Unlimited matches',
-        'Unlimited phòng học nhóm',
-        'Bộ lọc nâng cao',
-        'Chat + Voice/Video calls',
-        'Chia sẻ file không giới hạn',
-        'Priority matching',
-        'Không quảng cáo',
-        'Thống kê học tập',
-        'Hỗ trợ ưu tiên'
-      ]
+      features: tArray('landing.pricing.premium.features'),
+      cta: t('landing.pricing.premium.cta')
     },
     {
-      name: 'Elite',
-      price: '149.000đ',
-      period: '/tháng',
-      description: 'Cho những người muốn phát triển toàn diện',
+      name: t('landing.pricing.elite.name'),
+      price: t('landing.pricing.elite.price'),
+      period: t('landing.pricing.elite.period'),
+      description: t('landing.pricing.elite.description'),
       icon: TrophyIcon,
       color: 'accent',
       popular: false,
-      features: [
-        'Tất cả tính năng Premium',
-        'AI Tutor Access 24/7',
-        'Exclusive Events & Workshops',
-        'Career Mentoring',
-        'Networking với Alumni',
-        'Profile boost',
-        'Advanced analytics',
-        'Dedicated support'
-      ]
+      features: tArray('landing.pricing.elite.features'),
+      cta: t('landing.pricing.elite.cta')
     }
   ]
 
   const b2bPlans = [
     {
-      name: 'Partnership',
-      price: '289 triệu',
-      period: '/năm',
-      description: 'Phí thường niên cho trường ĐH (2027: 10 trường, 2028: 20 trường)',
+      name: t('landing.pricing.partnership.name'),
+      price: t('landing.pricing.partnership.price'),
+      period: t('landing.pricing.partnership.period'),
+      description: t('landing.pricing.partnership.description'),
       icon: BuildingOfficeIcon,
       color: 'blue',
       popular: false,
-      features: [
-        'StudyMate portal với domain riêng (studymate.hust.edu.vn)',
-        'SSO tích hợp với hệ thống sinh viên hiện có',
-        'AI matching trong nội bộ trường + liên trường',
-        'Video rooms cho lớp học trực tuyến (up to 100 users)',
-        'Analytics Dashboard (+10 triệu/năm)',
-        'Custom branding (logo, màu sắc trường)',
-        'API webhooks gửi data về LMS hiện tại',
-        'Training và deployment support'
-      ]
+      features: tArray('landing.pricing.partnership.features'),
+      cta: t('landing.pricing.partnership.cta')
     },
     {
-      name: 'Ecosystem',
-      price: '250.000đ',
-      period: '/đăng ký',
-      description: 'B2B2C cho doanh nghiệp (2027: 50 DN, 2028: 80 DN)',
+      name: t('landing.pricing.ecosystem.name'),
+      price: t('landing.pricing.ecosystem.price'),
+      period: t('landing.pricing.ecosystem.period'),
+      description: t('landing.pricing.ecosystem.description'),
       icon: GlobeAltIcon,
       color: 'purple',
       popular: true,
-      features: [
-        'Phí đăng ký doanh nghiệp một lần: 250k',
-        'Affiliates revenue: 7% + 25k/giao dịch',
-        'Không gian hội họp ảo cho nhân viên',
-        'Khóa học nội bộ và training',
-        'Cross-company networking events',
-        'Corporate study groups',
-        'Employee skill matching',
-        'Analytics cho HR và Learning & Development'
-      ]
+      features: tArray('landing.pricing.ecosystem.features'),
+      cta: t('landing.pricing.ecosystem.cta')
     }
   ]
 
@@ -176,7 +137,7 @@ export function PricingSection() {
             viewport={{ once: true }}
             className="text-responsive-xl font-bold text-gray-900 mb-4"
           >
-            Đề xuất kinh doanh
+            {t('landing.pricing.title')}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -185,7 +146,7 @@ export function PricingSection() {
             viewport={{ once: true }}
             className="mx-auto max-w-2xl text-responsive-base text-gray-600 mb-8"
           >
-            Tìm hiểu các mô hình kinh doanh phù hợp với StudyMate
+            {t('landing.pricing.subtitle')}
           </motion.p>
 
           {/* Tabs */}
@@ -205,7 +166,7 @@ export function PricingSection() {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                B2C Freemium
+                {t('landing.pricing.b2cFreemium')}
               </button>
               <button
                 onClick={() => setActiveTab('B2B')}
@@ -215,7 +176,7 @@ export function PricingSection() {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                B2B Partnership & B2B2C Ecosystem
+                {t('landing.pricing.b2bPartnership')}
               </button>
             </div>
           </motion.div>
@@ -239,7 +200,7 @@ export function PricingSection() {
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <div className={`px-4 py-2 rounded-full text-sm font-semibold ${colorClasses.badge}`}>
-                      Phổ biến nhất
+                      {t('landing.pricing.mostPopular')}
                     </div>
                   </div>
                 )}
@@ -282,10 +243,7 @@ export function PricingSection() {
 
                 {/* CTA Button */}
                 <button className={colorClasses.button}>
-                  {activeTab === 'B2C' 
-                    ? (plan.name === 'Basic' ? 'Bắt đầu miễn phí' : `Chọn ${plan.name}`)
-                    : (plan.name === 'Partnership' ? 'Liên hệ hợp tác' : 'Tìm hiểu thêm')
-                  }
+                  {plan.cta}
                 </button>
               </motion.div>
             )
@@ -302,41 +260,41 @@ export function PricingSection() {
         >
           <div className="bg-white rounded-2xl p-8 shadow-lg">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              {activeTab === 'B2C' ? 'Câu hỏi thường gặp' : 'Thông tin hợp tác'}
+              {activeTab === 'B2C' ? t('landing.pricing.faq.title') : t('landing.pricing.faq.partnerInfo')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
               {activeTab === 'B2C' ? (
                 <>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Tại sao Basic miễn phí?
+                      {t('landing.pricing.faq.whyFree')}
                     </h4>
                     <p className="text-gray-600">
-                      Thu nhập từ quảng cáo: Banner CPM 45k, Native Ads 45k CPM, Sponsored Content 5M CPD.
+                      {t('landing.pricing.faq.whyFreeAnswer')}
                     </p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Có thể hủy gói trả phí không?
+                      {t('landing.pricing.faq.canCancel')}
                     </h4>
                     <p className="text-gray-600">
-                      Có, bạn có thể hủy bất cứ lúc nào và vẫn sử dụng được đến hết chu kỳ thanh toán.
+                      {t('landing.pricing.faq.canCancelAnswer')}
                     </p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Quảng cáo có làm phiền không?
+                      {t('landing.pricing.faq.adsAnnoying')}
                     </h4>
                     <p className="text-gray-600">
-                      Quảng cáo được tối ưu cho sinh viên: sách, khóa học, việc làm. Premium/Elite không có ads.
+                      {t('landing.pricing.faq.adsAnnoyingAnswer')}
                     </p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Conversion rate từ Basic lên Premium?
+                      {t('landing.pricing.faq.conversionRate')}
                     </h4>
                     <p className="text-gray-600">
-                      Giả định 15% user đăng nhập tham gia 3+ rooms sẽ nâng cấp lên Premium (79k/tháng).
+                      {t('landing.pricing.faq.conversionRateAnswer')}
                     </p>
                   </div>
                 </>
@@ -344,34 +302,34 @@ export function PricingSection() {
                 <>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Partnership 289 triệu/năm bao gồm gì?
+                      {t('landing.pricing.faq.partnershipIncludes')}
                     </h4>
                     <p className="text-gray-600">
-                      Unlimited users cho 1 trường ĐH. Analytics Dashboard riêng +10M/năm. Target: 10 trường 2027, 20 trường 2028.
+                      {t('landing.pricing.faq.partnershipIncludesAnswer')}
                     </p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      B2B2C Ecosystem kiếm tiền thế nào?
+                      {t('landing.pricing.faq.b2b2cRevenue')}
                     </h4>
                     <p className="text-gray-600">
-                      Phí đăng ký DN: 250k. Affiliates: 7% + 25k/transaction từ không gian hội họp, khóa học.
+                      {t('landing.pricing.faq.b2b2cRevenueAnswer')}
                     </p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Target market B2B2C?
+                      {t('landing.pricing.faq.b2b2cTarget')}
                     </h4>
                     <p className="text-gray-600">
-                      2027: 50 doanh nghiệp. 2028: 80 doanh nghiệp. Focus: banking, tech, consulting firms.
+                      {t('landing.pricing.faq.b2b2cTargetAnswer')}
                     </p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      ROI cho doanh nghiệp như thế nào?
+                      {t('landing.pricing.faq.b2bROI')}
                     </h4>
                     <p className="text-gray-600">
-                      Employee retention tăng 20%, training cost giảm 30% nhờ peer-to-peer learning.
+                      {t('landing.pricing.faq.b2bROIAnswer')}
                     </p>
                   </div>
                 </>

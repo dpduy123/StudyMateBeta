@@ -73,7 +73,7 @@ export async function recordMutualMatch(
   userAId: string,
   userBId: string,
   metadata?: MatchFeedbackMetadata
-): Promise<void> {
+): Promise<{ success: boolean; matchId: string; users: string[] }> {
   return traceAICall(
     'mutual_match',
     {
@@ -145,7 +145,7 @@ export async function recordConversationEngagement(
     conversationDuration: number // minutes
     initiatedStudySession: boolean
   }
-): Promise<void> {
+): Promise<{ tracked: boolean; engagementScore?: number }> {
   return traceAICall(
     'conversation_engagement',
     {

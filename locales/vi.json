@@ -1,0 +1,738 @@
+{
+  "common": {
+    "appName": "StudyMate",
+    "tagline": "Tìm Bạn Học Hoàn Hảo",
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi",
+    "retry": "Thử lại",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "close": "Đóng",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước đó",
+    "submit": "Gửi",
+    "confirm": "Xác nhận",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "clear": "Xóa",
+    "apply": "Áp dụng",
+    "viewAll": "Xem tất cả",
+    "seeMore": "Xem thêm",
+    "showLess": "Thu gọn",
+    "noResults": "Không tìm thấy kết quả",
+    "comingSoon": "Sắp ra mắt",
+    "beta": "Beta",
+    "new": "Mới",
+    "premium": "Premium",
+    "elite": "Elite"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "dashboard": "Bảng điều khiển",
+    "discover": "Khám phá",
+    "messages": "Tin nhắn",
+    "rooms": "Phòng học",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "achievements": "Thành tích",
+    "notifications": "Thông báo",
+    "help": "Trợ giúp",
+    "logout": "Đăng xuất",
+    "signOut": "Đăng xuất",
+    "signingOut": "Đang đăng xuất..."
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "signup": "Đăng ký",
+    "logout": "Đăng xuất",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "resetPassword": "Đặt lại mật khẩu",
+    "rememberMe": "Ghi nhớ đăng nhập",
+    "orContinueWith": "Hoặc tiếp tục với",
+    "noAccount": "Chưa có tài khoản?",
+    "haveAccount": "Đã có tài khoản?",
+    "verifyEmail": "Xác minh Email",
+    "verificationSent": "Chúng tôi đã gửi link xác minh đến email của bạn",
+    "resendVerification": "Gửi lại email xác minh",
+    "eduEmailRequired": "Cần email .edu để đăng ký",
+    "invalidCredentials": "Email hoặc mật khẩu không đúng",
+    "emailInUse": "Email này đã được đăng ký",
+    "weakPassword": "Mật khẩu phải có ít nhất 8 ký tự",
+    "passwordMismatch": "Mật khẩu không khớp"
+  },
+  "onboarding": {
+    "welcome": "Chào mừng đến StudyMate!",
+    "welcomeSubtitle": "Hãy thiết lập hồ sơ để tìm bạn học phù hợp nhất",
+    "step": "Bước {{current}}/{{total}}",
+    "basicInfo": "Thông tin cơ bản",
+    "academicInfo": "Thông tin học vấn",
+    "interests": "Sở thích & Kỹ năng",
+    "preferences": "Sở thích học tập",
+    "profilePhoto": "Ảnh đại diện",
+    "uploadPhoto": "Tải ảnh lên",
+    "skipForNow": "Bỏ qua",
+    "completeProfile": "Hoàn thành hồ sơ",
+    "profileComplete": "Hồ sơ của bạn đã hoàn thành!",
+    "startExploring": "Bắt đầu khám phá"
+  },
+  "profile": {
+    "myProfile": "Hồ sơ của tôi",
+    "editProfile": "Chỉnh sửa hồ sơ",
+    "viewProfile": "Xem hồ sơ",
+    "firstName": "Tên",
+    "lastName": "Họ",
+    "displayName": "Tên hiển thị",
+    "bio": "Giới thiệu",
+    "bioPlaceholder": "Giới thiệu về bản thân...",
+    "university": "Trường đại học",
+    "major": "Chuyên ngành",
+    "year": "Năm học",
+    "yearOptions": {
+      "1": "Năm nhất",
+      "2": "Năm hai",
+      "3": "Năm ba",
+      "4": "Năm tư",
+      "5": "Cao học"
+    },
+    "gpa": "Điểm GPA",
+    "interests": "Sở thích",
+    "skills": "Kỹ năng",
+    "languages": "Ngôn ngữ",
+    "studyGoals": "Mục tiêu học tập",
+    "preferredStudyTime": "Thời gian học ưa thích",
+    "studyTimes": {
+      "morning": "Sáng (6:00-12:00)",
+      "afternoon": "Chiều (12:00-18:00)",
+      "evening": "Tối (19:00-22:00)",
+      "night": "Đêm (22:00-02:00)",
+      "weekend": "Cuối tuần"
+    },
+    "profileUpdated": "Cập nhật hồ sơ thành công",
+    "memberSince": "Thành viên từ {{date}}",
+    "matchesFound": "{{count}} kết nối",
+    "studyHours": "{{hours}} giờ học",
+    "rating": "Đánh giá {{rating}}"
+  },
+  "discover": {
+    "title": "Khám phá Bạn học",
+    "subtitle": "Tìm sinh viên phù hợp với phong cách học của bạn",
+    "findPartners": "Tìm bạn học",
+    "noMoreMatches": "Không còn kết quả nào",
+    "checkBackLater": "Quay lại sau để tìm bạn học mới",
+    "like": "Thích",
+    "pass": "Bỏ qua",
+    "superLike": "Siêu thích",
+    "itsAMatch": "Kết nối thành công!",
+    "matchMessage": "Bạn và {{name}} đã thích nhau",
+    "sendMessage": "Gửi tin nhắn",
+    "keepSwiping": "Tiếp tục tìm kiếm",
+    "compatibility": "Phù hợp {{score}}%",
+    "sharedInterests": "{{count}} sở thích chung",
+    "sameMajor": "Cùng chuyên ngành",
+    "sameUniversity": "Cùng trường",
+    "filters": {
+      "title": "Lọc kết quả",
+      "university": "Trường đại học",
+      "major": "Chuyên ngành",
+      "year": "Năm học",
+      "interests": "Sở thích",
+      "studyTime": "Thời gian học",
+      "distance": "Khoảng cách",
+      "online": "Đang online"
+    },
+    "search": {
+      "placeholder": "Tìm theo tên, chuyên ngành, hoặc sở thích...",
+      "noResults": "Không tìm thấy sinh viên phù hợp",
+      "tryDifferent": "Thử từ khóa hoặc bộ lọc khác"
+    },
+    "dailyLimit": "Đã hết lượt trong ngày",
+    "upgradeForMore": "Nâng cấp Premium để không giới hạn",
+    "matchesRemaining": "Còn {{count}} lượt hôm nay"
+  },
+  "messages": {
+    "title": "Tin nhắn",
+    "noConversations": "Chưa có cuộc trò chuyện nào",
+    "startChatting": "Bắt đầu trò chuyện với bạn học!",
+    "typeMessage": "Nhập tin nhắn...",
+    "send": "Gửi",
+    "online": "Đang online",
+    "offline": "Ngoại tuyến",
+    "lastSeen": "Hoạt động {{time}}",
+    "typing": "đang nhập...",
+    "delivered": "Đã gửi",
+    "read": "Đã xem",
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua",
+    "newMessage": "Tin nhắn mới",
+    "unreadMessages": "{{count}} tin nhắn chưa đọc",
+    "searchConversations": "Tìm cuộc trò chuyện...",
+    "noMessages": "Chưa có tin nhắn",
+    "startConversation": "Gửi lời chào để bắt đầu trò chuyện!",
+    "messageDeleted": "Tin nhắn đã bị xóa",
+    "editMessage": "Chỉnh sửa tin nhắn",
+    "deleteMessage": "Xóa tin nhắn",
+    "replyTo": "Trả lời",
+    "reactions": {
+      "like": "Thích",
+      "love": "Yêu",
+      "laugh": "Haha",
+      "wow": "Wow",
+      "sad": "Buồn",
+      "pray": "Cảm ơn"
+    },
+    "attachments": {
+      "photo": "Ảnh",
+      "file": "Tệp",
+      "location": "Vị trí"
+    }
+  },
+  "rooms": {
+    "title": "Phòng học",
+    "subtitle": "Tham gia hoặc tạo buổi học nhóm",
+    "createRoom": "Tạo phòng",
+    "joinRoom": "Tham gia",
+    "leaveRoom": "Rời phòng",
+    "roomName": "Tên phòng",
+    "roomDescription": "Mô tả",
+    "roomTopic": "Chủ đề",
+    "maxParticipants": "Số người tối đa",
+    "isPrivate": "Phòng riêng tư",
+    "requiresPassword": "Yêu cầu mật khẩu",
+    "password": "Mật khẩu phòng",
+    "enterPassword": "Nhập mật khẩu phòng",
+    "participants": "{{count}} thành viên",
+    "activeNow": "Đang hoạt động",
+    "startingIn": "Bắt đầu sau {{time}}",
+    "endingIn": "Kết thúc sau {{time}}",
+    "roomFull": "Phòng đã đầy",
+    "roomClosed": "Phòng đã đóng",
+    "noRooms": "Không có phòng học nào",
+    "createFirst": "Hãy là người đầu tiên tạo phòng!",
+    "features": {
+      "video": "Video",
+      "audio": "Âm thanh",
+      "chat": "Chat",
+      "screenShare": "Chia sẻ màn hình",
+      "whiteboard": "Bảng trắng"
+    },
+    "controls": {
+      "mute": "Tắt mic",
+      "unmute": "Bật mic",
+      "videoOn": "Bật camera",
+      "videoOff": "Tắt camera",
+      "share": "Chia sẻ màn hình",
+      "stopShare": "Dừng chia sẻ",
+      "raiseHand": "Giơ tay",
+      "lowerHand": "Hạ tay"
+    },
+    "dailyLimit": "Đã hết lượt tạo phòng hôm nay",
+    "upgradeForMore": "Nâng cấp để tạo thêm phòng"
+  },
+  "achievements": {
+    "title": "Thành tích",
+    "subtitle": "Theo dõi tiến trình và nhận huy hiệu",
+    "points": "{{count}} điểm",
+    "level": "Cấp độ {{level}}",
+    "progress": "{{current}}/{{total}}",
+    "unlocked": "Đã mở khóa!",
+    "locked": "Chưa mở khóa",
+    "recent": "Thành tích gần đây",
+    "all": "Tất cả thành tích",
+    "categories": {
+      "social": "Xã hội",
+      "study": "Học tập",
+      "engagement": "Tương tác",
+      "special": "Đặc biệt"
+    },
+    "badges": {
+      "firstMatch": {
+        "name": "Kết nối đầu tiên",
+        "description": "Tạo kết nối đầu tiên"
+      },
+      "socialButterfly": {
+        "name": "Bướm xã hội",
+        "description": "Kết nối với 10 bạn học"
+      },
+      "studyStreak": {
+        "name": "Chuỗi học tập",
+        "description": "Học liên tục 7 ngày"
+      },
+      "roomCreator": {
+        "name": "Người tạo phòng",
+        "description": "Tạo phòng học đầu tiên"
+      },
+      "helpfulPartner": {
+        "name": "Bạn học tốt",
+        "description": "Nhận 5 đánh giá tích cực"
+      },
+      "earlyAdopter": {
+        "name": "Người dùng sớm",
+        "description": "Tham gia trong giai đoạn beta"
+      }
+    },
+    "leaderboard": {
+      "title": "Bảng xếp hạng",
+      "weekly": "Tuần này",
+      "monthly": "Tháng này",
+      "allTime": "Tất cả",
+      "yourRank": "Hạng của bạn: #{{rank}}"
+    }
+  },
+  "subscription": {
+    "title": "Gói đăng ký",
+    "subtitle": "Chọn gói phù hợp với bạn",
+    "currentPlan": "Gói hiện tại",
+    "upgrade": "Nâng cấp",
+    "downgrade": "Hạ cấp",
+    "cancel": "Hủy đăng ký",
+    "perMonth": "/tháng",
+    "billed": "Thanh toán {{frequency}}",
+    "monthly": "hàng tháng",
+    "yearly": "hàng năm",
+    "savePercent": "Tiết kiệm {{percent}}%",
+    "plans": {
+      "basic": {
+        "name": "Cơ bản",
+        "price": "Miễn phí",
+        "description": "Bắt đầu với StudyMate",
+        "features": [
+          "5 kết nối mỗi ngày",
+          "5 phòng học mỗi ngày",
+          "Bộ lọc cơ bản",
+          "Hỗ trợ tiêu chuẩn"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "79.000",
+        "currency": "VND",
+        "description": "Cho sinh viên nghiêm túc",
+        "features": [
+          "Kết nối không giới hạn",
+          "Phòng học không giới hạn",
+          "Bộ lọc nâng cao",
+          "Chia sẻ màn hình",
+          "Hỗ trợ ưu tiên",
+          "Không quảng cáo"
+        ]
+      },
+      "elite": {
+        "name": "Elite",
+        "price": "149.000",
+        "currency": "VND",
+        "description": "Trải nghiệm hoàn chỉnh",
+        "features": [
+          "Tất cả tính năng Premium",
+          "Gia sư AI",
+          "Tư vấn nghề nghiệp",
+          "Sự kiện độc quyền",
+          "Tăng độ hiển thị hồ sơ",
+          "Hỗ trợ 24/7"
+        ]
+      }
+    },
+    "trial": {
+      "title": "Dùng thử miễn phí",
+      "duration": "{{days}} ngày miễn phí",
+      "noCardRequired": "Không cần thẻ tín dụng"
+    }
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "account": {
+      "title": "Tài khoản",
+      "email": "Email",
+      "changeEmail": "Đổi email",
+      "changePassword": "Đổi mật khẩu",
+      "deleteAccount": "Xóa tài khoản",
+      "deleteWarning": "Hành động này không thể hoàn tác"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "push": "Thông báo đẩy",
+      "email": "Thông báo email",
+      "matches": "Kết nối mới",
+      "messages": "Tin nhắn mới",
+      "rooms": "Lời mời phòng học",
+      "marketing": "Tin tức & cập nhật"
+    },
+    "privacy": {
+      "title": "Quyền riêng tư",
+      "profileVisibility": "Hiển thị hồ sơ",
+      "showOnline": "Hiện trạng thái online",
+      "showLastSeen": "Hiện lần hoạt động",
+      "showDistance": "Hiện khoảng cách",
+      "blockList": "Người dùng đã chặn"
+    },
+    "language": {
+      "title": "Ngôn ngữ",
+      "select": "Chọn ngôn ngữ",
+      "english": "English",
+      "vietnamese": "Tiếng Việt"
+    },
+    "theme": {
+      "title": "Giao diện",
+      "light": "Sáng",
+      "dark": "Tối",
+      "system": "Hệ thống"
+    },
+    "about": {
+      "title": "Giới thiệu",
+      "version": "Phiên bản",
+      "terms": "Điều khoản dịch vụ",
+      "privacy": "Chính sách bảo mật",
+      "contact": "Liên hệ",
+      "rate": "Đánh giá StudyMate"
+    }
+  },
+  "tutor": {
+    "title": "Gia sư AI",
+    "subtitle": "Trợ lý học tập AI cá nhân",
+    "eliteOnly": "Dành cho thành viên Elite",
+    "askQuestion": "Đặt câu hỏi...",
+    "selectSubject": "Chọn môn học",
+    "subjects": {
+      "math": "Toán học",
+      "physics": "Vật lý",
+      "chemistry": "Hóa học",
+      "biology": "Sinh học",
+      "computerScience": "Khoa học máy tính",
+      "economics": "Kinh tế học",
+      "literature": "Văn học",
+      "history": "Lịch sử",
+      "other": "Khác"
+    },
+    "thinking": "Đang suy nghĩ...",
+    "helpful": "Câu trả lời có hữu ích không?",
+    "followUp": "Câu hỏi liên quan",
+    "newChat": "Cuộc trò chuyện mới",
+    "history": "Lịch sử trò chuyện",
+    "upgrade": "Nâng cấp Elite để sử dụng Gia sư AI"
+  },
+  "errors": {
+    "network": "Lỗi mạng. Vui lòng kiểm tra kết nối.",
+    "server": "Lỗi máy chủ. Vui lòng thử lại sau.",
+    "unauthorized": "Vui lòng đăng nhập để tiếp tục.",
+    "forbidden": "Bạn không có quyền thực hiện thao tác này.",
+    "notFound": "Không tìm thấy tài nguyên yêu cầu.",
+    "validation": "Vui lòng kiểm tra thông tin và thử lại.",
+    "unknown": "Đã xảy ra lỗi không mong muốn.",
+    "timeout": "Yêu cầu hết thời gian. Vui lòng thử lại."
+  },
+  "time": {
+    "justNow": "Vừa xong",
+    "minutesAgo": "{{count}} phút trước",
+    "hoursAgo": "{{count}} giờ trước",
+    "daysAgo": "{{count}} ngày trước",
+    "weeksAgo": "{{count}} tuần trước",
+    "monthsAgo": "{{count}} tháng trước"
+  },
+  "dashboard": {
+    "title": "Bảng tin",
+    "subtitle": "Cập nhật từ cộng đồng học tập",
+    "createPost": {
+      "placeholder": "Bạn đang nghĩ gì về học tập?",
+      "photo": "Ảnh",
+      "video": "Video",
+      "article": "Bài viết",
+      "cancel": "Hủy",
+      "posting": "Đang đăng...",
+      "post": "Đăng"
+    },
+    "post": {
+      "likes": "{{count}} lượt thích",
+      "comments": "{{count}} bình luận",
+      "like": "Thích",
+      "comment": "Bình luận",
+      "share": "Chia sẻ",
+      "writeComment": "Viết bình luận...",
+      "noPosts": "Chưa có bài viết nào",
+      "noPostsDescription": "Hãy là người đầu tiên chia sẻ về trải nghiệm học tập của bạn!",
+      "loadError": "Không thể tải bảng tin. Vui lòng thử lại."
+    },
+    "sidebar": {
+      "suggestedConnections": "Gợi ý kết nối",
+      "viewAll": "Xem tất cả",
+      "noSuggestions": "Không có gợi ý mới",
+      "year": "Năm {{year}}",
+      "sent": "Đã gửi",
+      "connect": "Kết nối",
+      "quickAccess": "Truy cập nhanh",
+      "discoverPartners": "Khám phá bạn học",
+      "aiSearch": "Tìm kiếm AI",
+      "studyRooms": "Phòng học nhóm",
+      "messages": "Tin nhắn",
+      "footer": "StudyMate - Kết nối học tập",
+      "copyright": "2024 StudyMate. All rights reserved."
+    }
+  },
+  "landing": {
+    "header": {
+      "features": "Tính năng",
+      "howItWorks": "Cách hoạt động",
+      "pricing": "Gói dịch vụ",
+      "testimonials": "Đánh giá",
+      "login": "Đăng nhập",
+      "signup": "Đăng ký",
+      "profile": "Hồ sơ",
+      "logout": "Đăng xuất"
+    },
+    "hero": {
+      "title": "Tìm kiếm",
+      "titleHighlight": "Bạn Học Lý Tưởng",
+      "subtitle": "Kết nối với sinh viên có cùng mục tiêu học tập. AI thông minh giúp bạn tìm bạn học phù hợp dựa trên chuyên ngành, lịch học và phong cách học tập.",
+      "cta": "Bắt Đầu Ngay",
+      "secondaryCta": "Tìm Hiểu Thêm",
+      "stats": {
+        "students": "10,000+ Sinh viên",
+        "matches": "50,000+ Kết nối",
+        "universities": "100+ Trường đại học"
+      }
+    },
+    "features": {
+      "title": "Tính năng nổi bật",
+      "subtitle": "StudyMate tích hợp những tính năng tiên tiến nhất để tạo ra trải nghiệm học tập tuyệt vời cho sinh viên",
+      "aiMatching": {
+        "title": "AI Matching thông minh",
+        "description": "Thuật toán AI phân tích hồ sơ học thuật của bạn để gợi ý những người bạn học phù hợp nhất dựa trên môn học, sở thích và mục tiêu."
+      },
+      "realTimeChat": {
+        "title": "Tin nhắn thời gian thực",
+        "description": "Chat trực tiếp với bạn học, chia sẻ tài liệu, ghi chú và hỗ trợ lẫn nhau trong quá trình học tập một cách hiệu quả."
+      },
+      "studyRooms": {
+        "title": "Phòng học trực tuyến",
+        "description": "Tham gia các phòng voice/video chat với chủ đề học thuật, thảo luận nhóm và học tập cùng nhau một cách sinh động."
+      },
+      "achievements": {
+        "title": "Hệ thống thành tích",
+        "description": "Nhận badge, xếp hạng và tích điểm thông qua hoạt động học tập. Tạo động lực và cạnh tranh lành mạnh trong cộng đồng."
+      },
+      "eduVerification": {
+        "title": "Xác thực .edu an toàn",
+        "description": "Chỉ sinh viên có email .edu mới được tham gia, đảm bảo môi trường học thuật an toàn và đáng tin cậy 100%."
+      },
+      "community": {
+        "title": "Cộng đồng chuyên nghiệp",
+        "description": "Kết nối với sinh viên cùng trường, cùng ngành và xây dựng mạng lưới quan hệ học thuật lâu dài."
+      }
+    },
+    "howItWorks": {
+      "title": "Cách StudyMate hoạt động",
+      "subtitle": "Chỉ với 4 bước đơn giản, bạn có thể bắt đầu hành trình kết nối và học tập cùng những người bạn tuyệt vời",
+      "step1": {
+        "title": "Đăng ký với email .edu",
+        "description": "Tạo tài khoản bằng email trường đại học của bạn để xác thực danh tính sinh viên và đảm bảo môi trường an toàn.",
+        "features": ["Xác thực email tự động", "Hồ sơ học thuật chi tiết", "Bảo mật thông tin"]
+      },
+      "step2": {
+        "title": "AI tìm bạn học phù hợp",
+        "description": "Thuật toán AI phân tích sở thích, môn học và mục tiêu của bạn để gợi ý những người bạn học lý tưởng.",
+        "features": ["Matching thông minh", "Tương thích cao", "Gợi ý cá nhân hóa"]
+      },
+      "step3": {
+        "title": "Kết nối và học tập",
+        "description": "Chat, gọi điện, tham gia phòng học nhóm và chia sẻ tài liệu với các bạn đã được match.",
+        "features": ["Chat real-time", "Voice/Video call", "Chia sẻ tài liệu"]
+      },
+      "step4": {
+        "title": "Nhận thành tích",
+        "description": "Tích lũy điểm, nhận badge và leo rank thông qua hoạt động học tập tích cực trong cộng đồng.",
+        "features": ["Badge system", "Leaderboard", "Điểm thưởng"]
+      },
+      "step": "Bước",
+      "freeForStudents": "Miễn phí cho sinh viên",
+      "startToday": "Bắt đầu hành trình học tập của bạn ngay hôm nay",
+      "joinThousands": "Tham gia cùng hàng nghìn sinh viên đang kết nối và học tập hiệu quả",
+      "signUpFree": "Đăng ký miễn phí"
+    },
+    "pricing": {
+      "title": "Đề xuất kinh doanh",
+      "subtitle": "Tìm hiểu các mô hình kinh doanh phù hợp với StudyMate",
+      "b2cFreemium": "B2C Freemium",
+      "b2bPartnership": "B2B Partnership & B2B2C Ecosystem",
+      "mostPopular": "Phổ biến nhất",
+      "basic": {
+        "name": "Basic",
+        "price": "Miễn phí",
+        "description": "Hoàn hảo cho sinh viên mới bắt đầu + Quảng cáo",
+        "features": [
+          "5 lượt match mỗi ngày",
+          "5 phòng học nhóm mỗi ngày",
+          "Chat cơ bản với bạn đã match",
+          "Hồ sơ học thuật cơ bản",
+          "Thông báo email",
+          "Banner quảng cáo (45k CPM)",
+          "Native ads trong feed",
+          "Hỗ trợ cộng đồng"
+        ],
+        "cta": "Bắt đầu miễn phí"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "79.000đ",
+        "period": "/tháng",
+        "description": "Dành cho sinh viên muốn tối ưu trải nghiệm",
+        "features": [
+          "Unlimited matches",
+          "Unlimited phòng học nhóm",
+          "Bộ lọc nâng cao",
+          "Chat + Voice/Video calls",
+          "Chia sẻ file không giới hạn",
+          "Priority matching",
+          "Không quảng cáo",
+          "Thống kê học tập",
+          "Hỗ trợ ưu tiên"
+        ],
+        "cta": "Chọn Premium"
+      },
+      "elite": {
+        "name": "Elite",
+        "price": "149.000đ",
+        "period": "/tháng",
+        "description": "Cho những người muốn phát triển toàn diện",
+        "features": [
+          "Tất cả tính năng Premium",
+          "AI Tutor Access 24/7",
+          "Exclusive Events & Workshops",
+          "Career Mentoring",
+          "Networking với Alumni",
+          "Profile boost",
+          "Advanced analytics",
+          "Dedicated support"
+        ],
+        "cta": "Chọn Elite"
+      },
+      "partnership": {
+        "name": "Partnership",
+        "price": "289 triệu",
+        "period": "/năm",
+        "description": "Phí thường niên cho trường ĐH (2027: 10 trường, 2028: 20 trường)",
+        "features": [
+          "StudyMate portal với domain riêng (studymate.hust.edu.vn)",
+          "SSO tích hợp với hệ thống sinh viên hiện có",
+          "AI matching trong nội bộ trường + liên trường",
+          "Video rooms cho lớp học trực tuyến (up to 100 users)",
+          "Analytics Dashboard (+10 triệu/năm)",
+          "Custom branding (logo, màu sắc trường)",
+          "API webhooks gửi data về LMS hiện tại",
+          "Training và deployment support"
+        ],
+        "cta": "Liên hệ hợp tác"
+      },
+      "ecosystem": {
+        "name": "Ecosystem",
+        "price": "250.000đ",
+        "period": "/đăng ký",
+        "description": "B2B2C cho doanh nghiệp (2027: 50 DN, 2028: 80 DN)",
+        "features": [
+          "Phí đăng ký doanh nghiệp một lần: 250k",
+          "Affiliates revenue: 7% + 25k/giao dịch",
+          "Không gian hội họp ảo cho nhân viên",
+          "Khóa học nội bộ và training",
+          "Cross-company networking events",
+          "Corporate study groups",
+          "Employee skill matching",
+          "Analytics cho HR và Learning & Development"
+        ],
+        "cta": "Tìm hiểu thêm"
+      },
+      "faq": {
+        "title": "Câu hỏi thường gặp",
+        "partnerInfo": "Thông tin hợp tác",
+        "whyFree": "Tại sao Basic miễn phí?",
+        "whyFreeAnswer": "Thu nhập từ quảng cáo: Banner CPM 45k, Native Ads 45k CPM, Sponsored Content 5M CPD.",
+        "canCancel": "Có thể hủy gói trả phí không?",
+        "canCancelAnswer": "Có, bạn có thể hủy bất cứ lúc nào và vẫn sử dụng được đến hết chu kỳ thanh toán.",
+        "adsAnnoying": "Quảng cáo có làm phiền không?",
+        "adsAnnoyingAnswer": "Quảng cáo được tối ưu cho sinh viên: sách, khóa học, việc làm. Premium/Elite không có ads.",
+        "conversionRate": "Conversion rate từ Basic lên Premium?",
+        "conversionRateAnswer": "Giả định 15% user đăng nhập tham gia 3+ rooms sẽ nâng cấp lên Premium (79k/tháng).",
+        "partnershipIncludes": "Partnership 289 triệu/năm bao gồm gì?",
+        "partnershipIncludesAnswer": "Unlimited users cho 1 trường ĐH. Analytics Dashboard riêng +10M/năm. Target: 10 trường 2027, 20 trường 2028.",
+        "b2b2cRevenue": "B2B2C Ecosystem kiếm tiền thế nào?",
+        "b2b2cRevenueAnswer": "Phí đăng ký DN: 250k. Affiliates: 7% + 25k/transaction từ không gian hội họp, khóa học.",
+        "b2b2cTarget": "Target market B2B2C?",
+        "b2b2cTargetAnswer": "2027: 50 doanh nghiệp. 2028: 80 doanh nghiệp. Focus: banking, tech, consulting firms.",
+        "b2bROI": "ROI cho doanh nghiệp như thế nào?",
+        "b2bROIAnswer": "Employee retention tăng 20%, training cost giảm 30% nhờ peer-to-peer learning."
+      }
+    },
+    "cta": {
+      "title": "Sẵn sàng thay đổi cách",
+      "titleHighlight": "học tập của bạn?",
+      "subtitle": "Tham gia cùng hơn 10,000+ sinh viên đang sử dụng StudyMate để kết nối, học tập và phát triển bản thân mỗi ngày",
+      "freeToStart": "Hoàn toàn miễn phí để bắt đầu",
+      "signUpNow": "Đăng ký miễn phí ngay",
+      "watchDemo": "Xem demo trực tiếp",
+      "trustedBy": "Được tin tưởng bởi sinh viên từ các trường hàng đầu",
+      "stats": {
+        "activeStudents": "Sinh viên active",
+        "universities": "Trường đại học",
+        "successfulMatches": "Match thành công",
+        "satisfaction": "Mức độ hài lòng"
+      },
+      "highlights": {
+        "aiMatching": {
+          "title": "AI Matching",
+          "description": "Thuật toán thông minh tìm bạn học phù hợp"
+        },
+        "safe": {
+          "title": "An toàn 100%",
+          "description": "Xác thực email .edu đảm bảo môi trường tin cậy"
+        },
+        "free": {
+          "title": "Miễn phí",
+          "description": "Bắt đầu hoàn toàn miễn phí, nâng cấp khi cần"
+        }
+      }
+    },
+    "footer": {
+      "description": "Nền tảng kết nối sinh viên hàng đầu Việt Nam, giúp bạn tìm bạn học phù hợp và phát triển bản thân.",
+      "readyToConnect": "Sẵn sàng kết nối với bạn học?",
+      "joinThousands": "Tham gia cùng hàng nghìn sinh viên đang học tập hiệu quả trên StudyMate",
+      "signUpFree": "Đăng ký miễn phí",
+      "downloadApp": "Tải ứng dụng",
+      "product": "Sản phẩm",
+      "community": "Cộng đồng",
+      "support": "Hỗ trợ",
+      "company": "Công ty",
+      "features": "Tính năng",
+      "howItWorks": "Cách hoạt động",
+      "pricing": "Bảng giá",
+      "testimonials": "Đánh giá",
+      "findPartners": "Tìm bạn học",
+      "studyRooms": "Phòng học nhóm",
+      "events": "Sự kiện",
+      "blog": "Blog",
+      "helpCenter": "Trung tâm trợ giúp",
+      "contact": "Liên hệ",
+      "reportIssue": "Báo cáo sự cố",
+      "communitySafety": "An toàn cộng đồng",
+      "aboutUs": "Về chúng tôi",
+      "careers": "Tuyển dụng",
+      "press": "Báo chí",
+      "partners": "Đối tác",
+      "followUs": "Theo dõi chúng tôi:",
+      "madeWith": "Made with",
+      "inVietnam": "in Vietnam",
+      "copyright": "© 2024 StudyMate. Tất cả quyền được bảo lưu.",
+      "privacy": "Chính sách bảo mật",
+      "terms": "Điều khoản sử dụng",
+      "cookies": "Cookie Policy",
+      "safe100": "An toàn 100%",
+      "eduVerification": "Xác thực email .edu",
+      "learningSupport": "Hỗ trợ học tập",
+      "smartAIMatching": "AI matching thông minh",
+      "largeCommunity": "Cộng đồng lớn",
+      "studentsCount": "10,000+ sinh viên"
+    }
+  }
+}

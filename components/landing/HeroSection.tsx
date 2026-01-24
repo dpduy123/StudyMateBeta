@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useTranslation } from '@/lib/i18n/context'
 import {
   SparklesIcon,
   UserGroupIcon,
@@ -10,11 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 export function HeroSection() {
-  const stats = [
-    { icon: UserGroupIcon, value: '10,000+', label: 'Sinh viên' },
-    { icon: ChatBubbleLeftRightIcon, value: '50,000+', label: 'Kết nối' },
-    { icon: TrophyIcon, value: '95%', label: 'Hài lòng' },
-  ]
+  const { t } = useTranslation()
 
   return (
     <section className="flex relative pt-24 pb-8 sm:pt-20 lg:pt-24 overflow-hidden">
@@ -45,8 +42,8 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-responsive-2xl font-bold text-gray-900 mb-6 leading-tight"
           >
-            Kết nối sinh viên,{' '}
-            <span className="text-primary-600">học tập cùng nhau</span>
+            {t('landing.hero.title')}{' '}
+            <span className="text-primary-600">{t('landing.hero.titleHighlight')}</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -56,9 +53,7 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto max-w-3xl text-responsive-base text-gray-600 mb-10 leading-relaxed"
           >
-            StudyMate là nền tảng kết nối sinh viên thông minh với AI matching,
-            giúp bạn tìm được những người bạn học lý tưởng, tham gia các phòng thảo luận
-            và xây dựng cộng đồng học tập năng động.
+            {t('landing.hero.subtitle')}
           </motion.p>
         </div>
       </div>

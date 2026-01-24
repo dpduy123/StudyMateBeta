@@ -9,43 +9,46 @@ import {
   ShieldCheckIcon,
   AcademicCapIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from '@/lib/i18n/context'
 
 export function FeaturesSection() {
+  const { t } = useTranslation()
+
   const features = [
     {
       icon: SparklesIcon,
-      title: 'AI Matching thông minh',
-      description: 'Thuật toán AI phân tích hồ sơ học thuật của bạn để gợi ý những người bạn học phù hợp nhất dựa trên môn học, sở thích và mục tiêu.',
+      title: t('landing.features.aiMatching.title'),
+      description: t('landing.features.aiMatching.description'),
       color: 'primary'
     },
     {
       icon: ChatBubbleLeftRightIcon,
-      title: 'Tin nhắn thời gian thực',
-      description: 'Chat trực tiếp với bạn học, chia sẻ tài liệu, ghi chú và hỗ trợ lẫn nhau trong quá trình học tập một cách hiệu quả.',
+      title: t('landing.features.realTimeChat.title'),
+      description: t('landing.features.realTimeChat.description'),
       color: 'accent'
     },
     {
       icon: VideoCameraIcon,
-      title: 'Phòng học trực tuyến',
-      description: 'Tham gia các phòng voice/video chat với chủ đề học thuật, thảo luận nhóm và học tập cùng nhau một cách sinh động.',
+      title: t('landing.features.studyRooms.title'),
+      description: t('landing.features.studyRooms.description'),
       color: 'green'
     },
     {
       icon: TrophyIcon,
-      title: 'Hệ thống thành tích',
-      description: 'Nhận badge, xếp hạng và tích điểm thông qua hoạt động học tập. Tạo động lực và cạnh tranh lành mạnh trong cộng đồng.',
+      title: t('landing.features.achievements.title'),
+      description: t('landing.features.achievements.description'),
       color: 'yellow'
     },
     {
       icon: ShieldCheckIcon,
-      title: 'Xác thực .edu an toàn',
-      description: 'Chỉ sinh viên có email .edu mới được tham gia, đảm bảo môi trường học thuật an toàn và đáng tin cậy 100%.',
+      title: t('landing.features.eduVerification.title'),
+      description: t('landing.features.eduVerification.description'),
       color: 'primary'
     },
     {
       icon: AcademicCapIcon,
-      title: 'Cộng đồng chuyên nghiệp',
-      description: 'Kết nối với sinh viên cùng trường, cùng ngành và xây dựng mạng lưới quan hệ học thuật lâu dài.',
+      title: t('landing.features.community.title'),
+      description: t('landing.features.community.description'),
       color: 'accent'
     }
   ]
@@ -72,7 +75,7 @@ export function FeaturesSection() {
             viewport={{ once: true }}
             className="text-responsive-xl font-bold text-gray-900 mb-4"
           >
-            Tính năng nổi bật
+            {t('landing.features.title')}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -81,8 +84,7 @@ export function FeaturesSection() {
             viewport={{ once: true }}
             className="mx-auto max-w-2xl text-responsive-base text-gray-600"
           >
-            StudyMate tích hợp những tính năng tiên tiến nhất để tạo ra
-            trải nghiệm học tập tuyệt vời cho sinh viên
+            {t('landing.features.subtitle')}
           </motion.p>
         </div>
 

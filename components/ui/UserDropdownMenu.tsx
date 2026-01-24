@@ -7,12 +7,13 @@ import { useProfile } from '@/hooks/useProfile'
 import {
   ChevronDownIcon,
   UserIcon,
-  UserCircleIcon,
   ArrowRightOnRectangleIcon,
   CogIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
 import { useIsAdmin } from '@/components/guards/AdminGuard'
+import { useTranslation } from '@/lib/i18n/context'
+import { Locale } from '@/lib/i18n'
 
 interface UserDropdownMenuProps {
   showUsername?: boolean
@@ -36,7 +37,15 @@ export function UserDropdownMenu({
   const [showMenu, setShowMenu] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null)
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false)
   const isAdmin = useIsAdmin()
+  const { locale, setLocale, t, locales, localeNames } = useTranslation()
+
+  // Flag icons for each locale
+  const flags: Record<Locale, string> = {
+    en: '🇺🇸',
+    vi: '🇻🇳',
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -153,7 +162,7 @@ export function UserDropdownMenu({
             ) : (
               <UserIcon className="h-4 w-4" />
             )}
-            <span>{redirectTo === '/dashboard' ? 'Dashboard' : 'Hồ sơ cá nhân'}</span>
+            <span>{redirectTo === '/dashboard' ? t('nav.dashboard') : t('nav.profile')}</span>
           </button>
 
           {/* B2C Discovery Link - For admins and B2C partners */}
@@ -197,6 +206,54 @@ export function UserDropdownMenu({
           )}
 
           <hr className="my-1 border-gray-200" />
+
+          {/* Language Switcher */}
+          <div className="relative">
+            <button
+              onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+            >
+              <div className="flex items-center space-x-2">
+                <span className="text-base">{flags[locale]}</span>
+                <span>{t('settings.language.title')}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-xs text-gray-500">{localeNames[locale]}</span>
+                <ChevronDownIcon className={`h-3 w-3 text-gray-400 transition-transform ${showLanguageMenu ? 'rotate-180' : ''}`} />
+              </div>
+            </button>
+
+            {showLanguageMenu && (
+              <div className="border-t border-gray-100 bg-gray-50">
+                {locales.map((loc) => (
+                  <button
+                    key={loc}
+                    onClick={() => {
+                      setLocale(loc)
+                      setShowLanguageMenu(false)
+                    }}
+                    className={`w-full text-left px-6 py-2 text-sm flex items-center space-x-2 hover:bg-gray-100 ${
+                      locale === loc ? 'text-primary-600 bg-primary-50 font-medium' : 'text-gray-700'
+                    }`}
+                  >
+                    <span className="text-base">{flags[loc]}</span>
+                    <span>{localeNames[loc]}</span>
+                    {locale === loc && (
+                      <svg className="w-4 h-4 text-primary-600 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <hr className="my-1 border-gray-200" />
           <button
             onClick={async () => {
               setIsSigningOut(true)
@@ -211,7 +268,7 @@ export function UserDropdownMenu({
             ) : (
               <ArrowRightOnRectangleIcon className="h-4 w-4" />
             )}
-            <span>{isSigningOut ? 'Đang đăng xuất...' : 'Đăng xuất'}</span>
+            <span>{isSigningOut ? t('nav.signingOut') : t('nav.signOut')}</span>
           </button>
         </div>
       )}

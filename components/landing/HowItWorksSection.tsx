@@ -7,36 +7,39 @@ import {
   ChatBubbleLeftRightIcon,
   TrophyIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from '@/lib/i18n/context'
 
 export function HowItWorksSection() {
+  const { t, tArray } = useTranslation()
+
   const steps = [
     {
       step: '01',
       icon: UserPlusIcon,
-      title: 'Đăng ký với email .edu',
-      description: 'Tạo tài khoản bằng email trường đại học của bạn để xác thực danh tính sinh viên và đảm bảo môi trường an toàn.',
-      features: ['Xác thực email tự động', 'Hồ sơ học thuật chi tiết', 'Bảo mật thông tin']
+      title: t('landing.howItWorks.step1.title'),
+      description: t('landing.howItWorks.step1.description'),
+      features: tArray('landing.howItWorks.step1.features')
     },
     {
       step: '02',
       icon: SparklesIcon,
-      title: 'AI tìm bạn học phù hợp',
-      description: 'Thuật toán AI phân tích sở thích, môn học và mục tiêu của bạn để gợi ý những người bạn học lý tưởng.',
-      features: ['Matching thông minh', 'Tương thích cao', 'Gợi ý cá nhân hóa']
+      title: t('landing.howItWorks.step2.title'),
+      description: t('landing.howItWorks.step2.description'),
+      features: tArray('landing.howItWorks.step2.features')
     },
     {
       step: '03',
       icon: ChatBubbleLeftRightIcon,
-      title: 'Kết nối và học tập',
-      description: 'Chat, gọi điện, tham gia phòng học nhóm và chia sẻ tài liệu với các bạn đã được match.',
-      features: ['Chat real-time', 'Voice/Video call', 'Chia sẻ tài liệu']
+      title: t('landing.howItWorks.step3.title'),
+      description: t('landing.howItWorks.step3.description'),
+      features: tArray('landing.howItWorks.step3.features')
     },
     {
       step: '04',
       icon: TrophyIcon,
-      title: 'Nhận thành tích',
-      description: 'Tích lũy điểm, nhận badge và leo rank thông qua hoạt động học tập tích cực trong cộng đồng.',
-      features: ['Badge system', 'Leaderboard', 'Điểm thưởng']
+      title: t('landing.howItWorks.step4.title'),
+      description: t('landing.howItWorks.step4.description'),
+      features: tArray('landing.howItWorks.step4.features')
     }
   ]
 
@@ -52,7 +55,7 @@ export function HowItWorksSection() {
             viewport={{ once: true }}
             className="text-responsive-xl font-bold text-gray-900 mb-4"
           >
-            Cách StudyMate hoạt động
+            {t('landing.howItWorks.title')}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -61,8 +64,7 @@ export function HowItWorksSection() {
             viewport={{ once: true }}
             className="mx-auto max-w-2xl text-responsive-base text-gray-600"
           >
-            Chỉ với 4 bước đơn giản, bạn có thể bắt đầu hành trình
-            kết nối và học tập cùng những người bạn tuyệt vời
+            {t('landing.howItWorks.subtitle')}
           </motion.p>
         </div>
 
@@ -116,7 +118,7 @@ export function HowItWorksSection() {
                         {step.title}
                       </h4>
                       <p className="text-gray-600">
-                        Bước {step.step}
+                        {t('landing.howItWorks.step')} {step.step}
                       </p>
                     </div>
                   </div>
@@ -149,16 +151,16 @@ export function HowItWorksSection() {
         >
           <div className="inline-flex items-center space-x-2 bg-green-50 text-green-700 px-6 py-3 rounded-full font-medium mb-6">
             <TrophyIcon className="h-5 w-5" />
-            <span>Miễn phí cho sinh viên</span>
+            <span>{t('landing.howItWorks.freeForStudents')}</span>
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            Bắt đầu hành trình học tập của bạn ngay hôm nay
+            {t('landing.howItWorks.startToday')}
           </h3>
           <p className="text-gray-600 mb-8 max-w-md mx-auto">
-            Tham gia cùng hàng nghìn sinh viên đang kết nối và học tập hiệu quả
+            {t('landing.howItWorks.joinThousands')}
           </p>
           <button className="btn-primary text-lg px-8 py-4">
-            Đăng ký miễn phí
+            {t('landing.howItWorks.signUpFree')}
           </button>
         </motion.div>
       </div>
