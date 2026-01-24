@@ -45,7 +45,7 @@ export class StudyMateAgent {
     }]
 
     this.model = this.generativeAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         temperature: 0.7,
         maxOutputTokens: 2048,
@@ -104,7 +104,7 @@ export class StudyMateAgent {
           return await chat.sendMessage(message)
         },
         {
-          model: 'gemini-2.0-flash-exp',
+          model: 'gemini-2.5-flash',
           feature: 'chatbot'
         }
       )
