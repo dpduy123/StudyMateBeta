@@ -2,7 +2,8 @@
 
 import { useState, useMemo, memo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 
 import { usePresence } from '@/hooks/usePresence'
 import { useConversations } from '@/hooks/useConversations'
@@ -12,7 +13,10 @@ import { Avatar } from '@/components/ui/Avatar'
 import { OnlineIndicator } from '@/components/ui/OnlineIndicator'
 import { Timestamp } from '@/components/ui/Timestamp'
 
-interface Conversation {
+// Special ID for AI chatbot conversation
+export const AI_CHATBOT_ID = 'ai-studymate'
+
+export interface Conversation {
   id: string
   otherUser: {
     id: string
@@ -120,6 +124,58 @@ const ConversationCard = memo(({
 
 ConversationCard.displayName = 'ConversationCard'
 
+// AI Chatbot card component
+interface AIChatbotCardProps {
+  isSelected: boolean
+  onClick: () => void
+}
+
+const AIChatbotCard = memo(({ isSelected, onClick }: AIChatbotCardProps) => {
+  return (
+    <div
+      onClick={onClick}
+      className={`p-4 flex items-center space-x-3 cursor-pointer transition-colors border-l-4 ${
+        isSelected
+          ? 'bg-gradient-to-r from-purple-50 to-primary-50 border-l-purple-500'
+          : 'border-l-transparent hover:border-l-purple-200 hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-primary-50/50'
+      }`}
+    >
+      {/* AI Avatar */}
+      <div className="relative flex-shrink-0">
+        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-primary-500 rounded-full flex items-center justify-center">
+          <Image
+            src="/logo.svg"
+            alt="StudyMate AI"
+            width={24}
+            height={24}
+            className="w-6 h-6"
+          />
+        </div>
+        {/* Always online indicator */}
+        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-center mb-1">
+          <div className="flex items-center gap-1.5">
+            <p className="font-bold text-gray-900">StudyMate AI</p>
+            <SparklesIcon className="w-4 h-4 text-purple-500" />
+          </div>
+          <span className="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-0.5 rounded-full">
+            AI
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 truncate">
+          Trợ lý AI - Hỗ trợ học tập & tìm bạn học
+        </p>
+      </div>
+    </div>
+  )
+})
+
+AIChatbotCard.displayName = 'AIChatbotCard'
+
 interface ConversationsListProps {
   currentUserId: string
   onSelectConversation?: (conversation: Conversation) => void
@@ -170,6 +226,28 @@ export function ConversationsList({
       onSelectConversation(conversation)
     } else {
       router.push(`/messages/${conversation.otherUser.id}`)
+    }
+  }, [onSelectConversation, router])
+
+  // Handle AI chatbot click
+  const handleAIChatbotClick = useCallback(() => {
+    const aiConversation: Conversation = {
+      id: AI_CHATBOT_ID,
+      otherUser: {
+        id: AI_CHATBOT_ID,
+        firstName: 'StudyMate',
+        lastName: 'AI',
+        avatar: '/logo.svg',
+        lastActive: new Date().toISOString()
+      },
+      unreadCount: 0,
+      lastActivity: new Date().toISOString()
+    }
+
+    if (onSelectConversation) {
+      onSelectConversation(aiConversation)
+    } else {
+      router.push(`/messages/${AI_CHATBOT_ID}`)
     }
   }, [onSelectConversation, router])
 
@@ -231,7 +309,18 @@ export function ConversationsList({
 
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto">
-        {filteredConversations.length === 0 ? (
+        {/* Pinned AI Chatbot - Always show at top */}
+        {(!searchQuery || 'studymate ai'.includes(searchQuery.toLowerCase())) && (
+          <>
+            <AIChatbotCard
+              isSelected={selectedConversationId === AI_CHATBOT_ID}
+              onClick={handleAIChatbotClick}
+            />
+            <div className="border-b border-gray-100" />
+          </>
+        )}
+
+        {filteredConversations.length === 0 && !searchQuery ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

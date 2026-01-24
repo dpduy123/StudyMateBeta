@@ -2,18 +2,21 @@
 
 import { useState, Suspense } from 'react'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { useAuth } from '@/components/providers/Providers'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useOtherUserPresence } from '@/hooks/useOtherUserPresence'
 import { formatLastActiveForHeader } from '@/lib/utils/formatLastActive'
+import { AI_CHATBOT_ID } from '@/components/chat/ConversationsList'
 import {
   ChatBubbleLeftRightIcon,
   PhoneIcon,
   VideoCameraIcon,
   EllipsisVerticalIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline'
 
 // Lazy load heavy chat components
@@ -45,6 +48,18 @@ const NotificationBanner = dynamic(
   () => import('@/components/notifications/NotificationBanner').then(mod => ({ default: mod.NotificationBanner })),
   {
     loading: () => null,
+    ssr: false
+  }
+)
+
+const AIChatContainer = dynamic(
+  () => import('@/components/chat/AIChatContainer').then(mod => ({ default: mod.AIChatContainer })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse text-gray-400">Đang tải AI...</div>
+      </div>
+    ),
     ssr: false
   }
 )
@@ -116,61 +131,114 @@ export default function MessagesPage() {
           {/* Chat Window - Full width on mobile when conversation selected */}
           <div className={`${selectedConversation ? 'flex' : 'hidden sm:flex'} sm:w-2/3 flex-col w-full`}>
             {selectedConversation ? (
-              <>
-                {/* Chat Header */}
-                <div className="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center">
-                  <div className="flex items-center space-x-3">
-                    {/* Back button for mobile */}
-                    <button
-                      onClick={() => setSelectedConversation(null)}
-                      className="sm:hidden p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      <ArrowLeftIcon className="h-5 w-5 text-gray-600" />
-                    </button>
-                    <div className="relative">
-                      {selectedConversation.otherUser.avatar ? (
-                        <img
-                          src={selectedConversation.otherUser.avatar}
-                          alt={`${selectedConversation.otherUser.firstName} ${selectedConversation.otherUser.lastName}`}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                          {selectedConversation.otherUser.firstName[0]}{selectedConversation.otherUser.lastName[0]}
+              selectedConversation.id === AI_CHATBOT_ID ? (
+                // AI Chat Interface
+                <>
+                  {/* AI Chat Header */}
+                  <div className="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-purple-50 to-primary-50">
+                    <div className="flex items-center space-x-3">
+                      {/* Back button for mobile */}
+                      <button
+                        onClick={() => setSelectedConversation(null)}
+                        className="sm:hidden p-1 hover:bg-white/50 rounded-lg transition-colors"
+                      >
+                        <ArrowLeftIcon className="h-5 w-5 text-gray-600" />
+                      </button>
+                      <div className="relative">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-primary-500 rounded-full flex items-center justify-center">
+                          <Image
+                            src="/logo.svg"
+                            alt="StudyMate AI"
+                            width={24}
+                            height={24}
+                            className="w-5 h-5 sm:w-6 sm:h-6"
+                          />
                         </div>
-                      )}
-                      {isOtherUserOnline && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white rounded-full"></div>
-                      )}
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white rounded-full" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                            StudyMate AI
+                          </p>
+                          <SparklesIcon className="w-4 h-4 text-purple-500" />
+                        </div>
+                        <p className="text-xs sm:text-sm text-green-600 font-medium">
+                          Luôn sẵn sàng hỗ trợ
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900 text-sm sm:text-base">
-                        {selectedConversation.otherUser.firstName} {selectedConversation.otherUser.lastName}
-                      </p>
-                      <p className={`text-xs sm:text-sm ${isOtherUserOnline ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
-                        {getStatusText()}
-                      </p>
-                    </div>
+                    <span className="text-xs text-purple-600 font-medium bg-purple-100 px-2.5 py-1 rounded-full">
+                      AI Assistant
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-2 sm:space-x-4 text-gray-500">
-                    <button className="hover:text-primary-600 p-1"><PhoneIcon className="h-4 sm:h-5 w-4 sm:w-5" /></button>
-                    <button className="hover:text-primary-600 p-1"><VideoCameraIcon className="h-4 sm:h-5 w-4 sm:w-5" /></button>
-                    <button className="hover:text-primary-600 p-1"><EllipsisVerticalIcon className="h-4 sm:h-5 w-4 sm:w-5" /></button>
-                  </div>
-                </div>
 
-                {/* Chat Container */}
-                <div className="flex-1">
-                  <ChatContainer
-                    chatId={selectedConversation.otherUser.id}
-                    chatType="private"
-                    currentUserId={user?.id || ''}
-                    className="h-full"
-                  />
-                </div>
-              </>
+                  {/* AI Chat Container */}
+                  <div className="flex-1">
+                    <AIChatContainer
+                      currentUserId={user?.id || ''}
+                      className="h-full"
+                    />
+                  </div>
+                </>
+              ) : (
+                // Regular User Chat Interface
+                <>
+                  {/* Chat Header */}
+                  <div className="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center">
+                    <div className="flex items-center space-x-3">
+                      {/* Back button for mobile */}
+                      <button
+                        onClick={() => setSelectedConversation(null)}
+                        className="sm:hidden p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <ArrowLeftIcon className="h-5 w-5 text-gray-600" />
+                      </button>
+                      <div className="relative">
+                        {selectedConversation.otherUser.avatar ? (
+                          <img
+                            src={selectedConversation.otherUser.avatar}
+                            alt={`${selectedConversation.otherUser.firstName} ${selectedConversation.otherUser.lastName}`}
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                            {selectedConversation.otherUser.firstName[0]}{selectedConversation.otherUser.lastName[0]}
+                          </div>
+                        )}
+                        {isOtherUserOnline && (
+                          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                          {selectedConversation.otherUser.firstName} {selectedConversation.otherUser.lastName}
+                        </p>
+                        <p className={`text-xs sm:text-sm ${isOtherUserOnline ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                          {getStatusText()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 sm:space-x-4 text-gray-500">
+                      <button className="hover:text-primary-600 p-1"><PhoneIcon className="h-4 sm:h-5 w-4 sm:w-5" /></button>
+                      <button className="hover:text-primary-600 p-1"><VideoCameraIcon className="h-4 sm:h-5 w-4 sm:w-5" /></button>
+                      <button className="hover:text-primary-600 p-1"><EllipsisVerticalIcon className="h-4 sm:h-5 w-4 sm:w-5" /></button>
+                    </div>
+                  </div>
+
+                  {/* Chat Container */}
+                  <div className="flex-1">
+                    <ChatContainer
+                      chatId={selectedConversation.otherUser.id}
+                      chatType="private"
+                      currentUserId={user?.id || ''}
+                      className="h-full"
+                    />
+                  </div>
+                </>
+              )
             ) : (
               <div className="flex-grow flex items-center justify-center text-center">
                 <div>
