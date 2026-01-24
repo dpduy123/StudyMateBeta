@@ -10,13 +10,14 @@ import {
   XMarkIcon,
   AcademicCapIcon,
   UserCircleIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  GlobeAltIcon
 } from '@heroicons/react/24/outline'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user, signOut, loading } = useAuth()
-  const { t } = useTranslation()
+  const { t, locale, setLocale, localeNames } = useTranslation()
 
   const navigation = [
     { name: t('landing.header.features'), href: '#features' },
@@ -55,6 +56,16 @@ export function Header() {
 
           {/* Auth Actions */}
           <div className="flex items-center space-x-4">
+            {/* Language Switch */}
+            <button
+              onClick={() => setLocale(locale === 'en' ? 'vi' : 'en')}
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg text-gray-600 hover:text-primary-600 hover:bg-gray-100 transition-colors"
+              title={locale === 'en' ? 'Switch to Vietnamese' : 'Chuyển sang Tiếng Anh'}
+            >
+              <GlobeAltIcon className="h-5 w-5" />
+              <span className="text-sm font-medium">{localeNames[locale === 'en' ? 'vi' : 'en']}</span>
+            </button>
+
             {loading ? (
               <div className="w-8 h-8 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin"></div>
             ) : user ? (
@@ -169,6 +180,19 @@ export function Header() {
                   </div>
                 </>
               )}
+              {/* Mobile Language Switch */}
+              <div className="border-t border-gray-200 pt-4">
+                <button
+                  onClick={() => {
+                    setLocale(locale === 'en' ? 'vi' : 'en')
+                    setIsMenuOpen(false)
+                  }}
+                  className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
+                >
+                  <GlobeAltIcon className="h-5 w-5" />
+                  <span>{localeNames[locale === 'en' ? 'vi' : 'en']}</span>
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
