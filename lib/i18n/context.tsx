@@ -101,10 +101,6 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     return t('time.weeksAgo').replace('{{count}}', String(Math.floor(diffDays / 7)));
   }, [t]);
 
-  if (!isInitialized && typeof window !== 'undefined') {
-    return null;
-  }
-
   return (
     <I18nContext.Provider value={{
       locale,

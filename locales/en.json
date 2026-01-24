@@ -524,6 +524,156 @@
         "description": "Connect with students from the same school, same major, and build long-lasting academic networks."
       }
     },
+    "featureSimulation": {
+      "tabs": {
+        "matching": "AI Matching",
+        "chat": "Real-time Chat",
+        "rooms": "Study Rooms",
+        "achievements": "Achievements",
+        "verification": ".edu Verification"
+      },
+      "valueLabel": "Value Delivered",
+      "matching": {
+        "title": "Find the right person, at the right time",
+        "description": "AI analyzes your academic profile, interests, and goals to suggest the most compatible study partners. No more wasting time on unsuitable connections.",
+        "benefits": [
+          "Save 80% of time searching for study partners",
+          "3x higher match success rate",
+          "Connect with people who share your goals and level",
+          "Algorithm learns from your behavior"
+        ],
+        "stats": {
+          "accuracy": "Accuracy",
+          "faster": "Faster",
+          "matches": "Matches"
+        }
+      },
+      "chat": {
+        "title": "Instant connection, no barriers",
+        "description": "Real-time chat with typing indicator, share files, images, and study materials. All questions answered immediately, no waiting.",
+        "benefits": [
+          "Average response under 2 minutes",
+          "Unlimited document sharing",
+          "Permanent chat history storage",
+          "Real-time notifications on all devices"
+        ],
+        "stats": {
+          "response": "Response",
+          "realtime": "Real-time",
+          "storage": "Storage"
+        }
+      },
+      "rooms": {
+        "title": "Group study like meeting in person",
+        "description": "Video/voice study rooms with screen sharing, whiteboard, and chat. Create focused learning spaces where everyone progresses together.",
+        "benefits": [
+          "65% increase in group study effectiveness",
+          "Reduce loneliness when studying online",
+          "Easy screen and document sharing",
+          "Record sessions to review later"
+        ],
+        "stats": {
+          "effectiveness": "Effectiveness",
+          "video": "Video",
+          "people": "People"
+        }
+      },
+      "achievements": {
+        "title": "Daily learning motivation",
+        "description": "Badge system, bonus points, and leaderboard turn learning into a game. Every small achievement is recognized and celebrated.",
+        "benefits": [
+          "40% increase in consistent study time",
+          "Build long-term study habits",
+          "Healthy competition with friends",
+          "Receive special rewards and offers"
+        ],
+        "stats": {
+          "motivation": "Motivation",
+          "badges": "Badges",
+          "ranking": "Ranking"
+        }
+      },
+      "verification": {
+        "title": "100% safe environment",
+        "description": "Only verified .edu email students can join. Automatic and quick verification process ensures a high-quality academic community.",
+        "benefits": [
+          "Email verification in 30 seconds",
+          "Absolute personal information protection",
+          "Block spam and fake accounts",
+          "Trustworthy student community"
+        ],
+        "stats": {
+          "verify": "Verify",
+          "safe": "Safe",
+          "spam": "Spam"
+        }
+      },
+      "simulation": {
+        "smartMatching": "AI Smart Matching",
+        "filter": "Filter",
+        "matchWith": "Match with you",
+        "major": "Major",
+        "year": "Year",
+        "studyTime": "Time",
+        "all": "All",
+        "cs": "CS",
+        "marketing": "Marketing",
+        "year2": "Year 2",
+        "year3": "Year 3",
+        "year4": "Year 4",
+        "morning": "Morning",
+        "afternoon": "Afternoon",
+        "evening": "Evening",
+        "foundResults": "Found {{count}} results",
+        "reset": "Reset",
+        "connections": "Connections",
+        "compatibility": "Compatibility",
+        "languages": "Languages",
+        "interests": "Interests",
+        "skills": "Skills",
+        "studyGoals": "Study Goals",
+        "profilesRemaining": "profiles remaining",
+        "online": "Online",
+        "leaveRoom": "Leave room",
+        "join": "Join",
+        "members": "Members",
+        "host": "Host",
+        "live": "Live",
+        "yourAchievements": "Your achievements",
+        "points": "points",
+        "leaderboard": "Leaderboard",
+        "you": "You",
+        "eduVerification": ".edu Email Verification",
+        "studentsOnly": "Students only",
+        "enterUniversityEmail": "Enter university email",
+        "studentEmail": "Student email",
+        "whyVerify": "Why verify?",
+        "whyVerifyReasons": [
+          "Ensure you are a real student",
+          "Protect community from spam",
+          "Create safe learning environment"
+        ],
+        "sendVerificationCode": "Send verification code",
+        "validEmailExamples": "Valid email examples:",
+        "sendingCode": "Sending verification code...",
+        "pleaseWait": "Please wait a moment",
+        "enterVerificationCode": "Enter verification code",
+        "codeSentTo": "6-digit code sent to",
+        "emailSent": "Email sent!",
+        "checkInbox": "Check inbox or spam folder",
+        "noCode": "Didn't receive code?",
+        "resend": "Resend",
+        "verifying": "Verifying...",
+        "checkingCode": "Checking your code",
+        "verificationSuccess": "Verification successful!",
+        "accountVerified": "Your account has been verified",
+        "emailVerified": "Email verified",
+        "accountSafe": "Account safe",
+        "readyToConnect": "Ready to connect",
+        "tryAgain": "Try again",
+        "useEduEmail": "Please use a university email (.edu or .edu.vn)"
+      }
+    },
     "howItWorks": {
       "title": "How StudyMate Works",
       "subtitle": "With just 4 simple steps, you can start your journey to connect and learn with wonderful friends",

@@ -15,6 +15,7 @@ import {
     CheckIcon,
     LightBulbIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from '@/lib/i18n/context'
 
 type SimulationType = 'matching' | 'chat' | 'rooms' | 'achievements' | 'verification'
 
@@ -26,71 +27,47 @@ interface FeatureValue {
 }
 
 export function FeatureSimulation() {
+    const { t, tArray } = useTranslation()
     const [activeSimulation, setActiveSimulation] = useState<SimulationType>('matching')
 
     const simulations = [
-        { id: 'matching' as SimulationType, name: 'AI Matching', icon: SparklesIcon },
-        { id: 'chat' as SimulationType, name: 'Chat Real-time', icon: ChatBubbleLeftRightIcon },
-        { id: 'rooms' as SimulationType, name: 'Phòng học', icon: VideoCameraIcon },
-        { id: 'achievements' as SimulationType, name: 'Thành tích', icon: TrophyIcon },
-        { id: 'verification' as SimulationType, name: 'Xác thực .edu', icon: CheckIcon }
+        { id: 'matching' as SimulationType, name: t('landing.featureSimulation.tabs.matching'), icon: SparklesIcon },
+        { id: 'chat' as SimulationType, name: t('landing.featureSimulation.tabs.chat'), icon: ChatBubbleLeftRightIcon },
+        { id: 'rooms' as SimulationType, name: t('landing.featureSimulation.tabs.rooms'), icon: VideoCameraIcon },
+        { id: 'achievements' as SimulationType, name: t('landing.featureSimulation.tabs.achievements'), icon: TrophyIcon },
+        { id: 'verification' as SimulationType, name: t('landing.featureSimulation.tabs.verification'), icon: CheckIcon }
     ]
 
     const featureValues: Record<SimulationType, FeatureValue> = {
         matching: {
             icon: SparklesIcon,
-            title: 'Tìm đúng người, đúng thời điểm',
-            description: 'AI phân tích hồ sơ học thuật, sở thích và mục tiêu của bạn để gợi ý những người bạn học tương thích nhất. Không còn lãng phí thời gian với những kết nối không phù hợp.',
-            benefits: [
-                'Tiết kiệm 80% thời gian tìm kiếm bạn học',
-                'Tỷ lệ match thành công cao hơn 3 lần',
-                'Kết nối với người cùng mục tiêu và level',
-                'Thuật toán học từ hành vi của bạn'
-            ]
+            title: t('landing.featureSimulation.matching.title'),
+            description: t('landing.featureSimulation.matching.description'),
+            benefits: tArray('landing.featureSimulation.matching.benefits')
         },
         chat: {
             icon: ChatBubbleLeftRightIcon,
-            title: 'Kết nối tức thì, không rào cản',
-            description: 'Chat real-time với typing indicator, chia sẻ file, hình ảnh và tài liệu học tập. Mọi câu hỏi đều được giải đáp ngay lập tức, không phải chờ đợi.',
-            benefits: [
-                'Phản hồi trung bình dưới 2 phút',
-                'Chia sẻ tài liệu không giới hạn',
-                'Lưu trữ lịch sử trò chuyện vĩnh viễn',
-                'Thông báo real-time trên mọi thiết bị'
-            ]
+            title: t('landing.featureSimulation.chat.title'),
+            description: t('landing.featureSimulation.chat.description'),
+            benefits: tArray('landing.featureSimulation.chat.benefits')
         },
         rooms: {
             icon: VideoCameraIcon,
-            title: 'Học nhóm như gặp mặt trực tiếp',
-            description: 'Phòng học video/voice với screen sharing, whiteboard và chat. Tạo không gian học tập tập trung, nơi mọi người cùng tiến bộ.',
-            benefits: [
-                'Tăng 65% hiệu quả học nhóm',
-                'Giảm cảm giác cô đơn khi học online',
-                'Chia sẻ màn hình và tài liệu dễ dàng',
-                'Ghi lại session để xem lại sau'
-            ]
+            title: t('landing.featureSimulation.rooms.title'),
+            description: t('landing.featureSimulation.rooms.description'),
+            benefits: tArray('landing.featureSimulation.rooms.benefits')
         },
         achievements: {
             icon: TrophyIcon,
-            title: 'Động lực học tập mỗi ngày',
-            description: 'Hệ thống badges, điểm thưởng và bảng xếp hạng biến việc học thành trò chơi. Mỗi thành tích nhỏ đều được ghi nhận và tôn vinh.',
-            benefits: [
-                'Tăng 40% thời gian học tập đều đặn',
-                'Tạo thói quen học tập lâu dài',
-                'Cạnh tranh lành mạnh với bạn bè',
-                'Nhận thưởng và ưu đãi đặc biệt'
-            ]
+            title: t('landing.featureSimulation.achievements.title'),
+            description: t('landing.featureSimulation.achievements.description'),
+            benefits: tArray('landing.featureSimulation.achievements.benefits')
         },
         verification: {
             icon: CheckIcon,
-            title: 'Môi trường an toàn 100%',
-            description: 'Chỉ sinh viên có email .edu được xác thực mới có thể tham gia. Quy trình xác thực tự động và nhanh chóng, đảm bảo cộng đồng học thuật chất lượng cao.',
-            benefits: [
-                'Xác thực email .edu trong 30 giây',
-                'Bảo vệ thông tin cá nhân tuyệt đối',
-                'Chặn spam và tài khoản giả mạo',
-                'Cộng đồng sinh viên đáng tin cậy'
-            ]
+            title: t('landing.featureSimulation.verification.title'),
+            description: t('landing.featureSimulation.verification.description'),
+            benefits: tArray('landing.featureSimulation.verification.benefits')
         }
     }
 
@@ -148,7 +125,7 @@ export function FeatureSimulation() {
                             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
                                 <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <LightBulbIcon className="h-5 w-5 text-yellow-500 mr-2" />
-                                    Giá trị mang lại
+                                    {t('landing.featureSimulation.valueLabel')}
                                 </h4>
                                 <ul className="space-y-3">
                                     {currentValue.benefits.map((benefit, index) => (
@@ -174,15 +151,15 @@ export function FeatureSimulation() {
                                     <>
                                         <div className="bg-primary-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-primary-600">95%</div>
-                                            <div className="text-xs text-gray-600 mt-1">Độ chính xác</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.matching.stats.accuracy')}</div>
                                         </div>
                                         <div className="bg-green-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-green-600">3x</div>
-                                            <div className="text-xs text-gray-600 mt-1">Nhanh hơn</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.matching.stats.faster')}</div>
                                         </div>
                                         <div className="bg-yellow-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-yellow-600">10k+</div>
-                                            <div className="text-xs text-gray-600 mt-1">Matches</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.matching.stats.matches')}</div>
                                         </div>
                                     </>
                                 )}
@@ -190,15 +167,15 @@ export function FeatureSimulation() {
                                     <>
                                         <div className="bg-blue-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-blue-600">&lt;2m</div>
-                                            <div className="text-xs text-gray-600 mt-1">Phản hồi</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.chat.stats.response')}</div>
                                         </div>
                                         <div className="bg-green-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-green-600">100%</div>
-                                            <div className="text-xs text-gray-600 mt-1">Real-time</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.chat.stats.realtime')}</div>
                                         </div>
                                         <div className="bg-purple-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-purple-600">∞</div>
-                                            <div className="text-xs text-gray-600 mt-1">Lưu trữ</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.chat.stats.storage')}</div>
                                         </div>
                                     </>
                                 )}
@@ -206,15 +183,15 @@ export function FeatureSimulation() {
                                     <>
                                         <div className="bg-red-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-red-600">65%</div>
-                                            <div className="text-xs text-gray-600 mt-1">Hiệu quả</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.rooms.stats.effectiveness')}</div>
                                         </div>
                                         <div className="bg-blue-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-blue-600">HD</div>
-                                            <div className="text-xs text-gray-600 mt-1">Video</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.rooms.stats.video')}</div>
                                         </div>
                                         <div className="bg-green-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-green-600">10</div>
-                                            <div className="text-xs text-gray-600 mt-1">Người</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.rooms.stats.people')}</div>
                                         </div>
                                     </>
                                 )}
@@ -222,15 +199,15 @@ export function FeatureSimulation() {
                                     <>
                                         <div className="bg-yellow-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-yellow-600">40%</div>
-                                            <div className="text-xs text-gray-600 mt-1">Động lực</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.achievements.stats.motivation')}</div>
                                         </div>
                                         <div className="bg-purple-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-purple-600">50+</div>
-                                            <div className="text-xs text-gray-600 mt-1">Badges</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.achievements.stats.badges')}</div>
                                         </div>
                                         <div className="bg-red-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-red-600">Top</div>
-                                            <div className="text-xs text-gray-600 mt-1">Ranking</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.achievements.stats.ranking')}</div>
                                         </div>
                                     </>
                                 )}
@@ -238,15 +215,15 @@ export function FeatureSimulation() {
                                     <>
                                         <div className="bg-green-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-green-600">30s</div>
-                                            <div className="text-xs text-gray-600 mt-1">Xác thực</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.verification.stats.verify')}</div>
                                         </div>
                                         <div className="bg-blue-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-blue-600">100%</div>
-                                            <div className="text-xs text-gray-600 mt-1">An toàn</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.verification.stats.safe')}</div>
                                         </div>
                                         <div className="bg-purple-50 rounded-xl p-4 text-center">
                                             <div className="text-2xl font-bold text-purple-600">0</div>
-                                            <div className="text-xs text-gray-600 mt-1">Spam</div>
+                                            <div className="text-xs text-gray-600 mt-1">{t('landing.featureSimulation.verification.stats.spam')}</div>
                                         </div>
                                     </>
                                 )}

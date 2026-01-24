@@ -123,6 +123,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
+  // If user is authenticated and on the landing page (/), redirect to dashboard
+  if (user && pathname === '/') {
+    const profileCompleted = user.user_metadata?.profile_completed || false
+    if (profileCompleted) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    } else {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

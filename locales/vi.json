@@ -524,6 +524,156 @@
         "description": "Kết nối với sinh viên cùng trường, cùng ngành và xây dựng mạng lưới quan hệ học thuật lâu dài."
       }
     },
+    "featureSimulation": {
+      "tabs": {
+        "matching": "AI Matching",
+        "chat": "Chat Real-time",
+        "rooms": "Phòng học",
+        "achievements": "Thành tích",
+        "verification": "Xác thực .edu"
+      },
+      "valueLabel": "Giá trị mang lại",
+      "matching": {
+        "title": "Tìm đúng người, đúng thời điểm",
+        "description": "AI phân tích hồ sơ học thuật, sở thích và mục tiêu của bạn để gợi ý những người bạn học tương thích nhất. Không còn lãng phí thời gian với những kết nối không phù hợp.",
+        "benefits": [
+          "Tiết kiệm 80% thời gian tìm kiếm bạn học",
+          "Tỷ lệ match thành công cao hơn 3 lần",
+          "Kết nối với người cùng mục tiêu và level",
+          "Thuật toán học từ hành vi của bạn"
+        ],
+        "stats": {
+          "accuracy": "Độ chính xác",
+          "faster": "Nhanh hơn",
+          "matches": "Matches"
+        }
+      },
+      "chat": {
+        "title": "Kết nối tức thì, không rào cản",
+        "description": "Chat real-time với typing indicator, chia sẻ file, hình ảnh và tài liệu học tập. Mọi câu hỏi đều được giải đáp ngay lập tức, không phải chờ đợi.",
+        "benefits": [
+          "Phản hồi trung bình dưới 2 phút",
+          "Chia sẻ tài liệu không giới hạn",
+          "Lưu trữ lịch sử trò chuyện vĩnh viễn",
+          "Thông báo real-time trên mọi thiết bị"
+        ],
+        "stats": {
+          "response": "Phản hồi",
+          "realtime": "Real-time",
+          "storage": "Lưu trữ"
+        }
+      },
+      "rooms": {
+        "title": "Học nhóm như gặp mặt trực tiếp",
+        "description": "Phòng học video/voice với screen sharing, whiteboard và chat. Tạo không gian học tập tập trung, nơi mọi người cùng tiến bộ.",
+        "benefits": [
+          "Tăng 65% hiệu quả học nhóm",
+          "Giảm cảm giác cô đơn khi học online",
+          "Chia sẻ màn hình và tài liệu dễ dàng",
+          "Ghi lại session để xem lại sau"
+        ],
+        "stats": {
+          "effectiveness": "Hiệu quả",
+          "video": "Video",
+          "people": "Người"
+        }
+      },
+      "achievements": {
+        "title": "Động lực học tập mỗi ngày",
+        "description": "Hệ thống badges, điểm thưởng và bảng xếp hạng biến việc học thành trò chơi. Mỗi thành tích nhỏ đều được ghi nhận và tôn vinh.",
+        "benefits": [
+          "Tăng 40% thời gian học tập đều đặn",
+          "Tạo thói quen học tập lâu dài",
+          "Cạnh tranh lành mạnh với bạn bè",
+          "Nhận thưởng và ưu đãi đặc biệt"
+        ],
+        "stats": {
+          "motivation": "Động lực",
+          "badges": "Badges",
+          "ranking": "Ranking"
+        }
+      },
+      "verification": {
+        "title": "Môi trường an toàn 100%",
+        "description": "Chỉ sinh viên có email .edu được xác thực mới có thể tham gia. Quy trình xác thực tự động và nhanh chóng, đảm bảo cộng đồng học thuật chất lượng cao.",
+        "benefits": [
+          "Xác thực email .edu trong 30 giây",
+          "Bảo vệ thông tin cá nhân tuyệt đối",
+          "Chặn spam và tài khoản giả mạo",
+          "Cộng đồng sinh viên đáng tin cậy"
+        ],
+        "stats": {
+          "verify": "Xác thực",
+          "safe": "An toàn",
+          "spam": "Spam"
+        }
+      },
+      "simulation": {
+        "smartMatching": "AI Smart Matching",
+        "filter": "Lọc",
+        "matchWith": "Match với bạn",
+        "major": "Ngành học",
+        "year": "Năm học",
+        "studyTime": "Thời gian",
+        "all": "Tất cả",
+        "cs": "KHMT",
+        "marketing": "Marketing",
+        "year2": "Năm 2",
+        "year3": "Năm 3",
+        "year4": "Năm 4",
+        "morning": "Sáng",
+        "afternoon": "Chiều",
+        "evening": "Tối",
+        "foundResults": "Tìm thấy {{count}} kết quả",
+        "reset": "Đặt lại",
+        "connections": "Kết nối",
+        "compatibility": "Tương thích",
+        "languages": "Ngôn ngữ",
+        "interests": "Sở thích",
+        "skills": "Kỹ năng",
+        "studyGoals": "Mục tiêu học tập",
+        "profilesRemaining": "profiles còn lại",
+        "online": "Đang online",
+        "leaveRoom": "Rời phòng",
+        "join": "Tham gia",
+        "members": "Thành viên",
+        "host": "Host",
+        "live": "Live",
+        "yourAchievements": "Thành tích của bạn",
+        "points": "điểm",
+        "leaderboard": "Bảng xếp hạng",
+        "you": "Bạn",
+        "eduVerification": "Xác thực Email .edu",
+        "studentsOnly": "Chỉ dành cho sinh viên",
+        "enterUniversityEmail": "Nhập email trường đại học",
+        "studentEmail": "Email sinh viên",
+        "whyVerify": "Tại sao cần xác thực?",
+        "whyVerifyReasons": [
+          "Đảm bảo bạn là sinh viên thực",
+          "Bảo vệ cộng đồng khỏi spam",
+          "Tạo môi trường học tập an toàn"
+        ],
+        "sendVerificationCode": "Gửi mã xác thực",
+        "validEmailExamples": "Ví dụ email hợp lệ:",
+        "sendingCode": "Đang gửi mã xác thực...",
+        "pleaseWait": "Vui lòng đợi trong giây lát",
+        "enterVerificationCode": "Nhập mã xác thực",
+        "codeSentTo": "Mã 6 số đã được gửi đến",
+        "emailSent": "Email đã được gửi!",
+        "checkInbox": "Kiểm tra hộp thư đến hoặc spam",
+        "noCode": "Không nhận được mã?",
+        "resend": "Gửi lại",
+        "verifying": "Đang xác thực...",
+        "checkingCode": "Kiểm tra mã của bạn",
+        "verificationSuccess": "Xác thực thành công!",
+        "accountVerified": "Tài khoản của bạn đã được xác thực",
+        "emailVerified": "Email xác thực",
+        "accountSafe": "Tài khoản an toàn",
+        "readyToConnect": "Sẵn sàng kết nối",
+        "tryAgain": "Thử lại",
+        "useEduEmail": "Vui lòng sử dụng email trường đại học (.edu hoặc .edu.vn)"
+      }
+    },
     "howItWorks": {
       "title": "Cách StudyMate hoạt động",
       "subtitle": "Chỉ với 4 bước đơn giản, bạn có thể bắt đầu hành trình kết nối và học tập cùng những người bạn tuyệt vời",
