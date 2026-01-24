@@ -42,6 +42,9 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem('locale');
     if (stored && (stored === 'en' || stored === 'vi')) {
       setLocaleState(stored);
+    } else {
+      // Default to English if no preference stored
+      localStorage.setItem('locale', 'en');
     }
     setIsInitialized(true);
   }, []);

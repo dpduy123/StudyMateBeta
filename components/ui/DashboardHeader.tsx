@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { UserDropdownMenu } from './UserDropdownMenu'
 import NotificationBell from '@/components/notifications/NotificationBell'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface DashboardHeaderProps {
   title: string
@@ -24,15 +25,16 @@ export function DashboardHeader({
   showNavigation = true
 }: DashboardHeaderProps) {
   const router = useRouter()
+  const { t } = useTranslation()
   const [loadingPage, setLoadingPage] = useState<string | null>(null)
 
   const navigationItems = [
-    { name: 'Bảng tin', href: '/dashboard' },
-    { name: 'Khám phá', href: '/discover' },
-    { name: 'Tìm kiếm', href: '/discover-b2c' },
-    { name: 'Phòng học', href: '/rooms' },
-    { name: 'Tin nhắn', href: '/messages' },
-    { name: 'Thành tích', href: '/achievements' }
+    { name: t('nav.dashboard'), href: '/dashboard' },
+    { name: t('nav.discover'), href: '/discover' },
+    { name: t('nav.search'), href: '/discover-b2c' },
+    { name: t('nav.rooms'), href: '/rooms' },
+    { name: t('nav.messages'), href: '/messages' },
+    { name: t('nav.achievements'), href: '/achievements' }
   ]
 
   const handleNavigation = (href: string, e: React.MouseEvent) => {
@@ -58,7 +60,7 @@ export function DashboardHeader({
               <div className="hidden md:flex md:items-center md:space-x-8 ml-10">
                 {navigationItems.map((item) => (
                   <Link
-                    key={item.name}
+                    key={item.href}
                     href={item.href}
                     onClick={(e) => handleNavigation(item.href, e)}
                     className={`relative text-gray-600 hover:text-primary-600 font-medium transition-colors ${
