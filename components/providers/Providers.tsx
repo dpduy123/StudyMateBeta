@@ -8,6 +8,7 @@ import { SWRConfig } from 'swr'
 import { swrConfig } from '@/lib/swrConfig'
 import { usePresence } from '@/hooks/usePresence'
 import { I18nProvider } from '@/lib/i18n/context'
+import { ChatBotProvider } from '@/components/chatbot'
 
 interface AuthContextType {
   user: User | null;
@@ -203,6 +204,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             },
           }}
           />
+          <ChatBotProvider />
         </AuthContext.Provider>
       </I18nProvider>
     </SWRConfig>
