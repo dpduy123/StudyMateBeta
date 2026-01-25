@@ -206,9 +206,9 @@ export function AIChatContainer({ currentUserId, threadId: initialThreadId, clas
   }
 
   return (
-    <div className={`flex flex-col h-full ${className}`}>
+    <div className={`flex flex-col h-full overflow-hidden ${className}`}>
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 scroll-smooth">
         {isLoadingHistory ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-pulse text-gray-400">Đang tải lịch sử...</div>

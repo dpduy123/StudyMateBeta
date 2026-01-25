@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Special ID for AI chatbot
+const AI_CHATBOT_ID = 'ai-studymate'
+
 /**
  * GET /api/user/[userId]/status
  * Get a user's online/offline status and last active time
@@ -17,6 +20,21 @@ export async function GET(
         { error: 'User ID is required' },
         { status: 400 }
       )
+    }
+
+    // Handle AI chatbot - always online
+    if (userId === AI_CHATBOT_ID) {
+      return NextResponse.json({
+        userId: AI_CHATBOT_ID,
+        status: 'online',
+        lastActive: new Date().toISOString(),
+        user: {
+          id: AI_CHATBOT_ID,
+          firstName: 'StudyMate',
+          lastName: 'AI',
+          avatar: '/logo.svg'
+        }
+      })
     }
 
     // Fetch user from database

@@ -174,7 +174,7 @@ export default function MessagesPage() {
                   </div>
 
                   {/* AI Chat Container */}
-                  <div className="flex-1">
+                  <div className="flex-1 overflow-hidden min-h-0">
                     <AIChatContainer
                       currentUserId={user?.id || ''}
                       className="h-full"
@@ -229,7 +229,7 @@ export default function MessagesPage() {
                   </div>
 
                   {/* Chat Container */}
-                  <div className="flex-1">
+                  <div className="flex-1 overflow-hidden min-h-0">
                     <ChatContainer
                       chatId={selectedConversation.otherUser.id}
                       chatType="private"

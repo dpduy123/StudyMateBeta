@@ -110,7 +110,10 @@ export const toolDefinitions: ToolDefinition[] = [
         sources: {
           type: 'array',
           description: 'Nguồn tìm kiếm (mặc định: cả hai)',
-          enum: ['wikipedia', 'academic']
+          items: {
+            type: 'string',
+            enum: ['wikipedia', 'academic']
+          }
         },
         language: {
           type: 'string',
