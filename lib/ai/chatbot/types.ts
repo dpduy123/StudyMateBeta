@@ -33,6 +33,10 @@ export interface ToolDefinition {
       type: string
       description: string
       enum?: string[]
+      items?: {
+        type: string
+        enum?: string[]
+      }
     }>
     required?: string[]
   }

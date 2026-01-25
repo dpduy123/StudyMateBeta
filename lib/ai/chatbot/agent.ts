@@ -35,7 +35,13 @@ export class StudyMateAgent {
               {
                 type: value.type.toUpperCase(),
                 description: value.description,
-                ...(value.enum ? { enum: value.enum } : {})
+                ...(value.enum ? { enum: value.enum } : {}),
+                ...(value.items ? {
+                  items: {
+                    type: value.items.type.toUpperCase(),
+                    ...(value.items.enum ? { enum: value.items.enum } : {})
+                  }
+                } : {})
               }
             ])
           ),
@@ -65,6 +71,28 @@ export class StudyMateAgent {
     const startTime = Date.now()
 
     try {
+      // TEST MODE: Simulate errors for testing (remove in production)
+      if (process.env.NODE_ENV === 'development') {
+        if (message.toLowerCase().includes('/test-429')) {
+          throw new Error('[429] Rate limit exceeded')
+        }
+        if (message.toLowerCase().includes('/test-400')) {
+          throw new Error('[400] Bad request - invalid input')
+        }
+        if (message.toLowerCase().includes('/test-404')) {
+          throw new Error('[404] Resource not found')
+        }
+        if (message.toLowerCase().includes('/test-500')) {
+          throw new Error('[500] Internal server error')
+        }
+        if (message.toLowerCase().includes('/test-network')) {
+          throw new Error('Network connection timeout')
+        }
+        if (message.toLowerCase().includes('/test-safety')) {
+          throw new Error('Content blocked for safety reasons')
+        }
+      }
+
       // Get or create thread
       const thread = await this.getOrCreateThread(threadId, userId, message)
 
@@ -183,9 +211,13 @@ export class StudyMateAgent {
 
     } catch (error) {
       console.error('❌ [Chatbot Agent] Error:', error)
+
+      // Generate friendly error message based on error type
+      const friendlyMessage = this.getFriendlyErrorMessage(error)
+
       yield {
         type: 'error',
-        error: error instanceof Error ? error.message : 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+        error: friendlyMessage
       }
     }
   }
@@ -332,6 +364,57 @@ export class StudyMateAgent {
       where: { id: threadId },
       data: { updatedAt: new Date() }
     })
+  }
+
+  /**
+   * Generate a friendly error message based on error type
+   */
+  private getFriendlyErrorMessage(error: unknown): string {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorString = errorMessage.toLowerCase()
+
+    // Rate limit error (429)
+    if (errorString.includes('429') || errorString.includes('rate limit') || errorString.includes('quota')) {
+      return '🌟 Ôi, mình đang được nhiều bạn hỏi quá nên cần nghỉ ngơi một chút! Bạn thử lại sau vài giây nhé. Mình hứa sẽ trả lời ngay khi có thể! 💪'
+    }
+
+    // Bad request error (400)
+    if (errorString.includes('400') || errorString.includes('bad request') || errorString.includes('invalid')) {
+      return '🤔 Hmm, có vẻ mình chưa hiểu rõ câu hỏi của bạn. Bạn thử diễn đạt lại rõ hơn một chút nhé!'
+    }
+
+    // Not found error (404)
+    if (errorString.includes('404') || errorString.includes('not found')) {
+      return '🔍 Hmm, mình không tìm thấy thông tin bạn cần. Bạn thử hỏi lại theo cách khác xem sao nhé!'
+    }
+
+    // Server error (500, 502, 503)
+    if (errorString.includes('500') || errorString.includes('502') || errorString.includes('503') || errorString.includes('internal server')) {
+      return '🔧 Úi, hệ thống đang gặp chút trục trặc kỹ thuật. Đội ngũ kỹ thuật đang khắc phục, bạn thử lại sau một lát nhé!'
+    }
+
+    // Network/Connection errors
+    if (errorString.includes('network') || errorString.includes('connection') || errorString.includes('timeout') || errorString.includes('econnrefused')) {
+      return '📡 Có vẻ như kết nối mạng đang không ổn định. Bạn kiểm tra lại internet và thử lại nhé!'
+    }
+
+    // API Key errors
+    if (errorString.includes('api key') || errorString.includes('authentication') || errorString.includes('unauthorized') || errorString.includes('401')) {
+      return '🔐 Có lỗi xác thực hệ thống. Đội ngũ kỹ thuật đã được thông báo và đang xử lý. Bạn thử lại sau nhé!'
+    }
+
+    // Content safety/blocked
+    if (errorString.includes('safety') || errorString.includes('blocked') || errorString.includes('harmful')) {
+      return '⚠️ Mình không thể trả lời câu hỏi này. Bạn thử hỏi về học tập, tìm bạn học chung hoặc các chủ đề khác nhé!'
+    }
+
+    // Token/Context length exceeded
+    if (errorString.includes('token') || errorString.includes('context length') || errorString.includes('too long')) {
+      return '📝 Tin nhắn hơi dài quá, mình xử lý không kịp. Bạn thử chia nhỏ câu hỏi ra nhé!'
+    }
+
+    // Default friendly message
+    return '😅 Ối, mình gặp chút trục trặc rồi! Đừng lo, bạn thử gửi lại tin nhắn nhé. Nếu vẫn lỗi, hãy thử refresh trang hoặc quay lại sau một chút. Mình luôn sẵn sàng hỗ trợ bạn! 🤗'
   }
 }
 

@@ -145,9 +145,10 @@ export function ChatWindow({
                   )
                 )
               } else if (chunk.type === 'error') {
+                // Display friendly error message directly (already formatted)
                 assistantMessage = {
                   ...assistantMessage,
-                  content: `Xin lỗi, đã có lỗi xảy ra: ${chunk.error}`
+                  content: chunk.error || 'Đã có lỗi xảy ra. Vui lòng thử lại.'
                 }
                 setMessages(prev =>
                   prev.map(m =>
