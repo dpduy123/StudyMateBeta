@@ -32,8 +32,9 @@
   },
   "nav": {
     "home": "Home",
-    "dashboard": "Dashboard",
+    "dashboard": "News Feed",
     "discover": "Discover",
+    "search": "Search",
     "messages": "Messages",
     "rooms": "Study Rooms",
     "profile": "Profile",

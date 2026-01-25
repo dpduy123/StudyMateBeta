@@ -32,8 +32,9 @@
   },
   "nav": {
     "home": "Trang chủ",
-    "dashboard": "Bảng điều khiển",
+    "dashboard": "Bảng tin",
     "discover": "Khám phá",
+    "search": "Tìm kiếm",
     "messages": "Tin nhắn",
     "rooms": "Phòng học",
     "profile": "Hồ sơ",

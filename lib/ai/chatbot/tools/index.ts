@@ -6,6 +6,7 @@ import { getUserProfile } from './get-profile'
 import { sendConnectionRequest } from './send-connection'
 import { findStudyRooms } from './find-rooms'
 import { searchKnowledge } from './search-knowledge'
+import { searchExternalKnowledge } from './search-external'
 
 // Tool definitions for Gemini function calling
 export const toolDefinitions: ToolDefinition[] = [
@@ -95,6 +96,30 @@ export const toolDefinitions: ToolDefinition[] = [
       },
       required: ['query']
     }
+  },
+  {
+    name: 'search_external_knowledge',
+    description: 'Tìm kiếm kiến thức từ Wikipedia và các nguồn học thuật bên ngoài. Dùng khi cần thông tin về khái niệm, định nghĩa, hoặc kiến thức học thuật.',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Chủ đề hoặc khái niệm cần tìm hiểu. Ví dụ: "machine learning là gì", "phương pháp Pomodoro", "lập trình Python"'
+        },
+        sources: {
+          type: 'array',
+          description: 'Nguồn tìm kiếm (mặc định: cả hai)',
+          enum: ['wikipedia', 'academic']
+        },
+        language: {
+          type: 'string',
+          description: 'Ngôn ngữ ưu tiên (mặc định: vi)',
+          enum: ['vi', 'en']
+        }
+      },
+      required: ['query']
+    }
   }
 ]
 
@@ -104,7 +129,8 @@ export const toolExecutors: Record<string, (args: Record<string, unknown>, userI
   get_user_profile: getUserProfile,
   send_connection_request: sendConnectionRequest,
   find_study_rooms: findStudyRooms,
-  search_knowledge: searchKnowledge
+  search_knowledge: searchKnowledge,
+  search_external_knowledge: searchExternalKnowledge
 }
 
 // Execute a tool by name
