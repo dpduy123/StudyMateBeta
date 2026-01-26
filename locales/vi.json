@@ -427,6 +427,49 @@
     "unknown": "Đã xảy ra lỗi không mong muốn.",
     "timeout": "Yêu cầu hết thời gian. Vui lòng thử lại."
   },
+  "headers": {
+    "messages": {
+      "title": "Tin nhắn",
+      "description": "Các cuộc trò chuyện của bạn"
+    },
+    "rooms": {
+      "title": "Phòng học",
+      "description": "Tham gia hoặc tạo buổi học nhóm"
+    },
+    "achievements": {
+      "title": "Thành tích",
+      "description": "Theo dõi tiến trình và nhận huy hiệu"
+    },
+    "discover": {
+      "title": "Khám phá",
+      "description": "Tìm bạn học lý tưởng của bạn"
+    },
+    "discoverB2c": {
+      "title": "Tìm kiếm bạn học",
+      "description": "Tìm kiếm bạn học theo chuyên ngành hoặc sở thích"
+    },
+    "dashboard": {
+      "title": "Bảng tin",
+      "description": "Cập nhật từ cộng đồng học tập"
+    },
+    "profile": {
+      "title": "Hồ sơ của tôi",
+      "description": "Quản lý thông tin của bạn"
+    }
+  },
+  "chatbot": {
+    "status": "Luôn sẵn sàng hỗ trợ",
+    "welcome": "Xin chào! Tôi là StudyMate AI",
+    "welcomeDescription": "Tôi có thể giúp bạn tìm bạn học phù hợp, tư vấn phương pháp học tập, và hỗ trợ sử dụng StudyMate.",
+    "loadingHistory": "Đang tải lịch sử...",
+    "disclaimer": "AI có thể đưa ra thông tin không chính xác. Hãy kiểm tra lại thông tin quan trọng.",
+    "suggestions": [
+      "Tìm bạn học Machine Learning",
+      "Phương pháp học hiệu quả",
+      "Cách sử dụng phòng học",
+      "Tìm phòng học về Python"
+    ]
+  },
   "time": {
     "justNow": "Vừa xong",
     "minutesAgo": "{{count}} phút trước",

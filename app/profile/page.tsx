@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/components/providers/Providers'
+import { useTranslation } from '@/lib/i18n/context'
 import { useProfile } from '@/hooks/useProfile'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
@@ -14,6 +15,7 @@ import { UserCircleIcon } from '@heroicons/react/24/outline'
 
 export default function ProfilePage() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const { profile, isLoading, refetch } = useProfile()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
@@ -21,8 +23,8 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader
-        title="Hồ sơ cá nhân"
-        description="Thông tin và cài đặt tài khoản"
+        title={t('headers.profile.title')}
+        description={t('headers.profile.description')}
         icon={UserCircleIcon}
         currentPage="/profile"
       />

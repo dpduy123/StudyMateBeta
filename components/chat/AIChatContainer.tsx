@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid'
 import { HandThumbUpIcon, HandThumbDownIcon } from '@heroicons/react/24/outline'
 import ReactMarkdown from 'react-markdown'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface AIMessage {
   id: string
@@ -20,14 +21,11 @@ interface AIChatContainerProps {
   className?: string
 }
 
-const SUGGESTIONS = [
-  'Tìm bạn học Machine Learning',
-  'Phương pháp học hiệu quả',
-  'Cách sử dụng phòng học',
-  'Tìm phòng học về Python'
-]
-
 export function AIChatContainer({ currentUserId, threadId: initialThreadId, className = '' }: AIChatContainerProps) {
+  const { locale, t, tArray } = useTranslation()
+
+  // Get localized suggestions
+  const suggestions = tArray('chatbot.suggestions')
   const [messages, setMessages] = useState<AIMessage[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -107,7 +105,8 @@ export function AIChatContainer({ currentUserId, threadId: initialThreadId, clas
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: messageText,
-          threadId
+          threadId,
+          language: locale
         })
       })
 
@@ -211,7 +210,7 @@ export function AIChatContainer({ currentUserId, threadId: initialThreadId, clas
       <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 scroll-smooth">
         {isLoadingHistory ? (
           <div className="flex items-center justify-center h-full">
-            <div className="animate-pulse text-gray-400">Đang tải lịch sử...</div>
+            <div className="animate-pulse text-gray-400">{t('chatbot.loadingHistory')}</div>
           </div>
         ) : messages.length === 0 ? (
           // Welcome message
@@ -220,15 +219,15 @@ export function AIChatContainer({ currentUserId, threadId: initialThreadId, clas
               <SparklesIcon className="w-8 h-8 text-white" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Xin chào! Tôi là StudyMate AI
+              {t('chatbot.welcome')}
             </h3>
             <p className="text-gray-500 mb-6 max-w-sm">
-              Tôi có thể giúp bạn tìm bạn học phù hợp, tư vấn phương pháp học tập, và hỗ trợ sử dụng StudyMate.
+              {t('chatbot.welcomeDescription')}
             </p>
 
             {/* Suggestions */}
             <div className="flex flex-wrap justify-center gap-2">
-              {SUGGESTIONS.map((suggestion, index) => (
+              {suggestions.map((suggestion, index) => (
                 <button
                   key={index}
                   onClick={() => handleSubmit(undefined, suggestion)}
@@ -367,7 +366,7 @@ export function AIChatContainer({ currentUserId, threadId: initialThreadId, clas
           </button>
         </form>
         <p className="text-xs text-gray-400 mt-2 text-center">
-          AI có thể đưa ra thông tin không chính xác. Hãy kiểm tra lại thông tin quan trọng.
+          {t('chatbot.disclaimer')}
         </p>
       </div>
     </div>

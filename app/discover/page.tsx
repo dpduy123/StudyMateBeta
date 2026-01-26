@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
+import { useTranslation } from '@/lib/i18n/context'
 import { useRouter } from 'next/navigation'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
@@ -30,6 +31,7 @@ import {
 
 export default function DiscoverPage() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const router = useRouter()
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
@@ -336,8 +338,8 @@ export default function DiscoverPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader
-        title="Khám phá"
-        description="Tìm bạn học phù hợp với AI"
+        title={t('headers.discover.title')}
+        description={t('headers.discover.description')}
         icon={SparklesIcon}
         currentPage="/discover"
         rightContent={

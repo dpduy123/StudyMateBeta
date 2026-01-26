@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { useAuth } from '@/components/providers/Providers'
+import { useTranslation } from '@/lib/i18n/context'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -77,6 +78,7 @@ interface SelectedConversation {
 
 export default function MessagesPage() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [selectedConversation, setSelectedConversation] = useState<SelectedConversation | null>(null)
 
   // Enable notifications for this user
@@ -109,8 +111,8 @@ export default function MessagesPage() {
       {/* Header */}
       <div className="flex-shrink-0">
         <DashboardHeader
-          title="Tin nhắn"
-          description="Các cuộc trò chuyện của bạn"
+          title={t('headers.messages.title')}
+          description={t('headers.messages.description')}
           icon={ChatBubbleLeftRightIcon}
           currentPage="/messages"
         />
@@ -164,7 +166,7 @@ export default function MessagesPage() {
                           <SparklesIcon className="w-4 h-4 text-purple-500" />
                         </div>
                         <p className="text-xs sm:text-sm text-green-600 font-medium">
-                          Luôn sẵn sàng hỗ trợ
+                          {t('chatbot.status')}
                         </p>
                       </div>
                     </div>

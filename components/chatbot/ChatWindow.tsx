@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { ChatMessage } from './ChatMessage'
 import { TypingIndicator } from './TypingIndicator'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface Message {
   id: string
@@ -34,6 +35,7 @@ export function ChatWindow({
   onNewThread,
   onSelectThread
 }: ChatWindowProps) {
+  const { locale } = useTranslation()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -94,7 +96,8 @@ export function ChatWindow({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage.content,
-          threadId: currentThreadId
+          threadId: currentThreadId,
+          language: locale
         })
       })
 

@@ -3,7 +3,7 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { prisma } from '@/lib/prisma'
-import { traceAICall } from '@/lib/ai/opik'
+import { getOpikClient } from '@/lib/ai/opik'
 import { ChatMessage, ChatStreamChunk, ToolCall, ToolResult, UserContext } from './types'
 import { getSystemPrompt } from './prompts'
 import { toolDefinitions, executeTool } from './tools'
@@ -66,9 +66,27 @@ export class StudyMateAgent {
   async *chat(
     message: string,
     threadId: string | null,
-    userId: string
+    userId: string,
+    language: 'en' | 'vi' = 'en'
   ): AsyncGenerator<ChatStreamChunk> {
     const startTime = Date.now()
+
+    // Create Opik trace for observability (created early to capture all errors)
+    const opikClient = getOpikClient()
+    const trace = opikClient?.trace({
+      name: 'chatbot_response',
+      input: {
+        userId,
+        threadId: threadId || 'new',
+        message,
+        language
+      },
+      metadata: {
+        model: 'gemini-2.5-flash',
+        feature: 'chatbot',
+        environment: process.env.OPIK_ENVIRONMENT || process.env.NODE_ENV || 'development'
+      }
+    })
 
     try {
       // TEST MODE: Simulate errors for testing (remove in production)
@@ -103,15 +121,19 @@ export class StudyMateAgent {
       const history = await this.getConversationHistory(thread.id)
 
       // Build the chat
+      const initialResponse = language === 'vi'
+        ? 'Tôi đã hiểu. Tôi là StudyMate AI, sẵn sàng hỗ trợ bạn!'
+        : 'Understood. I am StudyMate AI, ready to help you!'
+
       const chat = this.model.startChat({
         history: [
           {
             role: 'user',
-            parts: [{ text: 'System: ' + getSystemPrompt(userContext) }]
+            parts: [{ text: 'System: ' + getSystemPrompt(userContext, language) }]
           },
           {
             role: 'model',
-            parts: [{ text: 'Tôi đã hiểu. Tôi là StudyMate AI, sẵn sàng hỗ trợ bạn!' }]
+            parts: [{ text: initialResponse }]
           },
           ...history.map(msg => ({
             role: msg.role === 'USER' ? 'user' as const : 'model' as const,
@@ -120,22 +142,20 @@ export class StudyMateAgent {
         ]
       })
 
+      // Update trace with actual thread ID
+      if (trace) {
+        trace.update({
+          input: {
+            userId,
+            threadId: thread.id,
+            message,
+            language
+          }
+        })
+      }
+
       // Send message and get response
-      const result = await traceAICall(
-        'chatbot_response',
-        {
-          userId,
-          threadId: thread.id,
-          messagePreview: message.substring(0, 100)
-        },
-        async () => {
-          return await chat.sendMessage(message)
-        },
-        {
-          model: 'gemini-2.5-flash',
-          feature: 'chatbot'
-        }
-      )
+      const result = await chat.sendMessage(message)
 
       const response = result.response
       let fullResponse = ''
@@ -196,6 +216,27 @@ export class StudyMateAgent {
         fullResponse = response.text()
       }
 
+      // Update Opik trace with output
+      const latencyMs = Date.now() - startTime
+      if (trace) {
+        trace.update({
+          output: {
+            response: fullResponse,
+            toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+            toolResults: toolResults.length > 0 ? toolResults : undefined
+          },
+          metadata: {
+            model: 'gemini-2.5-flash',
+            feature: 'chatbot',
+            latencyMs,
+            status: 'success',
+            hasToolCalls: toolCalls.length > 0,
+            toolCount: toolCalls.length
+          }
+        })
+        trace.end()
+      }
+
       // Stream the text response
       yield {
         type: 'text',
@@ -203,7 +244,7 @@ export class StudyMateAgent {
       }
 
       // Save messages to database
-      await this.saveMessages(thread.id, message, fullResponse, toolCalls, toolResults, Date.now() - startTime)
+      await this.saveMessages(thread.id, message, fullResponse, toolCalls, toolResults, latencyMs)
 
       yield {
         type: 'done'
@@ -211,6 +252,24 @@ export class StudyMateAgent {
 
     } catch (error) {
       console.error('❌ [Chatbot Agent] Error:', error)
+
+      // Update Opik trace with error
+      const latencyMs = Date.now() - startTime
+      if (trace) {
+        trace.update({
+          output: {
+            error: error instanceof Error ? error.message : 'Unknown error'
+          },
+          metadata: {
+            model: 'gemini-2.5-flash',
+            feature: 'chatbot',
+            latencyMs,
+            status: 'error',
+            errorType: this.getErrorType(error)
+          }
+        })
+        trace.end()
+      }
 
       // Generate friendly error message based on error type
       const friendlyMessage = this.getFriendlyErrorMessage(error)
@@ -223,19 +282,55 @@ export class StudyMateAgent {
   }
 
   /**
+   * Get error type for classification
+   */
+  private getErrorType(error: unknown): string {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorString = errorMessage.toLowerCase()
+
+    if (errorString.includes('429') || errorString.includes('rate limit') || errorString.includes('quota')) {
+      return 'rate_limit'
+    }
+    if (errorString.includes('400') || errorString.includes('bad request') || errorString.includes('invalid')) {
+      return 'bad_request'
+    }
+    if (errorString.includes('404') || errorString.includes('not found')) {
+      return 'not_found'
+    }
+    if (errorString.includes('500') || errorString.includes('502') || errorString.includes('503') || errorString.includes('internal server')) {
+      return 'server_error'
+    }
+    if (errorString.includes('network') || errorString.includes('connection') || errorString.includes('timeout') || errorString.includes('econnrefused')) {
+      return 'network_error'
+    }
+    if (errorString.includes('api key') || errorString.includes('authentication') || errorString.includes('unauthorized') || errorString.includes('401')) {
+      return 'auth_error'
+    }
+    if (errorString.includes('safety') || errorString.includes('blocked') || errorString.includes('harmful')) {
+      return 'content_blocked'
+    }
+    if (errorString.includes('token') || errorString.includes('context length') || errorString.includes('too long')) {
+      return 'context_exceeded'
+    }
+
+    return 'unknown'
+  }
+
+  /**
    * Non-streaming chat for simple use cases
    */
   async chatSync(
     message: string,
     threadId: string | null,
-    userId: string
+    userId: string,
+    language: 'en' | 'vi' = 'en'
   ): Promise<{ threadId: string; response: string; toolCalls?: ToolCall[]; toolResults?: ToolResult[] }> {
     let response = ''
     let finalThreadId = threadId || ''
     const allToolCalls: ToolCall[] = []
     const allToolResults: ToolResult[] = []
 
-    for await (const chunk of this.chat(message, threadId, userId)) {
+    for await (const chunk of this.chat(message, threadId, userId, language)) {
       if (chunk.type === 'text') {
         response += chunk.content || ''
       } else if (chunk.type === 'tool_call' && chunk.toolCall) {
