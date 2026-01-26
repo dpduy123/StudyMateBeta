@@ -66,7 +66,8 @@ export class StudyMateAgent {
   async *chat(
     message: string,
     threadId: string | null,
-    userId: string
+    userId: string,
+    language: 'en' | 'vi' = 'en'
   ): AsyncGenerator<ChatStreamChunk> {
     const startTime = Date.now()
 
@@ -103,15 +104,19 @@ export class StudyMateAgent {
       const history = await this.getConversationHistory(thread.id)
 
       // Build the chat
+      const initialResponse = language === 'vi'
+        ? 'Tôi đã hiểu. Tôi là StudyMate AI, sẵn sàng hỗ trợ bạn!'
+        : 'Understood. I am StudyMate AI, ready to help you!'
+
       const chat = this.model.startChat({
         history: [
           {
             role: 'user',
-            parts: [{ text: 'System: ' + getSystemPrompt(userContext) }]
+            parts: [{ text: 'System: ' + getSystemPrompt(userContext, language) }]
           },
           {
             role: 'model',
-            parts: [{ text: 'Tôi đã hiểu. Tôi là StudyMate AI, sẵn sàng hỗ trợ bạn!' }]
+            parts: [{ text: initialResponse }]
           },
           ...history.map(msg => ({
             role: msg.role === 'USER' ? 'user' as const : 'model' as const,
@@ -228,14 +233,15 @@ export class StudyMateAgent {
   async chatSync(
     message: string,
     threadId: string | null,
-    userId: string
+    userId: string,
+    language: 'en' | 'vi' = 'en'
   ): Promise<{ threadId: string; response: string; toolCalls?: ToolCall[]; toolResults?: ToolResult[] }> {
     let response = ''
     let finalThreadId = threadId || ''
     const allToolCalls: ToolCall[] = []
     const allToolResults: ToolResult[] = []
 
-    for await (const chunk of this.chat(message, threadId, userId)) {
+    for await (const chunk of this.chat(message, threadId, userId, language)) {
       if (chunk.type === 'text') {
         response += chunk.content || ''
       } else if (chunk.type === 'tool_call' && chunk.toolCall) {

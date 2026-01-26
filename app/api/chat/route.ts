@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { message, threadId } = body
+    const { message, threadId, language = 'en' } = body
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of agent.chat(message, threadId || null, user.id)) {
+          for await (const chunk of agent.chat(message, threadId || null, user.id, language)) {
             const data = JSON.stringify(chunk) + '\n'
             controller.enqueue(encoder.encode(`data: ${data}\n`))
           }

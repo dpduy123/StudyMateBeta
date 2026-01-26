@@ -457,6 +457,19 @@
       "description": "Manage your information"
     }
   },
+  "chatbot": {
+    "status": "Always ready to help",
+    "welcome": "Hello! I'm StudyMate AI",
+    "welcomeDescription": "I can help you find study partners, provide study tips, and guide you through StudyMate features.",
+    "loadingHistory": "Loading history...",
+    "disclaimer": "AI may provide inaccurate information. Please verify important details.",
+    "suggestions": [
+      "Find Machine Learning study partners",
+      "Effective study methods",
+      "How to use study rooms",
+      "Find Python study rooms"
+    ]
+  },
   "time": {
     "justNow": "Just now",
     "minutesAgo": "{{count}} minutes ago",

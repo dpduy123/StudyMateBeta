@@ -166,7 +166,7 @@ export default function MessagesPage() {
                           <SparklesIcon className="w-4 h-4 text-purple-500" />
                         </div>
                         <p className="text-xs sm:text-sm text-green-600 font-medium">
-                          Luôn sẵn sàng hỗ trợ
+                          {t('chatbot.status')}
                         </p>
                       </div>
                     </div>
