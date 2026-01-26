@@ -427,6 +427,36 @@
     "unknown": "Đã xảy ra lỗi không mong muốn.",
     "timeout": "Yêu cầu hết thời gian. Vui lòng thử lại."
   },
+  "headers": {
+    "messages": {
+      "title": "Tin nhắn",
+      "description": "Các cuộc trò chuyện của bạn"
+    },
+    "rooms": {
+      "title": "Phòng học",
+      "description": "Tham gia hoặc tạo buổi học nhóm"
+    },
+    "achievements": {
+      "title": "Thành tích",
+      "description": "Theo dõi tiến trình và nhận huy hiệu"
+    },
+    "discover": {
+      "title": "Khám phá",
+      "description": "Tìm bạn học lý tưởng của bạn"
+    },
+    "discoverB2c": {
+      "title": "Tìm kiếm bạn học",
+      "description": "Tìm kiếm bạn học theo chuyên ngành hoặc sở thích"
+    },
+    "dashboard": {
+      "title": "Bảng tin",
+      "description": "Cập nhật từ cộng đồng học tập"
+    },
+    "profile": {
+      "title": "Hồ sơ của tôi",
+      "description": "Quản lý thông tin của bạn"
+    }
+  },
   "time": {
     "justNow": "Vừa xong",
     "minutesAgo": "{{count}} phút trước",

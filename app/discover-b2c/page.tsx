@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
+import { useTranslation } from '@/lib/i18n/context'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { UserProfileDialog } from '@/components/discover/UserProfileDialog'
@@ -56,6 +57,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export default function B2CDiscoverPage() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterUniversity, setFilterUniversity] = useState('all')
@@ -233,8 +235,8 @@ export default function B2CDiscoverPage() {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
         <DashboardHeader
-          title="Tìm kiếm người dùng"
-          description="Xem tất cả người dùng trên nền tảng"
+          title={t('headers.discoverB2c.title')}
+          description={t('headers.discoverB2c.description')}
           icon={BuildingOfficeIcon}
           currentPage="/discover-b2c"
         />

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import AuthGuard from '@/components/guards/AuthGuard'
 import { useAuth } from '@/components/providers/Providers'
+import { useTranslation } from '@/lib/i18n/context'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { motion } from 'framer-motion'
@@ -18,6 +19,7 @@ import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 
 export default function AchievementsPage() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('badges')
 
   // Mock data based on Prisma schema
@@ -109,8 +111,8 @@ export default function AchievementsPage() {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
       <DashboardHeader
-        title="Thành tích"
-        description="Huy hiệu và điểm thưởng của bạn"
+        title={t('headers.achievements.title')}
+        description={t('headers.achievements.description')}
         icon={TrophyIcon}
         currentPage="/achievements"
         rightContent={

@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/components/providers/Providers'
+import { useTranslation } from '@/lib/i18n/context'
 import { BottomTabNavigation } from '@/components/ui/MobileNavigation'
 import { DashboardHeader } from '@/components/ui/DashboardHeader'
 import { PageLoading } from '@/components/ui/LoadingSpinner'
@@ -13,6 +14,7 @@ import { useRooms, useFilteredRooms, useJoinRoom, Room, RoomFilters } from '@/ho
 
 export default function RoomsPage() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [filters, setFilters] = useState<RoomFilters>({
     search: '',
     roomFilter: 'all',
@@ -66,11 +68,10 @@ export default function RoomsPage() {
       <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <DashboardHeader
-        title="Phòng học"
-        description="Tham gia và tạo phòng học nhóm"
+        title={t('headers.rooms.title')}
+        description={t('headers.rooms.description')}
         icon={VideoCameraIcon}
         currentPage="/rooms"
-
       />
 
       {/* Main Content */}

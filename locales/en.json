@@ -427,6 +427,36 @@
     "unknown": "An unexpected error occurred.",
     "timeout": "Request timed out. Please try again."
   },
+  "headers": {
+    "messages": {
+      "title": "Messages",
+      "description": "Your conversations"
+    },
+    "rooms": {
+      "title": "Study Rooms",
+      "description": "Join or create study sessions"
+    },
+    "achievements": {
+      "title": "Achievements",
+      "description": "Track your progress and earn badges"
+    },
+    "discover": {
+      "title": "Discover",
+      "description": "Find your ideal study partners"
+    },
+    "discoverB2c": {
+      "title": "Search Partners",
+      "description": "Search for study partners by major or interest"
+    },
+    "dashboard": {
+      "title": "News Feed",
+      "description": "Updates from the learning community"
+    },
+    "profile": {
+      "title": "My Profile",
+      "description": "Manage your information"
+    }
+  },
   "time": {
     "justNow": "Just now",
     "minutesAgo": "{{count}} minutes ago",
