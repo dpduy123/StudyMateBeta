@@ -73,6 +73,8 @@ export class StudyMateAgent {
 
     // Create Opik trace for observability (created early to capture all errors)
     const opikClient = getOpikClient()
+    console.log('📊 [Opik] Client exists:', !!opikClient)
+
     const trace = opikClient?.trace({
       name: 'chatbot_response',
       input: {
@@ -87,6 +89,7 @@ export class StudyMateAgent {
         environment: process.env.OPIK_ENVIRONMENT || process.env.NODE_ENV || 'development'
       }
     })
+    console.log('📊 [Opik] Trace created:', !!trace)
 
     try {
       // TEST MODE: Simulate errors for testing (remove in production)
@@ -221,23 +224,55 @@ export class StudyMateAgent {
 
       // Update Opik trace with output
       const latencyMs = Date.now() - startTime
+      console.log('📊 [Opik] Updating trace with success output, response length:', fullResponse.length)
+
       if (trace) {
-        trace.update({
-          output: {
-            response: fullResponse,
-            toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
-            toolResults: toolResults.length > 0 ? toolResults : undefined
-          },
-          metadata: {
-            model: 'gemini-2.5-flash',
-            feature: 'chatbot',
-            latencyMs,
-            status: 'success',
-            hasToolCalls: toolCalls.length > 0,
-            toolCount: toolCalls.length
+        try {
+          // Use object format for output as per Opik documentation
+          const outputStr = fullResponse.length > 1000
+            ? fullResponse.substring(0, 1000) + '...'
+            : fullResponse
+          console.log('📊 [Opik] Output string (first 100 chars):', outputStr.substring(0, 100))
+
+          trace.update({
+            output: {
+              response: outputStr,
+              hasToolCalls: toolCalls.length > 0,
+              toolCount: toolCalls.length
+            },
+            metadata: {
+              model: 'gemini-2.5-flash',
+              feature: 'chatbot',
+              latencyMs,
+              status: 'success',
+              hasToolCalls: toolCalls.length > 0,
+              toolCount: toolCalls.length,
+              responseLength: fullResponse.length
+            }
+          })
+          console.log('📊 [Opik] trace.update() called with object output')
+
+          trace.end()
+          console.log('📊 [Opik] trace.end() called')
+
+          // Flush with slight delay to ensure update is processed
+          const opikClient = getOpikClient()
+          if (opikClient) {
+            // Use setTimeout to ensure the update batch is queued before flush
+            setTimeout(async () => {
+              try {
+                await opikClient.flush()
+                console.log('✅ [Opik] Trace flushed successfully for SUCCESS (async)')
+              } catch (e) {
+                console.error('❌ [Opik] Async flush failed:', e)
+              }
+            }, 100)
           }
-        })
-        trace.end()
+        } catch (opikError) {
+          console.error('❌ [Opik] Failed to update trace:', opikError)
+        }
+      } else {
+        console.log('⚠️ [Opik] No trace object available')
       }
 
       // Stream the text response
@@ -258,20 +293,53 @@ export class StudyMateAgent {
 
       // Update Opik trace with error
       const latencyMs = Date.now() - startTime
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorType = this.getErrorType(error)
+
+      console.log('📊 [Opik] Updating trace with ERROR output, type:', errorType)
+
       if (trace) {
-        trace.update({
-          output: {
-            error: error instanceof Error ? error.message : 'Unknown error'
-          },
-          metadata: {
-            model: 'gemini-2.5-flash',
-            feature: 'chatbot',
-            latencyMs,
-            status: 'error',
-            errorType: this.getErrorType(error)
+        try {
+          // Use object format for output as per Opik documentation
+          console.log('📊 [Opik] Error output:', errorType, errorMessage.substring(0, 100))
+
+          trace.update({
+            output: {
+              error: errorMessage.substring(0, 500),
+              errorType: errorType,
+              status: 'error'
+            },
+            metadata: {
+              model: 'gemini-2.5-flash',
+              feature: 'chatbot',
+              latencyMs,
+              status: 'error',
+              errorType,
+              errorMessage: errorMessage.substring(0, 200)
+            }
+          })
+          console.log('📊 [Opik] trace.update() called for error with object output')
+
+          trace.end()
+          console.log('📊 [Opik] trace.end() called for error')
+
+          // Flush with slight delay to ensure update is processed
+          const opikClientErr = getOpikClient()
+          if (opikClientErr) {
+            setTimeout(async () => {
+              try {
+                await opikClientErr.flush()
+                console.log('✅ [Opik] Trace flushed successfully for ERROR (async):', errorType)
+              } catch (e) {
+                console.error('❌ [Opik] Async flush failed for error:', e)
+              }
+            }, 100)
           }
-        })
-        trace.end()
+        } catch (opikError) {
+          console.error('❌ [Opik] Failed to update trace for error:', opikError)
+        }
+      } else {
+        console.log('⚠️ [Opik] No trace object available for error')
       }
 
       // Generate friendly error message based on error type
