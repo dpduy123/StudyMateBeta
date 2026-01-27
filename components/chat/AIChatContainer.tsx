@@ -130,26 +130,39 @@ export function AIChatContainer({ currentUserId, threadId: initialThreadId, clas
 
           for (const line of lines) {
             if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6))
+              const jsonStr = line.slice(6).trim()
+              if (!jsonStr || jsonStr === '[DONE]') continue
 
-                if (data.type === 'text') {
-                  fullContent = data.content || ''
-                  setMessages(prev => prev.map(m =>
-                    m.id === aiMessageId
-                      ? { ...m, content: fullContent }
-                      : m
-                  ))
-                } else if (data.type === 'done') {
-                  if (data.threadId) {
-                    newThreadId = data.threadId
-                    setThreadId(data.threadId)
-                  }
-                } else if (data.type === 'error') {
-                  throw new Error(data.error)
-                }
+              let data
+              try {
+                data = JSON.parse(jsonStr)
               } catch {
                 // Skip invalid JSON lines
+                continue
+              }
+
+              // Handle parsed data
+              if (data.type === 'text') {
+                fullContent = data.content || ''
+                setMessages(prev => prev.map(m =>
+                  m.id === aiMessageId
+                    ? { ...m, content: fullContent }
+                    : m
+                ))
+              } else if (data.type === 'done') {
+                if (data.threadId) {
+                  newThreadId = data.threadId
+                  setThreadId(data.threadId)
+                }
+              } else if (data.type === 'error') {
+                // Display the friendly error message from the backend
+                setMessages(prev => prev.map(m =>
+                  m.id === aiMessageId
+                    ? { ...m, content: data.error || 'Có lỗi xảy ra', isStreaming: false }
+                    : m
+                ))
+                setIsLoading(false)
+                return // Exit early, don't throw
               }
             }
           }
