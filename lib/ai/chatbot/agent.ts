@@ -103,6 +103,9 @@ export class StudyMateAgent {
         if (message.toLowerCase().includes('/test-500')) {
           throw new Error('[500] Internal server error')
         }
+        if (message.toLowerCase().includes('/test-503') || message.toLowerCase().includes('/test-overloaded')) {
+          throw new Error('[503 Service Unavailable] The model is overloaded. Please try again later.')
+        }
         if (message.toLowerCase().includes('/test-network')) {
           throw new Error('Network connection timeout')
         }
@@ -297,6 +300,9 @@ export class StudyMateAgent {
     if (errorString.includes('404') || errorString.includes('not found')) {
       return 'not_found'
     }
+    if (errorString.includes('overloaded') || (errorString.includes('503') && errorString.includes('model'))) {
+      return 'model_overloaded'
+    }
     if (errorString.includes('500') || errorString.includes('502') || errorString.includes('503') || errorString.includes('internal server')) {
       return 'server_error'
     }
@@ -481,6 +487,11 @@ export class StudyMateAgent {
     // Not found error (404)
     if (errorString.includes('404') || errorString.includes('not found')) {
       return '🔍 Hmm, mình không tìm thấy thông tin bạn cần. Bạn thử hỏi lại theo cách khác xem sao nhé!'
+    }
+
+    // Model overloaded (503 with overloaded)
+    if (errorString.includes('overloaded') || (errorString.includes('503') && errorString.includes('model'))) {
+      return '🧠 Ôi, não AI của mình đang quá tải vì có nhiều bạn hỏi quá! Bạn đợi một chút rồi thử lại nhé, mình sẽ sẵn sàng ngay thôi! ⏳'
     }
 
     // Server error (500, 502, 503)
