@@ -70,26 +70,7 @@ export class StudyMateAgent {
     language: 'en' | 'vi' = 'en'
   ): AsyncGenerator<ChatStreamChunk> {
     const startTime = Date.now()
-
-    // Create Opik trace for observability (created early to capture all errors)
     const opikClient = getOpikClient()
-    console.log('📊 [Opik] Client exists:', !!opikClient)
-
-    const trace = opikClient?.trace({
-      name: 'chatbot_response',
-      input: {
-        userId,
-        threadId: threadId || 'new',
-        message,
-        language
-      },
-      metadata: {
-        model: 'gemini-2.5-flash',
-        feature: 'chatbot',
-        environment: process.env.OPIK_ENVIRONMENT || process.env.NODE_ENV || 'development'
-      }
-    })
-    console.log('📊 [Opik] Trace created:', !!trace)
 
     try {
       // TEST MODE: Simulate errors for testing (remove in production)
@@ -147,18 +128,6 @@ export class StudyMateAgent {
           }))
         ]
       })
-
-      // Update trace with actual thread ID
-      if (trace) {
-        trace.update({
-          input: {
-            userId,
-            threadId: thread.id,
-            message,
-            language
-          }
-        })
-      }
 
       // Send message and get response
       const result = await chat.sendMessage(message)
@@ -222,57 +191,33 @@ export class StudyMateAgent {
         fullResponse = response.text()
       }
 
-      // Update Opik trace with output
+      // Log trace to Opik (create trace with all data at once)
       const latencyMs = Date.now() - startTime
-      console.log('📊 [Opik] Updating trace with success output, response length:', fullResponse.length)
-
-      if (trace) {
+      if (opikClient) {
         try {
-          // Use object format for output as per Opik documentation
           const outputStr = fullResponse.length > 1000
             ? fullResponse.substring(0, 1000) + '...'
             : fullResponse
-          console.log('📊 [Opik] Output string (first 100 chars):', outputStr.substring(0, 100))
 
-          trace.update({
-            output: {
-              response: outputStr,
-              hasToolCalls: toolCalls.length > 0,
-              toolCount: toolCalls.length
-            },
+          const trace = opikClient.trace({
+            name: 'chatbot_response',
+            input: { userId, threadId: thread.id, message, language },
+            output: { response: outputStr, hasToolCalls: toolCalls.length > 0, toolCount: toolCalls.length },
             metadata: {
               model: 'gemini-2.5-flash',
               feature: 'chatbot',
+              environment: process.env.OPIK_ENVIRONMENT || process.env.NODE_ENV || 'development',
               latencyMs,
               status: 'success',
-              hasToolCalls: toolCalls.length > 0,
-              toolCount: toolCalls.length,
               responseLength: fullResponse.length
             }
           })
-          console.log('📊 [Opik] trace.update() called with object output')
-
           trace.end()
-          console.log('📊 [Opik] trace.end() called')
-
-          // Flush with slight delay to ensure update is processed
-          const opikClient = getOpikClient()
-          if (opikClient) {
-            // Use setTimeout to ensure the update batch is queued before flush
-            setTimeout(async () => {
-              try {
-                await opikClient.flush()
-                console.log('✅ [Opik] Trace flushed successfully for SUCCESS (async)')
-              } catch (e) {
-                console.error('❌ [Opik] Async flush failed:', e)
-              }
-            }, 100)
-          }
+          await opikClient.flush()
+          console.log('✅ [Opik] Trace logged successfully')
         } catch (opikError) {
-          console.error('❌ [Opik] Failed to update trace:', opikError)
+          console.error('❌ [Opik] Failed to log trace:', opikError)
         }
-      } else {
-        console.log('⚠️ [Opik] No trace object available')
       }
 
       // Stream the text response
@@ -291,55 +236,33 @@ export class StudyMateAgent {
     } catch (error) {
       console.error('❌ [Chatbot Agent] Error:', error)
 
-      // Update Opik trace with error
+      // Log error trace to Opik (create trace with all data at once)
       const latencyMs = Date.now() - startTime
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       const errorType = this.getErrorType(error)
 
-      console.log('📊 [Opik] Updating trace with ERROR output, type:', errorType)
-
-      if (trace) {
+      if (opikClient) {
         try {
-          // Use object format for output as per Opik documentation
-          console.log('📊 [Opik] Error output:', errorType, errorMessage.substring(0, 100))
-
-          trace.update({
-            output: {
-              error: errorMessage.substring(0, 500),
-              errorType: errorType,
-              status: 'error'
-            },
+          const trace = opikClient.trace({
+            name: 'chatbot_response',
+            input: { userId, threadId: threadId || 'new', message, language },
+            output: { error: errorMessage.substring(0, 500), errorType, status: 'error' },
             metadata: {
               model: 'gemini-2.5-flash',
               feature: 'chatbot',
+              environment: process.env.OPIK_ENVIRONMENT || process.env.NODE_ENV || 'development',
               latencyMs,
               status: 'error',
               errorType,
               errorMessage: errorMessage.substring(0, 200)
             }
           })
-          console.log('📊 [Opik] trace.update() called for error with object output')
-
           trace.end()
-          console.log('📊 [Opik] trace.end() called for error')
-
-          // Flush with slight delay to ensure update is processed
-          const opikClientErr = getOpikClient()
-          if (opikClientErr) {
-            setTimeout(async () => {
-              try {
-                await opikClientErr.flush()
-                console.log('✅ [Opik] Trace flushed successfully for ERROR (async):', errorType)
-              } catch (e) {
-                console.error('❌ [Opik] Async flush failed for error:', e)
-              }
-            }, 100)
-          }
+          await opikClient.flush()
+          console.log('✅ [Opik] Error trace logged successfully:', errorType)
         } catch (opikError) {
-          console.error('❌ [Opik] Failed to update trace for error:', opikError)
+          console.error('❌ [Opik] Failed to log error trace:', opikError)
         }
-      } else {
-        console.log('⚠️ [Opik] No trace object available for error')
       }
 
       // Generate friendly error message based on error type
