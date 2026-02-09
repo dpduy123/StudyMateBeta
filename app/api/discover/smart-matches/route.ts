@@ -4,9 +4,21 @@ import { prisma } from '@/lib/prisma'
 import { GeminiMatcher, UserProfile } from '@/lib/ai/gemini-matcher'
 import { matchCache } from '@/lib/ai/match-cache'
 import { matchLogger, MatchingAnalytics } from '@/lib/ai/logger'
+import { getOpikClient, flushTraces, scoreTrace } from '@/lib/ai/opik'
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
+  const opik = getOpikClient()
+
+  // Create top-level Opik trace for the entire request
+  const trace = opik?.trace({
+    name: 'smart_matches_request',
+    input: { endpoint: 'GET /api/discover/smart-matches' },
+    metadata: {
+      environment: process.env.NODE_ENV || 'development',
+      feature: 'smart_matching',
+    },
+  })
 
   try {
     // Create Supabase client
@@ -29,6 +41,8 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (authError || !currentUser) {
+      trace?.update({ output: { error: 'Unauthorized' }, metadata: { status: 401 } })
+      trace?.end()
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -36,6 +50,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
     const excludeIds = searchParams.get('exclude_ids')?.split(',').filter(Boolean) || []
+
+    trace?.update({ input: { userId: currentUser.id, limit, excludeIdsCount: excludeIds.length } })
 
     matchLogger.info('Smart matches API called', {
       userId: currentUser.id,
@@ -50,6 +66,16 @@ export async function GET(request: NextRequest) {
       const remaining = matchCache.getRemainingCount(currentUser.id)
       matchLogger.cacheHit(currentUser.id, remaining, cachedMatches.length)
       MatchingAnalytics.recordCacheHit(Date.now() - startTime)
+
+      // Opik: trace cache hit
+      const cacheSpan = trace?.span({
+        name: 'cache_lookup',
+        type: 'general',
+        input: { userId: currentUser.id },
+      })
+      cacheSpan?.update({ output: { hit: true, remaining, total: cachedMatches.length } })
+      cacheSpan?.score({ name: 'cache_hit', value: 1.0 })
+      cacheSpan?.end()
 
       // Return cached matches with their scores
       const matches = cachedMatches.slice(0, limit).map(cached => ({
@@ -86,6 +112,15 @@ export async function GET(request: NextRequest) {
         remaining: matchCache.getRemainingCount(currentUser.id)
       })
 
+      // Opik: finalize trace for cache hit path
+      trace?.update({
+        output: { source: 'cache', matchesReturned: matches.length, remaining: matchCache.getRemainingCount(currentUser.id) },
+        metadata: { latencyMs: executionTime, source: 'cache', status: 'success' },
+      })
+      scoreTrace(trace!, 'latency', Math.max(0, 1 - executionTime / 5000), `${executionTime}ms`)
+      trace?.end()
+      flushTraces()
+
       return NextResponse.json({
         matches,
         totalAvailable: cachedMatches.length,
@@ -99,17 +134,37 @@ export async function GET(request: NextRequest) {
     matchLogger.cacheMiss(currentUser.id)
     MatchingAnalytics.recordCacheMiss()
 
+    // Opik: trace cache miss
+    const cacheMissSpan = trace?.span({
+      name: 'cache_lookup',
+      type: 'general',
+      input: { userId: currentUser.id },
+    })
+    cacheMissSpan?.update({ output: { hit: false } })
+    cacheMissSpan?.score({ name: 'cache_hit', value: 0.0 })
+    cacheMissSpan?.end()
+
     // Get processed user IDs to exclude
     const processedIds = matchCache.getProcessedUserIds(currentUser.id)
     const allExcludeIds = [...new Set([...excludeIds, ...processedIds])]
 
     const dbStartTime = Date.now()
+    const dbSpan = trace?.span({
+      name: 'database_fetch_candidates',
+      type: 'general',
+      input: { userId: currentUser.id, excludeCount: allExcludeIds.length, limit: 30 },
+    })
     let result = await getSingleOptimizedMatches(
       currentUser.id,
       allExcludeIds,
       30 // Always fetch 30 for Gemini sorting
     )
     const dbDuration = Date.now() - dbStartTime
+    dbSpan?.update({
+      output: { candidatesFound: result.candidateUsers.length, hasProfile: !!result.currentUserProfile },
+      metadata: { latencyMs: dbDuration },
+    })
+    dbSpan?.end()
     matchLogger.dbQuery('fetch-candidates', dbDuration, result.candidateUsers.length)
 
     if (!result.currentUserProfile) {
@@ -149,6 +204,16 @@ export async function GET(request: NextRequest) {
     const geminiStartTime = Date.now()
     matchLogger.geminiStart(currentUser.id, candidateUsers.length)
 
+    const geminiSpan = trace?.span({
+      name: 'gemini_ai_sort',
+      type: 'llm',
+      input: {
+        model: 'gemini-2.0-flash-exp',
+        candidateCount: candidateUsers.length,
+        userId: currentUser.id,
+      },
+    })
+
     const gemini = new GeminiMatcher()
     const userProfile: UserProfile = {
       id: currentUserProfile.id,
@@ -184,6 +249,15 @@ export async function GET(request: NextRequest) {
 
     const sortedResults = await gemini.sortCandidatesByCompatibility(userProfile, candidateProfiles)
     const geminiDuration = Date.now() - geminiStartTime
+
+    geminiSpan?.update({
+      output: { sortedCount: sortedResults.length, topScore: sortedResults[0]?.score, bottomScore: sortedResults[sortedResults.length - 1]?.score },
+      metadata: { latencyMs: geminiDuration, model: 'gemini-2.0-flash-exp' },
+    })
+    geminiSpan?.score({ name: 'latency', value: Math.max(0, 1 - geminiDuration / 10000), reason: `${geminiDuration}ms` })
+    geminiSpan?.score({ name: 'completeness', value: sortedResults.length / candidateProfiles.length, reason: `${sortedResults.length}/${candidateProfiles.length} candidates scored` })
+    geminiSpan?.end()
+
     matchLogger.geminiSuccess(currentUser.id, geminiDuration, sortedResults.length)
     MatchingAnalytics.recordGeminiCall(geminiDuration, true)
 
@@ -246,6 +320,28 @@ export async function GET(request: NextRequest) {
       dbDuration
     })
 
+    // Opik: finalize trace for AI path
+    trace?.update({
+      output: {
+        source: 'gemini_ai',
+        matchesReturned: matches.length,
+        totalSorted: sortedMatches.length,
+        topScore: sortedResults[0]?.score,
+      },
+      metadata: {
+        latencyMs: executionTime,
+        dbLatencyMs: dbDuration,
+        geminiLatencyMs: geminiDuration,
+        source: 'gemini_ai',
+        status: 'success',
+        candidateCount: candidateUsers.length,
+      },
+    })
+    scoreTrace(trace!, 'overall_latency', Math.max(0, 1 - executionTime / 10000), `${executionTime}ms total`)
+    scoreTrace(trace!, 'match_quality', sortedResults[0]?.score ? sortedResults[0].score / 100 : 0, `Top score: ${sortedResults[0]?.score}`)
+    trace?.end()
+    flushTraces()
+
     return NextResponse.json({
       matches,
       totalAvailable: sortedMatches.length,
@@ -259,6 +355,13 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error in smart matches API:', error)
+    // Opik: trace error
+    trace?.update({
+      output: { error: error instanceof Error ? error.message : 'Unknown error' },
+      metadata: { status: 'error', latencyMs: Date.now() - startTime },
+    })
+    trace?.end()
+    flushTraces()
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
