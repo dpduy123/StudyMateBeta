@@ -51,10 +51,11 @@ export async function middleware(request: NextRequest) {
             supabaseResponse.cookies.delete(cookie.name)
           }
         })
-      } else {
         // For other errors (network, temporary), don't clear cookies
-        // Just log and continue - user may still have valid session
-        console.warn('Auth error (not clearing session):', error.message)
+        // Just log (if not 'Auth session missing!') and continue
+        if (error.message !== 'Auth session missing!') {
+          console.warn('Auth error (not clearing session):', error.message)
+        }
       }
     } else {
       user = data.user
